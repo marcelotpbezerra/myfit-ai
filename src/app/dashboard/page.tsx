@@ -3,7 +3,7 @@ import { SyncButton } from "@/components/SyncButton";
 import { WaterTracker } from "@/components/WaterTracker";
 import { MacroChart } from "@/components/MacroChart";
 import { AIInsights } from "@/components/AIInsights";
-import { getTodayWater } from "@/actions/health";
+import { getTodayWater, getLatestStats } from "@/actions/health";
 import { getTodayMacros } from "@/actions/diet";
 import { Dumbbell, Activity, Utensils, Droplets, Trophy } from "lucide-react";
 
@@ -11,6 +11,8 @@ export default async function DashboardPage() {
     const user = await currentUser();
     const todayWater = await getTodayWater();
     const todayMacros = await getTodayMacros();
+    const latestStats = await getLatestStats();
+    const currentWeight = latestStats.weight || "82.5";
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -70,7 +72,7 @@ export default async function DashboardPage() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Peso Atual</p>
-                                <p className="text-lg font-black">82.5 kg</p>
+                                <p className="text-lg font-black">{currentWeight} kg</p>
                             </div>
                         </div>
                         <span className="text-[10px] font-bold text-green-500 flex items-center gap-1">
