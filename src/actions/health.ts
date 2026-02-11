@@ -1,0 +1,119 @@
+"use server";
+
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/db";
+import { healthStats, userSettings } from "@/db/schema";
+import { eq, and, sql, desc, gte } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+
+export async function addHealthStat(type: string, value: string) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(healthStats).values({
+        userId,
+        type,
+        value,
+    });
+
+    revalidatePath("/dashboard/health");
+    revalidatePath("/dashboard");
+}
+
+export async function getWaterHistory(days = 7) {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+
+    const result = await db.select({
+        date: sql<string>`DATE(recorded_at)`,
+        total: sql<number>`sum(CAST(value AS INTEGER))`,
+    })
+        .from(healthStats)
+        .where(
+            and(
+                eq(healthStats.userId, userId),
+                eq(healthStats.type, "water"),
+                gte(healthStats.recordedAt, startDate)
+            )
+        )
+        .groupBy(sql`DATE(recorded_at)`)
+        .orderBy(sql`DATE(recorded_at)`);
+
+    return result;
+}
+
+export async function getLatestStats() {
+    const { userId } = await auth();
+    if (!userId) return {};
+
+    const stats = await db.query.healthStats.findMany({
+        where: eq(healthStats.userId, userId),
+        orderBy: [desc(healthStats.recordedAt)],
+    });
+
+    // Agrupa pelos tipos mais recentes
+    const latest: Record<string, any> = {};
+    stats.forEach(s => {
+        if (s.type && !latest[s.type]) {
+            latest[s.type] = s.value;
+        }
+    });
+
+    return latest;
+}
+
+export async function updateAIContext(context: string) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(userSettings)
+        .values({ userId, aiContext: context })
+        .onConflictDoUpdate({
+            target: userSettings.userId,
+            set: { aiContext: context, updatedAt: new Date() },
+        });
+
+    revalidatePath("/dashboard/health");
+}
+
+export async function getAIContext() {
+    const { userId } = await auth();
+    if (!userId) return "";
+
+    const settings = await db.query.userSettings.findFirst({
+        where: eq(userSettings.userId, userId),
+    });
+
+    return settings?.aiContext || "";
+}
+
+// Re-export original functions with slight adjustments if needed
+export async function addWaterLog(amountMl: number) {
+    return addHealthStat("water", amountMl.toString());
+}
+
+export async function getTodayWater() {
+    const { userId } = await auth();
+    if (!userId) return 0;
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const result = await db.select({
+        total: sql<number>`sum(CAST(value AS INTEGER))`,
+    })
+        .from(healthStats)
+        .where(
+            and(
+                eq(healthStats.userId, userId),
+                eq(healthStats.type, "water"),
+                gte(healthStats.recordedAt, startOfDay)
+            )
+        );
+
+    return result[0]?.total || 0;
+}

@@ -1,0 +1,54 @@
+import { pgTable, serial, text, boolean, integer, numeric, timestamp, date, jsonb, unique } from "drizzle-orm/pg-core";
+
+// 1. Tabela de Configurações do Usuário
+export const userSettings = pgTable("user_settings", {
+  userId: text("user_id").primaryKey(),
+  workoutSplit: text("workout_split").default("AB"), // Ex: 'AB', 'ABC', 'ABCD'
+  restTimeDefault: integer("rest_time_default").default(60),
+  aiContext: text("ai_context"), // Objetivo do usuário para IA
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 2. Tabela de Exercícios (Proteção contra duplicatas)
+export const exercises = pgTable("exercises", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  name: text("name").notNull(),
+  muscleGroup: text("muscle_group"),
+  split: text("split"), // 'A', 'B', 'C', 'D'
+  isCustom: boolean("is_custom").default(true),
+  apiId: text("api_id"), // ID caso venha da API externa
+}, (t) => ({
+  unqNameUser: unique().on(t.userId, t.name), // Chave composta para evitar duplicidade
+}));
+
+// 3. Tabela de Log de Treino
+export const workoutLogs = pgTable("workout_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  exerciseId: integer("exercise_id").references(() => exercises.id),
+  weight: numeric("weight"),
+  reps: integer("reps"),
+  restTime: integer("rest_time"), // em segundos
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 4. Tabela de Dieta (Refeições e Consumo)
+export const meals = pgTable("meals", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  date: date("date").notNull(),
+  mealName: text("meal_name").notNull(), // Ex: Café da manhã
+  items: jsonb("items"), // [{food: 'Frango', protein: 30, carbs: 0, fat: 5, qty: 100}]
+  isCompleted: boolean("is_completed").default(false),
+  notes: text("notes"),
+});
+
+// 5. Biometria e Saúde
+export const healthStats = pgTable("health_stats", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  type: text("type"), // 'weight', 'water', 'sleep_hours', 'waist_cm', 'arm_cm', 'photo_url'
+  value: text("value"), // Alterado para text para suportar URLs e valores
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
