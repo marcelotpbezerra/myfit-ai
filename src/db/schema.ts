@@ -36,6 +36,9 @@ export const workoutLogs = pgTable("workout_logs", {
   weight: numeric("weight"),
   reps: integer("reps"),
   restTime: integer("rest_time"), // em segundos
+  notes: text("notes"), // Notas específicas sobre este conjunto/exercício
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

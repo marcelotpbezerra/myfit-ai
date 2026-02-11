@@ -11,7 +11,8 @@ import {
     Circle,
     TrendingUp,
     Settings2,
-    AlertTriangle
+    AlertTriangle,
+    NotebookPen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,6 +42,22 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
 
     // Weights and Reps state for each exercise
     const [inputs, setInputs] = useState<Record<number, { weight: string, reps: string }>>({});
+    const [notes, setNotes] = useState<Record<number, string>>({});
+    const [exerciseStartedAt, setExerciseStartedAt] = useState<Record<number, Date>>({});
+    const [showNotes, setShowNotes] = useState<Record<number, boolean>>({});
+
+    const handleFocusExercise = (exerciseId: number) => {
+        if (activeExercise === exerciseId) {
+            setActiveExercise(null);
+            return;
+        }
+
+        // If not started yet, mark as started
+        if (!exerciseStartedAt[exerciseId]) {
+            setExerciseStartedAt(prev => ({ ...prev, [exerciseId]: new Date() }));
+        }
+        setActiveExercise(exerciseId);
+    };
 
     const handleInputChange = (exerciseId: number, field: 'weight' | 'reps', value: string) => {
         setInputs(prev => ({
@@ -64,11 +81,15 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
         if (!input.weight || !input.reps) return;
 
         startTransition(async () => {
+            const now = new Date();
             await logSet({
                 exerciseId: exercise.id,
                 weight: input.weight,
                 reps: parseInt(input.reps),
-                restTime: exercise.targetRestTime || 60
+                restTime: exercise.targetRestTime || 60,
+                notes: notes[exercise.id],
+                startedAt: exerciseStartedAt[exercise.id] || now,
+                completedAt: now
             });
 
             // Update target weight if changed
@@ -82,12 +103,20 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
 
             if (newSetsCount >= (exercise.targetSets || 3)) {
                 setExerciseFinished(prev => ({ ...prev, [exercise.id]: true }));
-                // Auto-focus next exercise if exists
+                // Auto-focus next PENDING exercise
                 const currentIndex = exercises.findIndex(e => e.id === exercise.id);
-                if (currentIndex < exercises.length - 1) {
-                    setActiveExercise(exercises[currentIndex + 1].id);
+                const nextPending = exercises.slice(currentIndex + 1).find(e => !exerciseFinished[e.id]);
+
+                if (nextPending) {
+                    handleFocusExercise(nextPending.id);
                 } else {
-                    setActiveExercise(null);
+                    // Try to find any pending from the start
+                    const anyPending = exercises.find(e => !exerciseFinished[e.id] && e.id !== exercise.id);
+                    if (anyPending) {
+                        handleFocusExercise(anyPending.id);
+                    } else {
+                        setActiveExercise(null);
+                    }
                 }
             } else {
                 setTimerDuration(exercise.targetRestTime || 60);
@@ -113,7 +142,7 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                     <CardContent className="p-0">
                         <div
                             className="flex items-center justify-between p-5 cursor-pointer"
-                            onClick={() => setActiveExercise(activeExercise === ex.id ? null : ex.id)}
+                            onClick={() => handleFocusExercise(ex.id)}
                         >
                             <div className="flex items-center gap-4">
                                 <div className={cn(
@@ -176,6 +205,23 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                                     </div>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <div
+                                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 cursor-pointer hover:text-primary transition-colors"
+                                        onClick={() => setShowNotes(prev => ({ ...prev, [ex.id]: !prev[ex.id] }))}
+                                    >
+                                        <NotebookPen className="h-4 w-4" />
+                                        <span>Anotações do Exercício</span>
+                                    </div>
+                                    {showNotes[ex.id] && (
+                                        <Input
+                                            placeholder="Ex: Senti leve desconforto, execução fluida..."
+                                            className="h-12 text-sm rounded-xl bg-muted/30 border-dashed border-muted-foreground/30"
+                                            value={notes[ex.id] || ""}
+                                            onChange={(e) => setNotes(prev => ({ ...prev, [ex.id]: e.target.value }))}
+                                        />
+                                    )}
+                                </div>
                                 <Button
                                     onClick={() => handleLogSet(ex)}
                                     disabled={isPending}
@@ -207,15 +253,18 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                         )}
                     </CardContent>
                 </Card>
-            ))}
+            ))
+            }
 
-            {showTimer && (
-                <RestTimer
-                    duration={timerDuration}
-                    onClose={() => setShowTimer(false)}
-                    onComplete={() => setShowTimer(false)}
-                />
-            )}
-        </div>
+            {
+                showTimer && (
+                    <RestTimer
+                        duration={timerDuration}
+                        onClose={() => setShowTimer(false)}
+                        onComplete={() => setShowTimer(false)}
+                    />
+                )
+            }
+        </div >
     );
 }

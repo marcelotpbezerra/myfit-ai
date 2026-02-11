@@ -87,6 +87,9 @@ export async function logSet(data: {
     weight: string;
     reps: number;
     restTime: number;
+    notes?: string;
+    startedAt?: Date;
+    completedAt?: Date;
 }) {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
@@ -97,6 +100,9 @@ export async function logSet(data: {
         weight: data.weight,
         reps: data.reps,
         restTime: data.restTime,
+        notes: data.notes,
+        startedAt: data.startedAt,
+        completedAt: data.completedAt,
     });
 
     revalidatePath("/dashboard/workout");

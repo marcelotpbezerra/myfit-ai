@@ -29,6 +29,7 @@ export async function analyzeProgressWithGemini() {
         exerciseName: exercises.name,
         weight: workoutLogs.weight,
         reps: workoutLogs.reps,
+        notes: workoutLogs.notes,
         date: workoutLogs.createdAt,
     })
         .from(workoutLogs)
@@ -51,7 +52,7 @@ export async function analyzeProgressWithGemini() {
     });
 
     // 4. Preparar contexto para o Gemini
-    const trainingData = recentWorkoutLogs.map(l => `- ${l.exerciseName}: ${l.weight}kg x ${l.reps}`).join('\n');
+    const trainingData = recentWorkoutLogs.map(l => `- ${l.exerciseName}: ${l.weight}kg x ${l.reps} ${l.notes ? `(Nota: ${l.notes})` : ""}`).join('\n');
     const mealData = recentMeals.map(m => `- ${m.mealName}: ${JSON.stringify(m.items)}`).join('\n');
 
     const prompt = `
@@ -67,7 +68,7 @@ export async function analyzeProgressWithGemini() {
     ${mealData || "Nenhuma refeição registrada."}
     
     TAREFAS:
-    1. Analise se o treino e dieta estão alinhados com o objetivo.
+    1. Analise se o treino e dieta estão alinhados com o objetivo. Leve em conta as anotações do usuário sobre desconfortos ou fluidez.
     2. Dê um insight prático para a próxima semana.
     3. Seja breve e provocativo. Máximo 4 parágrafos pequenos. Use emojis fitness.
   `;
