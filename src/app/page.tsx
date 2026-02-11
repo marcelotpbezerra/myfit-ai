@@ -31,22 +31,22 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Intro Section */}
-        <section className="relative px-6 py-24 lg:py-40 text-center max-w-5xl mx-auto overflow-hidden">
+        <section className="relative px-6 py-12 lg:py-20 text-center max-w-5xl mx-auto overflow-hidden">
           {/* Background Blobs */}
           <div className="absolute top-0 -left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] -z-10 animate-pulse" />
           <div className="absolute bottom-0 -right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10" />
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary mb-6 lg:mb-8">
             <Zap className="h-3 w-3" />
             <span>Inteligência Artificial aplicada à sua saúde</span>
           </div>
 
-          <h1 className="text-6xl lg:text-8xl font-black tracking-tighter mb-8 leading-[0.9] text-white">
+          <h1 className="text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-[0.85] text-white">
             SEU CORPO MERECE UMA <br />
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent italic">GESTÃO INTELIGENTE.</span>
           </h1>
 
-          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-base lg:text-lg text-muted-foreground mb-8 lg:mb-10 max-w-2xl mx-auto leading-relaxed font-medium px-4">
             O MyFit.ai une treinos avançados, controle nutricional de alta precisão e biometria em um ecossistema projetado para alta performance.
           </p>
 
