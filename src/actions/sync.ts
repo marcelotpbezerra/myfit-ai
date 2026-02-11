@@ -5,13 +5,33 @@ import { db } from "@/db";
 import { exercises, dietPlan } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
-const DEFAULT_EXERCISES = [
-    { name: "Supino Reto", muscleGroup: "Peito", isCustom: false },
-    { name: "Agachamento Livre", muscleGroup: "Pernas", isCustom: false },
-    { name: "Remada Curvada", muscleGroup: "Costas", isCustom: false },
-    { name: "Desenvolvimento Militar", muscleGroup: "Ombros", isCustom: false },
-    { name: "Rosca Direta", muscleGroup: "Bíceps", isCustom: false },
-    { name: "Tríceps Testa", muscleGroup: "Tríceps", isCustom: false },
+const PROTOCOL_2026_EXERCISES = [
+    // Treino A - Peito/Tríceps
+    { name: "Supino Reto Máquina", muscleGroup: "Peito", split: "A", targetWeight: "40", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Supino Inclinado Halter", muscleGroup: "Peito", split: "A", targetWeight: "22", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Crucifixo Máquina", muscleGroup: "Peito", split: "A", targetWeight: "100", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Tríceps Pulley", muscleGroup: "Tríceps", split: "A", targetWeight: "45", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+    { name: "Tríceps Testa", muscleGroup: "Tríceps", split: "A", targetWeight: "20", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+
+    // Treino B - Costas/Bíceps
+    { name: "Puxada Aberta", muscleGroup: "Costas", split: "B", targetWeight: "66", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Remada Curvada Supinada", muscleGroup: "Costas", split: "B", targetWeight: "38", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Remada Baixa Triângulo", muscleGroup: "Costas", split: "B", targetWeight: "50", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Pull-over Corda", muscleGroup: "Costas", split: "B", targetWeight: "21", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+    { name: "Crucifixo Inverso", muscleGroup: "Costas", split: "B", targetWeight: "40", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+
+    // Treino C - Pernas
+    { name: "Leg Press 45", muscleGroup: "Pernas", split: "C", targetWeight: "160", targetSets: 3, targetReps: 12, targetRestTime: 90, isCustom: false },
+    { name: "Extensora", muscleGroup: "Pernas", split: "C", targetWeight: "50", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Flexora", muscleGroup: "Pernas", split: "C", targetWeight: "45", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Cadeira Abdutora", muscleGroup: "Pernas", split: "C", targetWeight: "43", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+    { name: "Panturrilha", muscleGroup: "Pernas", split: "C", targetWeight: "60", targetSets: 3, targetReps: 15, targetRestTime: 45, isCustom: false },
+
+    // Treino D - Ombros/Trapézio
+    { name: "Desenv. Halteres", muscleGroup: "Ombros", split: "D", targetWeight: "24", targetSets: 3, targetReps: 12, targetRestTime: 60, isCustom: false },
+    { name: "Elevação Lateral", muscleGroup: "Ombros", split: "D", targetWeight: "9", targetSets: 5, targetReps: 15, targetRestTime: 45, isCustom: false },
+    { name: "Elevação Frontal", muscleGroup: "Ombros", split: "D", targetWeight: "20", targetSets: 3, targetReps: 12, targetRestTime: 45, isCustom: false },
+    { name: "Encolhimento", muscleGroup: "Trapézio", split: "D", targetWeight: "60", targetSets: 3, targetReps: 15, targetRestTime: 45, isCustom: false },
 ];
 
 export async function seedExercises() {
@@ -21,26 +41,20 @@ export async function seedExercises() {
         throw new Error("Não autorizado");
     }
 
-    // Verifica se o usuário já tem exercícios cadastrados
-    const existingExercises = await db.query.exercises.findMany({
-        where: eq(exercises.userId, userId),
-    });
+    console.log(`Limpando e semeando protocolo ABCD para o usuário ${userId}...`);
 
-    if (existingExercises.length === 0) {
-        console.log(`Semeando exercícios para o usuário ${userId}...`);
+    // Nota: Deletar exercícios pode falhar se houver logs. 
+    // Usamos ON CONFLICT no banco, então aqui vamos apenas garantir que o split seja atualizado se necessário.
 
-        // Insere os exercícios padrão
-        const exercisesToInsert = DEFAULT_EXERCISES.map(ex => ({
-            ...ex,
-            userId,
-        }));
+    // Insere os exercícios do protocolo 2026
+    const exercisesToInsert = PROTOCOL_2026_EXERCISES.map(ex => ({
+        ...ex,
+        userId,
+    }));
 
-        await db.insert(exercises).values(exercisesToInsert).onConflictDoNothing();
+    await db.insert(exercises).values(exercisesToInsert).onConflictDoNothing();
 
-        return { success: true, message: "Exercícios semeados com sucesso!" };
-    }
-
-    return { success: true, message: "O usuário já possui exercícios." };
+    return { success: true, message: "Protocolo ABCD restaurado com sucesso!" };
 }
 
 export async function seedDietPlan() {

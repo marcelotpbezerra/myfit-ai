@@ -10,7 +10,8 @@ import {
     CheckCircle2,
     Circle,
     TrendingUp,
-    Settings2
+    Settings2,
+    AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -97,6 +98,13 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
 
     return (
         <div className="space-y-4">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-4 flex items-center gap-3 animate-pulse">
+                <AlertTriangle className="h-5 w-5 shrink-0" />
+                <p className="text-[10px] font-bold uppercase tracking-wide">
+                    Aviso: Cuidado com a Manobra de Valsalva (Prender a respiração) durante o esforço. Mantenha a expiração no esforço.
+                </p>
+            </div>
+
             {exercises.map((ex) => (
                 <Card key={ex.id} className={cn(
                     "overflow-hidden transition-all duration-300",
@@ -152,7 +160,7 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                                             type="number"
                                             placeholder={ex.targetWeight || "00"}
                                             className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/30"
-                                            value={inputs[ex.id]?.weight || ""}
+                                            value={inputs[ex.id]?.weight ?? ex.targetWeight ?? ""}
                                             onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
                                         />
                                     </div>
@@ -162,7 +170,7 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                                             type="number"
                                             placeholder={ex.targetReps?.toString() || "00"}
                                             className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/30"
-                                            value={inputs[ex.id]?.reps || ""}
+                                            value={inputs[ex.id]?.reps ?? ex.targetReps?.toString() ?? ""}
                                             onChange={(e) => handleInputChange(ex.id, 'reps', e.target.value)}
                                         />
                                     </div>
