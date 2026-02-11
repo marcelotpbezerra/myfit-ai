@@ -1,7 +1,7 @@
 import { getLatestStats, getAIContext } from "@/actions/health";
 import { BiometricsManager, HabitTracker, ProgressPhotos } from "@/components/HealthManager";
 import { AISettings } from "@/components/AISettings";
-import { Activity, Heart } from "lucide-react";
+import { Activity, Heart, AlertTriangle } from "lucide-react";
 
 export default async function HealthPage() {
     const latestStats = await getLatestStats();
@@ -17,6 +17,18 @@ export default async function HealthPage() {
                 <p className="text-muted-foreground font-medium">
                     Acompanhe sua evolução física e hábitos diários.
                 </p>
+            </div>
+
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-6 flex items-start gap-4 animate-pulse shadow-lg shadow-destructive/5">
+                <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                </div>
+                <div>
+                    <h4 className="font-black uppercase tracking-widest text-xs mb-1">Alerta de Saúde Prioritário</h4>
+                    <p className="font-medium text-destructive/90 text-sm leading-relaxed">
+                        Monitorar pressão arterial diariamente devido ao histórico neurocirúrgico.
+                    </p>
+                </div>
             </div>
 
             <div className="grid gap-8 lg:grid-cols-3">

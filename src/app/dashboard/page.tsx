@@ -5,14 +5,22 @@ import { MacroChart } from "@/components/MacroChart";
 import { AIInsights } from "@/components/AIInsights";
 import { getTodayWater, getLatestStats } from "@/actions/health";
 import { getTodayMacros } from "@/actions/diet";
-import { Dumbbell, Activity, Utensils, Droplets, Trophy } from "lucide-react";
+import { Dumbbell, Activity, Trophy } from "lucide-react";
+import Link from "next/link";
+import { WeightCard } from "@/components/WeightCard";
+import { getWaterGoal } from "@/actions/health";
+import { getDietPlan } from "@/actions/diet";
 
 export default async function DashboardPage() {
     const user = await currentUser();
     const todayWater = await getTodayWater();
+    const waterGoal = await getWaterGoal();
     const todayMacros = await getTodayMacros();
     const latestStats = await getLatestStats();
     const currentWeight = latestStats.weight || "82.5";
+    const dietPlan = await getDietPlan();
+
+    const calorieGoal = dietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -37,12 +45,13 @@ export default async function DashboardPage() {
                 {/* Main Stats Column */}
                 <div className="lg:col-span-8 space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
-                        <WaterTracker initialAmount={todayWater} />
+                        <WaterTracker initialAmount={todayWater} initialGoal={waterGoal} />
                         <MacroChart
                             protein={todayMacros.protein}
                             carbs={todayMacros.carbs}
                             fat={todayMacros.fat}
                             calories={todayMacros.calories}
+                            goal={calorieGoal}
                         />
                     </div>
                     <AIInsights />
@@ -50,35 +59,25 @@ export default async function DashboardPage() {
 
                 {/* Sidebar Column */}
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5 p-6 space-y-4">
+                    <Link
+                        href="/dashboard/workout"
+                        className="block group rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5 p-6 space-y-4 hover:bg-primary/5 transition-all"
+                    >
                         <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-colors">
                                 <Dumbbell className="h-5 w-5" />
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Próximo Treino</p>
-                                <p className="text-lg font-black italic">Treino A — Empurre</p>
+                                <p className="text-lg font-black italic group-hover:text-primary transition-colors">Treino A — Empurre</p>
                             </div>
                         </div>
                         <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary/40 w-1/3" />
+                            <div className="h-full bg-primary w-1/3 group-hover:w-1/2 transition-all duration-500" />
                         </div>
-                    </div>
+                    </Link>
 
-                    <div className="rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5 p-6 space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
-                                <Activity className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Peso Atual</p>
-                                <p className="text-lg font-black">{currentWeight} kg</p>
-                            </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-green-500 flex items-center gap-1">
-                            <Activity className="h-3 w-3" /> -0.8kg vs semana passada
-                        </span>
-                    </div>
+                    <WeightCard initialWeight={currentWeight} />
 
                     <div className="p-6 rounded-3xl bg-muted/10 border border-white/5 space-y-4">
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sistema</p>

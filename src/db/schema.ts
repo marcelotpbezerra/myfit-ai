@@ -5,6 +5,7 @@ export const userSettings = pgTable("user_settings", {
   userId: text("user_id").primaryKey(),
   workoutSplit: text("workout_split").default("AB"), // Ex: 'AB', 'ABC', 'ABCD'
   restTimeDefault: integer("rest_time_default").default(60),
+  waterGoal: integer("water_goal").default(3000),
   aiContext: text("ai_context"), // Objetivo do usuário para IA
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -22,6 +23,7 @@ export const exercises = pgTable("exercises", {
   targetReps: integer("target_reps").default(12),
   targetWeight: numeric("target_weight").default("0"),
   targetRestTime: integer("target_rest_time").default(60),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (t) => ({
   unqNameUser: unique().on(t.userId, t.name), // Chave composta para evitar duplicidade
 }));
@@ -55,4 +57,17 @@ export const healthStats = pgTable("health_stats", {
   type: text("type"), // 'weight', 'water', 'sleep_hours', 'waist_cm', 'arm_cm', 'photo_url'
   value: text("value"), // Alterado para text para suportar URLs e valores
   recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+// 6. Tabela de Plano de Dieta (Metas por refeição)
+export const dietPlan = pgTable("diet_plan", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  mealName: text("meal_name").notNull(), // Café, Lanche, Almoço, etc.
+  targetProtein: integer("target_protein").default(0),
+  targetCarbs: integer("target_carbs").default(0),
+  targetFat: integer("target_fat").default(0),
+  targetCalories: integer("target_calories").default(0),
+  suggestions: text("suggestions"), // Ex: "Pão Integral ou Cuscuz"
+  order: integer("order").default(0),
 });

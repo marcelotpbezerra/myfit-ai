@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { seedExercises } from "@/actions/sync";
+import { seedExercises, seedDietPlan } from "@/actions/sync";
 import { RefreshCw, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ export function SyncButton() {
         try {
             setLoading(true);
             await seedExercises();
+            await seedDietPlan();
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
         } catch (error) {

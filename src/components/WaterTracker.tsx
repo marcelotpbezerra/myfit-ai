@@ -1,31 +1,44 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
-import { addWaterLog } from "@/actions/health";
-import { Droplets, Plus } from "lucide-react";
+import { useOptimistic, useTransition, useState } from "react";
+import { Droplets, Plus, Pencil, Save, X } from "lucide-react";
+import { addWaterLog, updateWaterGoal } from "@/actions/health";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WaterTrackerProps {
     initialAmount: number;
+    initialGoal: number;
 }
 
-export function WaterTracker({ initialAmount }: WaterTrackerProps) {
+export function WaterTracker({ initialAmount, initialGoal }: WaterTrackerProps) {
     const [isPending, startTransition] = useTransition();
     const [optimisticWater, addOptimisticWater] = useOptimistic(
         initialAmount,
         (state, amount: number) => state + amount
     );
 
-    const goal = 4500; // 4.5 Litros
-    const progress = Math.min((optimisticWater / goal) * 100, 100);
+    const [isEditingGoal, setIsEditingGoal] = useState(false);
+    const [newGoal, setNewGoal] = useState(initialGoal.toString());
+
+    const progress = Math.min((optimisticWater / initialGoal) * 100, 100);
 
     async function handleAddWater(amount: number) {
         startTransition(() => {
             addOptimisticWater(amount);
         });
         await addWaterLog(amount);
+    }
+
+    async function handleSaveGoal() {
+        const goalNum = parseInt(newGoal);
+        if (isNaN(goalNum)) return;
+
+        startTransition(async () => {
+            await updateWaterGoal(goalNum);
+            setIsEditingGoal(false);
+        });
     }
 
     return (
@@ -35,7 +48,27 @@ export function WaterTracker({ initialAmount }: WaterTrackerProps) {
                     <Droplets className="h-4 w-4 text-blue-500" />
                     Hidratação
                 </CardTitle>
-                <span className="text-xs text-muted-foreground uppercase font-black">Meta: 4.5L</span>
+                {isEditingGoal ? (
+                    <div className="flex items-center gap-1">
+                        <input
+                            type="number"
+                            className="w-16 h-6 text-[10px] bg-white/10 rounded px-1 outline-none text-white font-bold"
+                            value={newGoal}
+                            onChange={(e) => setNewGoal(e.target.value)}
+                            autoFocus
+                        />
+                        <button onClick={handleSaveGoal} className="text-green-500"><Save className="h-3 w-3" /></button>
+                        <button onClick={() => setIsEditingGoal(false)} className="text-red-500"><X className="h-3 w-3" /></button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsEditingGoal(true)}
+                        className="text-xs text-muted-foreground uppercase font-black flex items-center gap-1 hover:text-primary transition-colors"
+                    >
+                        Meta: {(initialGoal / 1000).toFixed(1)}L
+                        <Pencil className="h-2 w-2" />
+                    </button>
+                )}
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-end justify-between">

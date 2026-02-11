@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { logSet, getRecentLogs } from "@/actions/workout";
+import { logSet, getRecentLogs, updateTargetWeight } from "@/actions/workout";
 import {
     ChevronRight,
     ChevronDown,
@@ -34,6 +34,10 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
     const [showTimer, setShowTimer] = useState(false);
     const [timerDuration, setTimerDuration] = useState(60);
 
+    // Track completed sets per exercise
+    const [completedSets, setCompletedSets] = useState<Record<number, number>>({});
+    const [exerciseFinished, setExerciseFinished] = useState<Record<number, boolean>>({});
+
     // Weights and Reps state for each exercise
     const [inputs, setInputs] = useState<Record<number, { weight: string, reps: string }>>({});
 
@@ -41,24 +45,53 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
         setInputs(prev => ({
             ...prev,
             [exerciseId]: {
-                ...(prev[exerciseId] || { weight: '', reps: '' }),
+                ...(prev[exerciseId] || {
+                    weight: exercises.find(e => e.id === exerciseId)?.targetWeight || '',
+                    reps: exercises.find(e => e.id === exerciseId)?.targetReps?.toString() || ''
+                }),
                 [field]: value
             }
         }));
     };
 
-    const handleLogSet = async (exerciseId: number) => {
-        const input = inputs[exerciseId];
-        if (!input?.weight || !input?.reps) return;
+    const handleLogSet = async (exercise: Exercise) => {
+        const input = inputs[exercise.id] || {
+            weight: exercise.targetWeight || '',
+            reps: exercise.targetReps?.toString() || ''
+        };
+
+        if (!input.weight || !input.reps) return;
 
         startTransition(async () => {
             await logSet({
-                exerciseId,
+                exerciseId: exercise.id,
                 weight: input.weight,
                 reps: parseInt(input.reps),
-                restTime: timerDuration
+                restTime: exercise.targetRestTime || 60
             });
-            setShowTimer(true);
+
+            // Update target weight if changed
+            if (input.weight !== exercise.targetWeight) {
+                await updateTargetWeight(exercise.id, input.weight);
+            }
+
+            // Update series counter
+            const newSetsCount = (completedSets[exercise.id] || 0) + 1;
+            setCompletedSets(prev => ({ ...prev, [exercise.id]: newSetsCount }));
+
+            if (newSetsCount >= (exercise.targetSets || 3)) {
+                setExerciseFinished(prev => ({ ...prev, [exercise.id]: true }));
+                // Auto-focus next exercise if exists
+                const currentIndex = exercises.findIndex(e => e.id === exercise.id);
+                if (currentIndex < exercises.length - 1) {
+                    setActiveExercise(exercises[currentIndex + 1].id);
+                } else {
+                    setActiveExercise(null);
+                }
+            } else {
+                setTimerDuration(exercise.targetRestTime || 60);
+                setShowTimer(true);
+            }
         });
     };
 
@@ -76,13 +109,19 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                         >
                             <div className="flex items-center gap-4">
                                 <div className={cn(
-                                    "h-12 w-12 rounded-2xl flex items-center justify-center transition-colors",
-                                    activeExercise === ex.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                                    "h-12 w-12 rounded-2xl flex items-center justify-center transition-colors relative",
+                                    exerciseFinished[ex.id] ? "bg-green-500 text-white" :
+                                        activeExercise === ex.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                                 )}>
-                                    <Dumbbell className="h-6 w-6" />
+                                    {exerciseFinished[ex.id] ? <CheckCircle2 className="h-6 w-6" /> : <Dumbbell className="h-6 w-6" />}
+                                    {completedSets[ex.id] > 0 && !exerciseFinished[ex.id] && (
+                                        <div className="absolute -top-2 -right-2 h-5 w-5 bg-primary text-[10px] text-black font-black flex items-center justify-center rounded-full border-2 border-[#080808]">
+                                            {completedSets[ex.id]}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-lg tracking-tight">{ex.name}</h3>
+                                    <h3 className={cn("font-black text-lg tracking-tight", exerciseFinished[ex.id] && "text-muted-foreground line-through")}>{ex.name}</h3>
                                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{ex.muscleGroup}</p>
                                 </div>
                             </div>
@@ -130,14 +169,14 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                                 </div>
 
                                 <Button
-                                    onClick={() => handleLogSet(ex.id)}
-                                    disabled={isPending || !inputs[ex.id]?.weight || !inputs[ex.id]?.reps}
+                                    onClick={() => handleLogSet(ex)}
+                                    disabled={isPending}
                                     className="w-full h-20 text-xl font-black rounded-3xl shadow-xl shadow-primary/20 flex items-center gap-3 active:scale-95 transition-all"
                                 >
                                     {isPending ? "Salvando..." : (
                                         <>
                                             <CheckCircle2 className="h-6 w-6" />
-                                            Série Completa
+                                            Série {(completedSets[ex.id] || 0) + 1} / {ex.targetSets}
                                         </>
                                     )}
                                 </Button>

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveMeal, deleteMeal } from "@/actions/diet";
+import { saveMeal, deleteMeal, toggleMealCompletion } from "@/actions/diet";
 import {
     Plus,
     Trash2,
@@ -54,7 +54,19 @@ interface Meal {
     date: string;
 }
 
-export function MealManager({ initialMeals, date }: { initialMeals: any[], date: string }) {
+interface DietPlanItem {
+    id: number;
+    userId: string;
+    mealName: string;
+    targetProtein: number | null;
+    targetCarbs: number | null;
+    targetFat: number | null;
+    targetCalories: number | null;
+    suggestions: string | null;
+    order: number | null;
+}
+
+export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeals: any[], date: string, dietPlan?: DietPlanItem[] }) {
     const router = useRouter();
     const [meals, setMeals] = useState<Meal[]>(initialMeals);
     const [isPending, startTransition] = useTransition();
@@ -138,12 +150,23 @@ export function MealManager({ initialMeals, date }: { initialMeals: any[], date:
 
     async function toggleComplete(meal: Meal) {
         if (!meal.id) return;
-        await saveMeal({
-            ...meal,
-            id: meal.id,
-            isCompleted: !meal.isCompleted
+        startTransition(async () => {
+            await toggleMealCompletion(meal.id!, !meal.isCompleted);
+            router.refresh();
         });
-        router.refresh();
+    }
+
+    async function handleQuickAdd(plan: DietPlanItem) {
+        startTransition(async () => {
+            await saveMeal({
+                date,
+                mealName: plan.mealName,
+                items: [], // Começa vazio para o usuário preencher ou podemos colocar um item padrão
+                isCompleted: false,
+                notes: `Plano: ${plan.suggestions}`
+            });
+            router.refresh();
+        });
     }
 
     const totals = currentItems.reduce((acc, item) => ({
@@ -166,48 +189,69 @@ export function MealManager({ initialMeals, date }: { initialMeals: any[], date:
             </div>
 
             <div className="grid gap-4">
-                {meals.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-3xl opacity-50">
-                        <Utensils className="h-12 w-12 mb-4" />
-                        <p className="font-medium">Nenhuma refeição registrada para hoje.</p>
-                    </div>
-                )}
+                {dietPlan.map((plan) => {
+                    const existingMeal = meals.find(m => m.mealName === plan.mealName);
 
-                {meals.map((meal) => (
-                    <Card key={meal.id} className={cn(
-                        "group transition-all hover:border-primary/50 overflow-hidden",
-                        meal.isCompleted && "bg-muted/30"
-                    )}>
-                        <div className="flex items-center p-6 gap-4">
-                            <button
-                                onClick={() => toggleComplete(meal)}
-                                className="transition-transform hover:scale-110 active:scale-95"
-                            >
-                                {meal.isCompleted ? (
-                                    <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+                    return (
+                        <Card key={plan.id} className={cn(
+                            "group transition-all overflow-hidden border-dashed bg-transparent",
+                            existingMeal?.isCompleted ? "opacity-40" : "hover:border-primary/50"
+                        )}>
+                            <div className="flex items-center p-6 gap-4">
+                                {existingMeal ? (
+                                    <button
+                                        onClick={() => toggleComplete(existingMeal)}
+                                        className="transition-transform hover:scale-110 active:scale-95"
+                                    >
+                                        {existingMeal.isCompleted ? (
+                                            <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+                                        ) : (
+                                            <Circle className="h-6 w-6 text-muted-foreground" />
+                                        )}
+                                    </button>
                                 ) : (
-                                    <Circle className="h-6 w-6 text-muted-foreground" />
+                                    <button
+                                        onClick={() => handleQuickAdd(plan)}
+                                        className="h-12 w-12 rounded-2xl bg-primary/5 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                                    >
+                                        <Plus className="h-6 w-6" />
+                                    </button>
                                 )}
-                            </button>
 
-                            <div className="flex-1 cursor-pointer" onClick={() => openEditDialog(meal)}>
-                                <h3 className={cn("font-bold text-lg", meal.isCompleted && "line-through text-muted-foreground")}>
-                                    {meal.mealName}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                    {meal.items.length} itens • {Math.round(meal.items.reduce((acc, i) => acc + (i.protein * 4 + i.carbs * 4 + i.fat * 9), 0))} kcal
-                                </p>
-                            </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className={cn("font-bold text-lg", existingMeal?.isCompleted && "line-through text-muted-foreground")}>
+                                            {plan.mealName}
+                                        </h3>
+                                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-black uppercase tracking-widest">
+                                            Meta 2026
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground font-medium italic mt-0.5">
+                                        Tip: {plan.suggestions}
+                                    </p>
+                                    <div className="flex gap-3 mt-2 text-[10px] font-black uppercase tracking-widest">
+                                        <span className="text-red-500">P: {plan.targetProtein}g</span>
+                                        <span className="text-blue-500">C: {plan.targetCarbs}g</span>
+                                        <span className="text-yellow-500">F: {plan.targetFat}g</span>
+                                        <span className="text-muted-foreground">{plan.targetCalories} kcal</span>
+                                    </div>
+                                </div>
 
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(meal.id!)} className="text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                {existingMeal && (
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                                            <Search className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(existingMeal.id!)} className="text-muted-foreground hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </Card>
-                ))}
+                        </Card>
+                    );
+                })}
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

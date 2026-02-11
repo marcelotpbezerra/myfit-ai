@@ -2,8 +2,8 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { meals } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { meals, dietPlan } from "@/db/schema";
+import { eq, and, sql, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getTodayMacros() {
@@ -15,7 +15,8 @@ export async function getTodayMacros() {
     const todayMeals = await db.query.meals.findMany({
         where: and(
             eq(meals.userId, userId),
-            eq(meals.date, today)
+            eq(meals.date, today),
+            eq(meals.isCompleted, true)
         ),
     });
 
@@ -94,6 +95,29 @@ export async function deleteMeal(id: number) {
     if (!userId) throw new Error("Não autorizado");
 
     await db.delete(meals).where(and(eq(meals.id, id), eq(meals.userId, userId)));
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/meals");
+    return { success: true };
+}
+
+export async function getDietPlan() {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    return await db.query.dietPlan.findMany({
+        where: eq(dietPlan.userId, userId),
+        orderBy: [asc(dietPlan.order)],
+    });
+}
+
+export async function toggleMealCompletion(mealId: number, isCompleted: boolean) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.update(meals)
+        .set({ isCompleted })
+        .where(and(eq(meals.id, mealId), eq(meals.userId, userId)));
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/meals");

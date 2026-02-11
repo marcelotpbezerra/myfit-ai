@@ -117,3 +117,29 @@ export async function getTodayWater() {
 
     return result[0]?.total || 0;
 }
+
+export async function updateWaterGoal(goalMl: number) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(userSettings)
+        .values({ userId, waterGoal: goalMl })
+        .onConflictDoUpdate({
+            target: userSettings.userId,
+            set: { waterGoal: goalMl, updatedAt: new Date() },
+        });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+export async function getWaterGoal() {
+    const { userId } = await auth();
+    if (!userId) return 3000;
+
+    const settings = await db.query.userSettings.findFirst({
+        where: eq(userSettings.userId, userId),
+    });
+
+    return settings?.waterGoal || 3000;
+}

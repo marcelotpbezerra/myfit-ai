@@ -1,10 +1,11 @@
-import { getMealsByDate } from "@/actions/diet";
+import { getMealsByDate, getDietPlan } from "@/actions/diet";
 import { MealManager } from "@/components/MealManager";
 import { Utensils } from "lucide-react";
 
 export default async function MealsPage() {
     const today = new Date().toISOString().split('T')[0];
     const initialMeals = await getMealsByDate(today);
+    const dietPlan = await getDietPlan();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -17,7 +18,7 @@ export default async function MealsPage() {
                 </p>
             </div>
 
-            <MealManager initialMeals={initialMeals} date={today} />
+            <MealManager initialMeals={initialMeals} date={today} dietPlan={dietPlan} />
         </div>
     );
 }

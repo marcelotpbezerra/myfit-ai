@@ -139,6 +139,18 @@ export async function addExerciseToWorkout(data: {
     return { success: true };
 }
 
+export async function updateTargetWeight(exerciseId: number, weight: string) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.update(exercises)
+        .set({ targetWeight: weight, updatedAt: new Date() })
+        .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)));
+
+    revalidatePath("/dashboard/workout");
+    return { success: true };
+}
+
 export async function importBaseExercises() {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
