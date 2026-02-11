@@ -22,6 +22,10 @@ interface Exercise {
     id: number;
     name: string;
     muscleGroup: string | null;
+    targetSets: number | null;
+    targetReps: number | null;
+    targetWeight: string | null;
+    targetRestTime: number | null;
 }
 
 export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
@@ -87,13 +91,28 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
 
                         {activeExercise === ex.id && (
                             <div className="px-5 pb-5 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex gap-4 justify-center py-2 bg-muted/30 rounded-2xl border border-white/5">
+                                    <div className="text-center px-4 border-r border-white/10">
+                                        <p className="text-[8px] font-black uppercase text-muted-foreground">Meta</p>
+                                        <p className="text-xs font-bold">{ex.targetSets}x{ex.targetReps}</p>
+                                    </div>
+                                    <div className="text-center px-4 border-r border-white/10">
+                                        <p className="text-[8px] font-black uppercase text-muted-foreground">Carga</p>
+                                        <p className="text-xs font-bold">{ex.targetWeight}kg</p>
+                                    </div>
+                                    <div className="text-center px-4">
+                                        <p className="text-[8px] font-black uppercase text-muted-foreground">Descanso</p>
+                                        <p className="text-xs font-bold">{ex.targetRestTime}s</p>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Carga (kg)</label>
                                         <Input
                                             type="number"
-                                            placeholder="00"
-                                            className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary"
+                                            placeholder={ex.targetWeight || "00"}
+                                            className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/30"
                                             value={inputs[ex.id]?.weight || ""}
                                             onChange={(e) => handleInputChange(ex.id, 'weight', e.target.value)}
                                         />
@@ -102,8 +121,8 @@ export function WorkoutExecution({ exercises }: { exercises: Exercise[] }) {
                                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reps</label>
                                         <Input
                                             type="number"
-                                            placeholder="00"
-                                            className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary"
+                                            placeholder={ex.targetReps?.toString() || "00"}
+                                            className="h-16 text-2xl font-black text-center rounded-2xl bg-muted/50 border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/30"
                                             value={inputs[ex.id]?.reps || ""}
                                             onChange={(e) => handleInputChange(ex.id, 'reps', e.target.value)}
                                         />

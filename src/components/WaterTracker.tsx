@@ -18,7 +18,7 @@ export function WaterTracker({ initialAmount }: WaterTrackerProps) {
         (state, amount: number) => state + amount
     );
 
-    const goal = 3000; // 3 Litros
+    const goal = 4500; // 4.5 Litros
     const progress = Math.min((optimisticWater / goal) * 100, 100);
 
     async function handleAddWater(amount: number) {
@@ -35,7 +35,7 @@ export function WaterTracker({ initialAmount }: WaterTrackerProps) {
                     <Droplets className="h-4 w-4 text-blue-500" />
                     Hidratação
                 </CardTitle>
-                <span className="text-xs text-muted-foreground">Meta: 3.0L</span>
+                <span className="text-xs text-muted-foreground uppercase font-black">Meta: 4.5L</span>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-end justify-between">

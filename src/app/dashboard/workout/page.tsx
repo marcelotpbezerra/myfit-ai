@@ -1,10 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
-import { getUserSettings, getExercisesBySplit } from "@/actions/workout";
+import { getUserSettings, getExercisesBySplit, getAllExercises } from "@/actions/workout";
 import { WorkoutSplitter } from "@/components/WorkoutSplitter";
 import { WorkoutExecution } from "@/components/WorkoutExecution";
+import { WorkoutBuilder } from "@/components/WorkoutBuilder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Dumbbell, Settings } from "lucide-react";
+import { Dumbbell, Settings, PlusCircle, AlertCircle } from "lucide-react";
 
 export default async function WorkoutPage() {
     const settings = await getUserSettings();
@@ -16,6 +17,7 @@ export default async function WorkoutPage() {
     const exercisesB = await getExercisesBySplit("B");
     const exercisesC = await getExercisesBySplit("C");
     const exercisesD = await getExercisesBySplit("D");
+    const allExercises = await getAllExercises();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -25,6 +27,13 @@ export default async function WorkoutPage() {
                 </h1>
                 <p className="text-muted-foreground font-medium">
                     Escolha seu treino e registre sua evolução hoje.
+                </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
+                <p className="text-xs font-bold text-amber-200/80">
+                    Atenção: Evitar manobra de Valsalva extrema (Protocolo Pós-Op)
                 </p>
             </div>
 
@@ -64,7 +73,7 @@ export default async function WorkoutPage() {
                     </Tabs>
                 </TabsContent>
 
-                <TabsContent value="settings" className="mt-8">
+                <TabsContent value="settings" className="mt-8 space-y-8">
                     <Card className="rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5">
                         <CardHeader>
                             <CardTitle className="text-xl font-black flex items-center gap-2">
@@ -75,6 +84,19 @@ export default async function WorkoutPage() {
                         </CardHeader>
                         <CardContent>
                             <WorkoutSplitter currentSplit={currentSplit} />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5">
+                        <CardHeader>
+                            <CardTitle className="text-xl font-black flex items-center gap-2">
+                                <PlusCircle className="h-5 w-5 text-primary" />
+                                Montador de Treino
+                            </CardTitle>
+                            <CardDescription>Busque e adicione exercícios específicos para cada dia.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <WorkoutBuilder currentExercises={allExercises} currentSplit={currentSplit} />
                         </CardContent>
                     </Card>
                 </TabsContent>

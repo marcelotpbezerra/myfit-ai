@@ -73,6 +73,15 @@ export async function getExercisesBySplit(split: string) {
     });
 }
 
+export async function getAllExercises() {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    return await db.query.exercises.findMany({
+        where: eq(exercises.userId, userId),
+    });
+}
+
 export async function logSet(data: {
     exerciseId: number;
     weight: string;
@@ -93,19 +102,83 @@ export async function logSet(data: {
     revalidatePath("/dashboard/workout");
 }
 
+export async function addExerciseToWorkout(data: {
+    name: string;
+    muscleGroup: string;
+    split: string;
+    targetSets?: number;
+    targetReps?: number;
+    targetWeight?: string;
+    targetRestTime?: number;
+}) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(exercises).values({
+        userId,
+        name: data.name,
+        muscleGroup: data.muscleGroup,
+        split: data.split,
+        isCustom: true,
+        targetSets: data.targetSets || 3,
+        targetReps: data.targetReps || 12,
+        targetWeight: data.targetWeight || "0",
+        targetRestTime: data.targetRestTime || 60,
+    }).onConflictDoUpdate({
+        target: [exercises.userId, exercises.name],
+        set: {
+            split: data.split,
+            targetSets: data.targetSets || 3,
+            targetReps: data.targetReps || 12,
+            targetWeight: data.targetWeight || "0",
+            targetRestTime: data.targetRestTime || 60,
+        },
+    });
+
+    revalidatePath("/dashboard/workout");
+    return { success: true };
+}
+
 export async function importBaseExercises() {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
 
-    const exercisesToInsert = MOCK_BASE_EXERCISES.map(ex => ({
-        ...ex,
-        userId,
-        isCustom: false,
-    }));
+    const { EXERCISES_DB } = await import("@/lib/exercises-db");
+
+    // Para fins de importação inicial, vamos distribuir entre ABC
+    const exercisesToInsert = EXERCISES_DB.map((ex, index) => {
+        let split = "A";
+        if (index % 3 === 1) split = "B";
+        if (index % 3 === 2) split = "C";
+
+        return {
+            ...ex,
+            userId,
+            split,
+            isCustom: false,
+            targetSets: 3,
+            targetReps: 12,
+            targetWeight: "0",
+            targetRestTime: 60,
+        };
+    });
 
     await db.insert(exercises)
         .values(exercisesToInsert)
         .onConflictDoNothing();
+
+    revalidatePath("/dashboard/workout");
+    return { success: true };
+}
+
+export async function deleteExercise(id: number) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.delete(exercises).where(and(
+        eq(exercises.id, id),
+        eq(exercises.userId, userId)
+    ));
 
     revalidatePath("/dashboard/workout");
     return { success: true };

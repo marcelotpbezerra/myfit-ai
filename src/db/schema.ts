@@ -18,6 +18,10 @@ export const exercises = pgTable("exercises", {
   split: text("split"), // 'A', 'B', 'C', 'D'
   isCustom: boolean("is_custom").default(true),
   apiId: text("api_id"), // ID caso venha da API externa
+  targetSets: integer("target_sets").default(3),
+  targetReps: integer("target_reps").default(12),
+  targetWeight: numeric("target_weight").default("0"),
+  targetRestTime: integer("target_rest_time").default(60),
 }, (t) => ({
   unqNameUser: unique().on(t.userId, t.name), // Chave composta para evitar duplicidade
 }));
