@@ -47,11 +47,32 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="pt-BR" className="dark scroll-smooth">
+        <head>
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
         >
           {children}
-
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').then(
+                      function(registration) {
+                        console.log('Service Worker registration successful with scope: ', registration.scope);
+                      },
+                      function(err) {
+                        console.log('Service Worker registration failed: ', err);
+                      }
+                    );
+                  });
+                }
+              `,
+            }}
+          />
         </body>
       </html>
     </ClerkProvider>
