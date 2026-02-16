@@ -48,8 +48,8 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="pt-BR" className="dark scroll-smooth">
         <head>
-          <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#000000" />
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
@@ -59,16 +59,7 @@ export default function RootLayout({
             dangerouslySetInnerHTML={{
               __html: `
                 if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js').then(
-                      function(registration) {
-                        console.log('Service Worker registration successful with scope: ', registration.scope);
-                      },
-                      function(err) {
-                        console.log('Service Worker registration failed: ', err);
-                      }
-                    );
-                  });
+                  navigator.serviceWorker.register('/sw.js');
                 }
               `,
             }}
