@@ -21,6 +21,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "MyFit.ai",
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/web-app-manifest-192x192.png",
+  },
   formatDetection: {
     telephone: false,
   },

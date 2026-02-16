@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Native Assets Generation
+
+To generate native icons and splash screens for Android and iOS using Capacitor, follow these steps:
+
+1.  Ensure you have a high-resolution logo at `assets/logo.png`.
+2.  Run the following command:
+
+```bash
+npx @capacitor/assets generate
+```
+
+This will automatically create the required resources in the `android` and `ios` folders.
