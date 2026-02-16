@@ -16,10 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MyFit.ai",
   description: "Seu ecossistema de saúde inteligente",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "MyFit.ai",
   },
   formatDetection: {
@@ -33,6 +32,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

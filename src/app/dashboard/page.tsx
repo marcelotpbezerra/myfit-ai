@@ -41,7 +41,7 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
                 {/* Main Stats Column */}
                 <div className="lg:col-span-8 space-y-6">
                     <div className="grid gap-6 md:grid-cols-2">
