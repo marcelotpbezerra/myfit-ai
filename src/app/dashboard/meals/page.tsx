@@ -1,8 +1,12 @@
 import { getMealsByDate, getDietPlan } from "@/actions/diet";
+import { seedMarceloProtocol } from "@/actions/seedMarcelo2026";
 import { MealManager } from "@/components/MealManager";
 import { Utensils } from "lucide-react";
 
 export default async function MealsPage() {
+    // Garantir que o protocolo Marcelo 2026 está carregado
+    await seedMarceloProtocol();
+
     const today = new Date().toISOString().split('T')[0];
     const initialMeals = await getMealsByDate(today);
     const dietPlan = await getDietPlan();

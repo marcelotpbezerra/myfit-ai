@@ -67,10 +67,12 @@ export const dietPlan = pgTable("diet_plan", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
   mealName: text("meal_name").notNull(), // Café, Lanche, Almoço, etc.
+  scheduledTime: text("scheduled_time"), // "08:00", "10:00", "12:00", etc.
   targetProtein: integer("target_protein").default(0),
   targetCarbs: integer("target_carbs").default(0),
   targetFat: integer("target_fat").default(0),
   targetCalories: integer("target_calories").default(0),
   suggestions: text("suggestions"), // Ex: "Pão Integral ou Cuscuz"
+  substitutions: jsonb("substitutions"), // [{item: "Cuscuz", canReplace: "Pão integral", protein: 4, carbs: 23}]
   order: integer("order").default(0),
 });

@@ -54,15 +54,25 @@ interface Meal {
     date: string;
 }
 
+interface Substitution {
+    item: string;
+    canReplace: string;
+    protein: number;
+    carbs: number;
+    fat?: number;
+}
+
 interface DietPlanItem {
     id: number;
     userId: string;
     mealName: string;
+    scheduledTime: string | null;
     targetProtein: number | null;
     targetCarbs: number | null;
     targetFat: number | null;
     targetCalories: number | null;
     suggestions: string | null;
+    substitutions: Substitution[] | null;
     order: number | null;
 }
 
@@ -220,15 +230,15 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
+                                        <span className="text-xs font-black text-primary/60 tracking-widest">
+                                            {plan.scheduledTime}
+                                        </span>
                                         <h3 className={cn("font-bold text-lg", existingMeal?.isCompleted && "line-through text-muted-foreground")}>
                                             {plan.mealName}
                                         </h3>
-                                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-black uppercase tracking-widest">
-                                            Meta 2026
-                                        </span>
                                     </div>
                                     <p className="text-xs text-muted-foreground font-medium italic mt-0.5">
-                                        Tip: {plan.suggestions}
+                                        {plan.suggestions}
                                     </p>
                                     <div className="flex gap-3 mt-2 text-[10px] font-black uppercase tracking-widest">
                                         <span className="text-red-500">P: {plan.targetProtein}g</span>
@@ -238,16 +248,47 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                     </div>
                                 </div>
 
-                                {existingMeal && (
-                                    <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} className="h-8 w-8 text-muted-foreground hover:text-primary">
-                                            <Search className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(existingMeal.id!)} className="text-muted-foreground hover:text-destructive">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {plan.substitutions && plan.substitutions.length > 0 && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg">
+                                                    Substituições
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-md rounded-3xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>{plan.mealName} - Opções</DialogTitle>
+                                                </DialogHeader>
+                                                <ScrollArea className="max-h-96">
+                                                    <div className="space-y-4 p-4">
+                                                        {plan.substitutions.map((sub, idx) => (
+                                                            <div key={idx} className="p-4 rounded-xl bg-card border">
+                                                                <p className="font-bold text-sm mb-1">{sub.item}</p>
+                                                                <p className="text-xs text-muted-foreground mb-2">Pode substituir por: <span className="text-primary font-semibold">{sub.canReplace}</span></p>
+                                                                <div className="flex gap-3 text-[10px] font-black uppercase">
+                                                                    <span className="text-red-500">P: {sub.protein}g</span>
+                                                                    <span className="text-blue-500">C: {sub.carbs}g</span>
+                                                                    {sub.fat !== undefined && <span className="text-yellow-500">F: {sub.fat}g</span>}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </ScrollArea>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                    {existingMeal && (
+                                        <>
+                                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                                                <Search className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(existingMeal.id!)} className="text-muted-foreground hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </Card>
                     );
