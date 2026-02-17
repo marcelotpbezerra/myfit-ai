@@ -2,7 +2,7 @@
   "name": "MyFit.ai",
   "short_name": "MyFit",
   "description": "Seu ecossistema de saúde e performance inteligente",
-  "start_url": "/",
+  "start_url": "https://fitness.marcelotpbezerra.com.br/",
   "display": "standalone",
   "background_color": "#080808",
   "theme_color": "#080808",
