@@ -8,7 +8,8 @@ const config: CapacitorConfig = {
         url: 'https://fitness.marcelotpbezerra.com.br',
         hostname: 'fitness.marcelotpbezerra.com.br',
         androidScheme: 'https'
-    }
+    },
+    overrideUserAgent: 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36'
 };
 
 export default config;

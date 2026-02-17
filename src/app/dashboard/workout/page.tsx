@@ -22,28 +22,45 @@ export default async function WorkoutPage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                    Bora Treinar? ⚡
-                </h1>
-                <p className="text-muted-foreground font-medium">
-                    Escolha seu treino e registre sua evolução hoje.
-                </p>
+                <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20">
+                        <Dumbbell className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase">
+                            Training <span className="text-white">OS</span>
+                        </h1>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                            Protocolo MyFit v2.0
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
-                <p className="text-xs font-bold text-amber-200/80">
-                    Atenção: Evitar manobra de Valsalva extrema (Protocolo Pós-Op)
-                </p>
+            <div className="overflow-hidden rounded-3xl bg-[#0F1115] border border-amber-500/20 shadow-2xl shadow-amber-500/5 relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-transparent opacity-50" />
+                <div className="relative p-5 flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 shadow-inner">
+                        <AlertCircle className="h-5 w-5 animate-pulse" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">
+                            Atenção Biomecânica
+                        </p>
+                        <p className="text-xs font-bold text-amber-100/80 leading-relaxed">
+                            Evite a <span className="text-amber-400">Manobra de Valsalva</span>. Expire no esforço máximo para preservar a pressão intra-abdominal (Protocolo Pós-Op).
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <Tabs defaultValue="training" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-14 bg-card/50 backdrop-blur-xl rounded-2xl p-1 shadow-inner ring-1 ring-white/5">
-                    <TabsTrigger value="training" className="rounded-xl font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                        Meu Treino
+                <TabsList className="grid w-full grid-cols-2 h-16 bg-[#0F1115] rounded-3xl p-1.5 shadow-2xl ring-1 ring-white/5">
+                    <TabsTrigger value="training" className="rounded-2xl font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                        Execução
                     </TabsTrigger>
-                    <TabsTrigger value="settings" className="rounded-xl font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                        Ajustes
+                    <TabsTrigger value="settings" className="rounded-2xl font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300">
+                        Configurar
                     </TabsTrigger>
                 </TabsList>
 
