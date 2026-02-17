@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
     appName: 'MyFit.ai',
     webDir: 'out',
     server: {
+        url: 'https://fitness.marcelotpbezerra.com.br',
         hostname: 'fitness.marcelotpbezerra.com.br',
         androidScheme: 'https'
     }
