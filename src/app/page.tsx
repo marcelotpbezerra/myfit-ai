@@ -1,8 +1,31 @@
+"use client";
+
 import Link from "next/link";
-import { Dumbbell, ArrowRight, Activity, Utensils, Zap, Star, Shield, Smartphone } from "lucide-react";
+import { Dumbbell, ArrowRight, Activity, Utensils, Zap, Star, Smartphone, Terminal, AlertCircle } from "lucide-react";
 import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 
 export default function LandingPage() {
+  const [logs, setLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    const addLog = (msg: string) => setLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()} - ${msg}`]);
+
+    addLog(`Platform: ${Capacitor.getPlatform()} (Native: ${Capacitor.isNativePlatform()})`);
+    addLog(`URL: ${window.location.href}`);
+
+    const errorHandler = (event: ErrorEvent) => {
+      addLog(`ERROR: ${event.message}`);
+    };
+
+    window.addEventListener('error', errorHandler);
+
+    return () => {
+      window.removeEventListener('error', errorHandler);
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col bg-[#080808]">
       {/* Hero Section */}
@@ -37,7 +60,7 @@ export default function LandingPage() {
           <div className="absolute bottom-0 -right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -z-10" />
 
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-primary mb-6 lg:mb-8">
-            <Zap className="h-3 w-3" />
+            < Zap className="h-3 w-3" />
             <span>Inteligência Artificial aplicada à sua saúde</span>
           </div>
 
@@ -134,30 +157,30 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Testimonials/Badges */}
-        <section className="px-6 py-24 text-center max-w-4xl mx-auto">
-          <div className="space-y-12">
-            <div className="flex justify-center gap-1 text-primary">
-              <Star className="h-5 w-5 fill-current" />
-              <Star className="h-5 w-5 fill-current" />
-              <Star className="h-5 w-5 fill-current" />
-              <Star className="h-5 w-5 fill-current" />
-              <Star className="h-5 w-5 fill-current" />
+        {/* Diagnostic Logs Section for APK debugging */}
+        {logs.length > 0 && (
+          <section className="mx-6 mb-12 p-6 rounded-[32px] bg-red-500/5 border border-red-500/10 font-mono text-[10px] text-red-200/60 overflow-hidden">
+            <div className="flex items-center gap-2 mb-4 text-red-400 font-black uppercase tracking-widest text-[11px]">
+              <Terminal className="h-4 w-4" />
+              <span>Console de Diagnóstico (Somente Desenvolvedor)</span>
             </div>
-            <blockquote className="text-3xl font-bold tracking-tight text-white leading-snug">
-              "A interface mais fluida que já usei para treinar. O foco no PWA faz parecer um app nativo de altíssima performance."
-            </blockquote>
-            <div className="flex items-center justify-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <Smartphone className="h-6 w-6 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-bold text-white uppercase text-sm tracking-widest">PWA Ready</p>
-                <p className="text-xs text-muted-foreground uppercase font-black">Instale no seu iPhone ou Android</p>
-              </div>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {logs.map((log, i) => (
+                <div key={i} className="flex gap-2">
+                  <span className="opacity-30">[{i}]</span>
+                  <span className="break-all">{log}</span>
+                </div>
+              ))}
             </div>
-          </div>
-        </section>
+            <div className="mt-4 p-3 bg-red-500/10 rounded-xl flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+              <p className="leading-tight text-red-200/80">
+                Se o login falhar no APK, verifique se o Clerk está conseguindo persistir o cookie de sessão.
+                Erros de 'Cross-Origin' ou 'Cookie blocked' podem aparecer aqui.
+              </p>
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="py-20 px-6 border-t border-white/5 text-center bg-black/50">
