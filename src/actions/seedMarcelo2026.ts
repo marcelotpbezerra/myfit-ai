@@ -97,26 +97,43 @@ const MARCELO_PROTOCOL_2026 = [
 ];
 
 export async function seedMarceloProtocol() {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Não autorizado");
+    try {
+        const { userId } = await auth();
+        if (!userId) {
+            console.error("[SEED] No userId found");
+            return { success: false, message: "Não autorizado" };
+        }
 
-    // Verificar se já existe plano para este usuário
-    const existing = await db.query.dietPlan.findFirst({
-        where: eq(dietPlan.userId, userId),
-    });
+        // Verificar se já existe plano para este usuário
+        const existing = await db.query.dietPlan.findFirst({
+            where: eq(dietPlan.userId, userId),
+        });
 
-    // Se já existe, não faz nada (evita duplicação)
-    if (existing) {
-        return { success: true, message: "Plano já existe" };
+        // Se já existe, não faz nada (evita duplicação)
+        if (existing) {
+            console.log("[SEED] Plano já existe para userId:", userId);
+            return { success: true, message: "Plano já existe" };
+        }
+
+        console.log("[SEED] Inserindo protocolo Marcelo 2026 para userId:", userId);
+
+        // Inserir todas as 6 refeições
+        await db.insert(dietPlan).values(
+            MARCELO_PROTOCOL_2026.map(meal => ({
+                userId,
+                ...meal
+            }))
+        );
+
+        console.log("[SEED] ✅ Protocolo Marcelo 2026 carregado com sucesso!");
+        return { success: true, message: "Protocolo Marcelo 2026 carregado!" };
+    } catch (error) {
+        console.error("[SEED] ❌ Erro ao carregar protocolo:", error);
+        // Não lançar erro, apenas retornar falha
+        return {
+            success: false,
+            message: "Erro ao carregar protocolo",
+            error: error instanceof Error ? error.message : String(error)
+        };
     }
-
-    // Inserir todas as 6 refeições
-    await db.insert(dietPlan).values(
-        MARCELO_PROTOCOL_2026.map(meal => ({
-            userId,
-            ...meal
-        }))
-    );
-
-    return { success: true, message: "Protocolo Marcelo 2026 carregado!" };
 }
