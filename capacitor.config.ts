@@ -6,7 +6,8 @@ const config: CapacitorConfig = {
     webDir: 'public',
     server: {
         url: 'https://fitness.marcelotpbezerra.com.br/',
-        cleartext: true
+        androidScheme: 'https',
+        allowNavigation: ['fitness.marcelotpbezerra.com.br']
     }
 };
 

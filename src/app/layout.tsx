@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyFit.ai",
-  description: "Seu ecossistema de saúde inteligente",
+  title: "MyFit.ai - Dashboard",
+  description: "Seu ecossistema de saúde e performance inteligente",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
