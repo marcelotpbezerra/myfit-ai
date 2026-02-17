@@ -12,15 +12,37 @@ export function BiometricGuard({ children }: { children: React.ReactNode }) {
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
-        const checkBiometric = async () => {
-            // First, check if biometric is enabled in database
-            try {
-                const settings = await getUserSettings();
-                const isBiometricEnabled = settings?.biometricEnabled ?? false;
+        // Safe timeout to prevent app hang if server actions or native calls fail
+        const timeoutId = setTimeout(() => {
+            if (isChecking) {
+                console.warn("Biometric check timed out, proceeding to dashboard");
+                setIsChecking(false);
+                setIsAuthenticated(true); // Fail-safe: let user in
+            }
+        }, 5000);
 
-                if (!isBiometricEnabled || !Capacitor.isNativePlatform()) {
+        const checkBiometric = async () => {
+            try {
+                // If we're not on a native platform, skip immediately
+                if (!Capacitor.isNativePlatform()) {
                     setIsAuthenticated(true);
                     setIsChecking(false);
+                    clearTimeout(timeoutId);
+                    return;
+                }
+
+                // Check settings (Server Action)
+                const settings = await getUserSettings().catch(err => {
+                    console.error("Failed to fetch settings for biometric", err);
+                    return null;
+                });
+
+                const isBiometricEnabled = settings?.biometricEnabled ?? false;
+
+                if (!isBiometricEnabled) {
+                    setIsAuthenticated(true);
+                    setIsChecking(false);
+                    clearTimeout(timeoutId);
                     return;
                 }
 
@@ -38,8 +60,11 @@ export function BiometricGuard({ children }: { children: React.ReactNode }) {
                 }
             } catch (error) {
                 console.error("Biometric verification failed", error);
+                // On error, we still let the user in as a fail-safe for now
+                setIsAuthenticated(true);
             } finally {
                 setIsChecking(false);
+                clearTimeout(timeoutId);
             }
         };
 
