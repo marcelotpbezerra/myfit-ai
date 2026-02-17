@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
                 {/* Header - Mobile */}
-                <header className="flex h-16 items-center justify-between border-b bg-card/50 backdrop-blur-lg px-6 md:hidden sticky top-0 z-40">
+                <header className="flex min-h-[calc(4rem+env(safe-area-inset-top))] h-auto items-center justify-between border-b bg-card/50 backdrop-blur-lg px-6 pt-[env(safe-area-inset-top)] md:hidden sticky top-0 z-40">
                     <div className="flex items-center gap-4">
                         {/* Hamburger Menu (optional) */}
                         {/* <button onClick={() => setIsSidebarOpen(true)} className="p-1 -ml-2 text-muted-foreground">
@@ -118,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </main>
 
             {/* Bottom Nav - Mobile */}
-            <nav className="fixed bottom-0 left-0 right-0 flex h-20 items-center justify-around border-t bg-card/80 backdrop-blur-xl px-4 md:hidden z-50 rounded-t-3xl shadow-2xl safe-area-bottom">
+            <nav className="fixed bottom-0 left-0 right-0 flex min-h-[calc(5rem+env(safe-area-inset-bottom))] h-auto items-center justify-around border-t bg-card/80 backdrop-blur-xl px-4 pb-[env(safe-area-inset-bottom)] md:hidden z-50 rounded-t-3xl shadow-2xl">
                 {NAV_ITEMS.map((item) => (
                     <Link
                         key={item.href}

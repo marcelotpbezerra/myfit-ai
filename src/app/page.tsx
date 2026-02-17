@@ -29,7 +29,7 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#080808]">
       {/* Hero Section */}
-      <header className="flex h-20 items-center justify-between px-6 lg:px-12 bg-transparent sticky top-0 z-50">
+      <header className="flex min-h-[calc(5rem+env(safe-area-inset-top))] h-auto items-center justify-between px-6 pt-[env(safe-area-inset-top)] lg:px-12 bg-transparent sticky top-0 z-50">
         <div className="flex items-center gap-2 font-black text-2xl text-primary tracking-tighter">
           <Dumbbell className="h-8 w-8 stroke-[2.5px]" />
           <span>MyFit<span className="text-foreground/50">.ai</span></span>
