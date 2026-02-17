@@ -8,8 +8,9 @@ import { getTodayMacros } from "@/actions/diet";
 import { Dumbbell, Activity, Trophy } from "lucide-react";
 import Link from "next/link";
 import { WeightCard } from "@/components/WeightCard";
-import { getWaterGoal } from "@/actions/health";
+import { getWaterGoal, getUserSettings } from "@/actions/health";
 import { getDietPlan } from "@/actions/diet";
+import { BiometricInvite } from "@/components/BiometricInvite";
 
 export default async function DashboardPage() {
     const user = await currentUser();
@@ -19,6 +20,8 @@ export default async function DashboardPage() {
     const latestStats = await getLatestStats();
     const currentWeight = latestStats.weight || "82.5";
     const dietPlan = await getDietPlan();
+    const settings = await getUserSettings();
+    const biometricEnabled = settings?.biometricEnabled ?? false;
 
     const calorieGoal = dietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
 
@@ -40,6 +43,8 @@ export default async function DashboardPage() {
                     </div>
                 </div>
             </div>
+
+            <BiometricInvite biometricEnabled={biometricEnabled} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
                 {/* Main Stats Column */}

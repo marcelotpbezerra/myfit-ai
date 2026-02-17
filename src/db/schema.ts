@@ -7,6 +7,7 @@ export const userSettings = pgTable("user_settings", {
   restTimeDefault: integer("rest_time_default").default(60),
   waterGoal: integer("water_goal").default(3000),
   aiContext: text("ai_context"), // Objetivo do usuário para IA
+  biometricEnabled: boolean("biometric_enabled").default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

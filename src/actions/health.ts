@@ -143,3 +143,29 @@ export async function getWaterGoal() {
 
     return settings?.waterGoal || 3000;
 }
+
+export async function updateBiometricSetting(enabled: boolean) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(userSettings)
+        .values({ userId, biometricEnabled: enabled })
+        .onConflictDoUpdate({
+            target: userSettings.userId,
+            set: { biometricEnabled: enabled, updatedAt: new Date() },
+        });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+export async function getUserSettings() {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    const settings = await db.query.userSettings.findFirst({
+        where: eq(userSettings.userId, userId),
+    });
+
+    return settings;
+}

@@ -18,6 +18,7 @@ const NAV_ITEMS = [
     { label: "Treino", href: "/dashboard/workout", icon: Dumbbell },
     { label: "Dieta", href: "/dashboard/meals", icon: Utensils },
     { label: "Saúde", href: "/dashboard/health", icon: Activity },
+    { label: "Ajustes", href: "/dashboard/settings", icon: Settings },
 ];
 
 

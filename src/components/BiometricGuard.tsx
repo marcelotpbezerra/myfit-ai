@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { NativeBiometric } from "@capgo/capacitor-native-biometric";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, Fingerprint } from "lucide-react";
+import { getUserSettings } from "@/actions/health";
 
 export function BiometricGuard({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,16 +13,20 @@ export function BiometricGuard({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const checkBiometric = async () => {
-            if (!Capacitor.isNativePlatform()) {
-                setIsAuthenticated(true);
-                setIsChecking(false);
-                return;
-            }
-
+            // First, check if biometric is enabled in database
             try {
+                const settings = await getUserSettings();
+                const isBiometricEnabled = settings?.biometricEnabled ?? false;
+
+                if (!isBiometricEnabled || !Capacitor.isNativePlatform()) {
+                    setIsAuthenticated(true);
+                    setIsChecking(false);
+                    return;
+                }
+
                 const result = await NativeBiometric.isAvailable();
                 if (result.isAvailable) {
-                    const verified = await NativeBiometric.verifyIdentity({
+                    await NativeBiometric.verifyIdentity({
                         reason: "Autenticação MyFit.ai",
                         title: "Login Biométrico",
                         subtitle: "Confirme sua identidade para acessar",
@@ -29,13 +34,10 @@ export function BiometricGuard({ children }: { children: React.ReactNode }) {
                     });
                     setIsAuthenticated(true);
                 } else {
-                    // Fallback if not available (or user didn't set it up)
                     setIsAuthenticated(true);
                 }
             } catch (error) {
                 console.error("Biometric verification failed", error);
-                // In production, you might want to force logout or show a pin screen
-                // For now, we allow retry
             } finally {
                 setIsChecking(false);
             }
