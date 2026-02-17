@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "MyFit.ai - Dashboard",
   description: "Seu ecossistema de saúde e performance inteligente",
-  manifest: "/manifest.json?v=2",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -45,22 +45,12 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="pt-BR" className="dark scroll-smooth">
         <head>
-          <link rel="manifest" href="/manifest.json?v=2" />
-          <meta name="theme-color" content="#000000" />
+          <meta name="theme-color" content="#080808" />
         </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
         >
           {children}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if ('serviceWorker' in navigator) {
-                  navigator.serviceWorker.register('/sw.js');
-                }
-              `,
-            }}
-          />
         </body>
       </html>
     </ClerkProvider>
