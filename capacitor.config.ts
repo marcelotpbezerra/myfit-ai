@@ -4,10 +4,12 @@ const config: CapacitorConfig = {
     appId: 'com.myfit.ai',
     appName: 'MyFit.ai',
     webDir: 'public',
+    // @ts-ignore
+    bundledWebRuntime: false,
     server: {
         url: 'https://fitness.marcelotpbezerra.com.br/',
         androidScheme: 'https',
-        allowNavigation: ['fitness.marcelotpbezerra.com.br']
+        allowNavigation: ['fitness.marcelotpbezerra.com.br', '*']
     }
 };
 
