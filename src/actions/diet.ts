@@ -123,3 +123,64 @@ export async function toggleMealCompletion(mealId: number, isCompleted: boolean)
     revalidatePath("/dashboard/meals");
     return { success: true };
 }
+
+export async function addDietMeal(data: {
+    mealName: string;
+    scheduledTime: string;
+    targetProtein: number;
+    targetCarbs: number;
+    targetFat: number;
+    suggestions: string;
+    order: number;
+}) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(dietPlan).values({
+        userId,
+        ...data,
+        targetCalories: (data.targetProtein * 4) + (data.targetCarbs * 4) + (data.targetFat * 9)
+    });
+
+    revalidatePath("/dashboard/meals");
+    return { success: true };
+}
+
+export async function updateDietMeal(id: number, data: Partial<{
+    mealName: string;
+    scheduledTime: string;
+    targetProtein: number;
+    targetCarbs: number;
+    targetFat: number;
+    suggestions: string;
+    order: number;
+    substitutions: any[];
+}>) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    const updateData: any = { ...data };
+    if (data.targetProtein !== undefined || data.targetCarbs !== undefined || data.targetFat !== undefined) {
+        // Recalcular calorias se algum macro mudar
+        updateData.targetCalories = (Number(data.targetProtein || 0) * 4) +
+            (Number(data.targetCarbs || 0) * 4) +
+            (Number(data.targetFat || 0) * 9);
+    }
+
+    await db.update(dietPlan)
+        .set(updateData)
+        .where(and(eq(dietPlan.id, id), eq(dietPlan.userId, userId)));
+
+    revalidatePath("/dashboard/meals");
+    return { success: true };
+}
+
+export async function deleteDietMeal(id: number) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.delete(dietPlan).where(and(eq(dietPlan.id, id), eq(dietPlan.userId, userId)));
+
+    revalidatePath("/dashboard/meals");
+    return { success: true };
+}
