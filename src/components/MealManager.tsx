@@ -95,6 +95,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [searchQuery, setSearchQuery] = useState("");
     const [isCustomFoodOpen, setIsCustomFoodOpen] = useState(false);
     const [customFood, setCustomFood] = useState({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
+    const [subDialogOpenId, setSubDialogOpenId] = useState<number | null>(null);
 
     const filteredFoods = MOCK_FOODS.filter(food =>
         food.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -124,8 +125,9 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         };
 
         startTransition(async () => {
+            let result;
             if (existingMeal) {
-                await saveMeal({
+                result = await saveMeal({
                     id: existingMeal.id,
                     date: existingMeal.date,
                     mealName: existingMeal.mealName,
@@ -133,14 +135,17 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     isCompleted: existingMeal.isCompleted
                 });
             } else {
-                await saveMeal({
+                result = await saveMeal({
                     date,
                     mealName: plan.mealName,
                     items: [newItem],
                     isCompleted: false
                 });
             }
-            router.refresh();
+            if (result?.success) {
+                setSubDialogOpenId(null);
+                router.refresh();
+            }
         });
     }
 
@@ -345,7 +350,10 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
                                 <div className="flex items-center gap-2">
                                     {plan.substitutions && plan.substitutions.length > 0 && (
-                                        <Dialog>
+                                        <Dialog
+                                            open={subDialogOpenId === plan.id}
+                                            onOpenChange={(open) => setSubDialogOpenId(open ? plan.id : null)}
+                                        >
                                             <DialogTrigger asChild>
                                                 <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg">
                                                     Substituições
@@ -370,10 +378,11 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                                 </div>
                                                                 <Button
                                                                     size="sm"
+                                                                    disabled={isPending}
                                                                     className="w-full h-8 text-[10px] font-black uppercase rounded-lg shadow-md shadow-primary/10"
                                                                     onClick={() => applySubstitution(plan, sub)}
                                                                 >
-                                                                    Aplicar esta sugestão
+                                                                    {isPending ? "Aplicando..." : "Aplicar esta sugestão"}
                                                                 </Button>
                                                             </div>
                                                         ))}
