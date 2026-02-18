@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { saveMeal, deleteMeal, toggleMealCompletion } from "@/actions/diet";
 import {
@@ -82,6 +82,12 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [isPending, startTransition] = useTransition();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
+    const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
+
+    // Sincronizar estado local com props do servidor
+    useEffect(() => {
+        setMeals(initialMeals);
+    }, [initialMeals]);
 
     // Form State
     const [mealName, setMealName] = useState("");
@@ -206,22 +212,51 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
     async function toggleComplete(meal: Meal) {
         if (!meal.id) return;
+
+        // Update otimista local
+        const nextState = !meal.isCompleted;
+        setMeals(prev => prev.map(m => m.id === meal.id ? { ...m, isCompleted: nextState } : m));
+
         startTransition(async () => {
-            await toggleMealCompletion(meal.id!, !meal.isCompleted);
+            const result = await toggleMealCompletion(meal.id!, nextState);
+            if (!result.success) {
+                // Reverter em caso de erro
+                setMeals(prev => prev.map(m => m.id === meal.id ? { ...m, isCompleted: !nextState } : m));
+            }
             router.refresh();
         });
     }
 
     async function handleQuickAdd(plan: DietPlanItem) {
+        // Mock items a partir das sugestões para o usuário não começar do zero
+        // Padrão: Sugestão costuma ser "Alimento (qtd) + outro (qtd)"
+        const suggestionItems: MealItem[] = [];
+        if (plan.suggestions) {
+            // Tentar extrair o primeiro item se for simples
+            const parts = plan.suggestions.split('+').map(p => p.trim());
+            parts.forEach(p => {
+                suggestionItems.push({
+                    food: p,
+                    protein: Math.round((plan.targetProtein || 0) / parts.length),
+                    carbs: Math.round((plan.targetCarbs || 0) / parts.length),
+                    fat: Math.round((plan.targetFat || 0) / parts.length),
+                    qty: 100
+                });
+            });
+        }
+
         startTransition(async () => {
-            await saveMeal({
+            const result = await saveMeal({
                 date,
                 mealName: plan.mealName,
-                items: [], // Começa vazio para o usuário preencher ou podemos colocar um item padrão
+                items: suggestionItems,
                 isCompleted: false,
                 notes: `Plano: ${plan.suggestions}`
             });
-            router.refresh();
+
+            if (result.success) {
+                router.refresh();
+            }
         });
     }
 
@@ -237,7 +272,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h2 className="text-2xl font-bold tracking-tight">Refeições de Hoje</h2>
-                    <p className="text-muted-foreground">{new Date(date).toLocaleDateString("pt-BR", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                    <p className="text-muted-foreground capitalize">
+                        {new Date(date + 'T12:00:00').toLocaleDateString("pt-BR", {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long'
+                        })}
+                    </p>
                 </div>
                 <Button onClick={openCreateDialog} className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
                     <Plus className="mr-2 h-5 w-5" /> Adicionar

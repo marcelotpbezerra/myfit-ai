@@ -6,7 +6,9 @@ import { Utensils } from "lucide-react";
 export default async function MealsPage() {
     let initialMeals: any[] = [];
     let dietPlan: any[] = [];
-    const today = new Date().toISOString().split('T')[0];
+    // Data local segura para evitar shift de fuso horário
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     try {
         // Garantir que o protocolo Marcelo 2026 está carregado
