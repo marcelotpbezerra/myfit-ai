@@ -255,23 +255,31 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                         )}>
                             <div className="flex items-center p-6 gap-4">
                                 {existingMeal ? (
-                                    <button
-                                        onClick={() => toggleComplete(existingMeal)}
-                                        className="transition-transform hover:scale-110 active:scale-95"
-                                    >
-                                        {existingMeal.isCompleted ? (
-                                            <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
-                                        ) : (
-                                            <Circle className="h-6 w-6 text-muted-foreground" />
-                                        )}
-                                    </button>
+                                    <div className="flex flex-col items-center gap-1">
+                                        <button
+                                            onClick={() => toggleComplete(existingMeal)}
+                                            className="transition-transform hover:scale-110 active:scale-95 flex flex-col items-center"
+                                        >
+                                            {existingMeal.isCompleted ? (
+                                                <CheckCircle2 className="h-8 w-8 text-green-500 fill-green-500/10" />
+                                            ) : (
+                                                <Circle className="h-8 w-8 text-muted-foreground" />
+                                            )}
+                                        </button>
+                                        <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">
+                                            {existingMeal.isCompleted ? "Feito" : "Confirmar"}
+                                        </span>
+                                    </div>
                                 ) : (
-                                    <button
-                                        onClick={() => handleQuickAdd(plan)}
-                                        className="h-12 w-12 rounded-2xl bg-primary/5 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
-                                    >
-                                        <Plus className="h-6 w-6" />
-                                    </button>
+                                    <div className="flex flex-col items-center gap-1">
+                                        <button
+                                            onClick={() => handleQuickAdd(plan)}
+                                            className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all active:scale-90 shadow-lg shadow-primary/5 group"
+                                        >
+                                            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform" />
+                                        </button>
+                                        <span className="text-[8px] font-black uppercase text-primary/60 tracking-tighter">Registrar</span>
+                                    </div>
                                 )}
 
                                 <div className="flex-1">
@@ -283,8 +291,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                             {plan.mealName}
                                         </h3>
                                     </div>
-                                    <p className="text-xs text-muted-foreground font-medium italic mt-0.5">
-                                        {plan.suggestions}
+                                    <p className="text-[10px] text-muted-foreground font-medium italic mt-1 leading-tight bg-white/5 p-1 px-2 rounded-lg border border-white/5">
+                                        💡 {plan.suggestions}
                                     </p>
                                     <div className="flex gap-3 mt-2 text-[10px] font-black uppercase tracking-widest">
                                         <span className="text-red-500">P: {plan.targetProtein}g</span>

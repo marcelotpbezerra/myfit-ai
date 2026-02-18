@@ -4,15 +4,15 @@ import { MealManager } from "@/components/MealManager";
 import { Utensils } from "lucide-react";
 
 export default async function MealsPage() {
-    let initialMeals = [];
-    let dietPlan = [];
+    let initialMeals: any[] = [];
+    let dietPlan: any[] = [];
+    const today = new Date().toISOString().split('T')[0];
 
     try {
         // Garantir que o protocolo Marcelo 2026 está carregado
         const seedResult = await seedMarceloProtocol();
         console.log("[MEALS PAGE] Seed result:", seedResult);
 
-        const today = new Date().toISOString().split('T')[0];
         initialMeals = await getMealsByDate(today);
         dietPlan = await getDietPlan();
     } catch (error) {
@@ -29,7 +29,7 @@ export default async function MealsPage() {
                         Dieta
                     </h1>
                 </div>
-                <MealManager initialMeals={initialMeals} dietPlan={dietPlan} />
+                <MealManager initialMeals={initialMeals} dietPlan={dietPlan} date={today} />
             </div>
         </div>
     );
