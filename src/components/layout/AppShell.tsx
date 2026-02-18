@@ -4,21 +4,16 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import {
-    Dumbbell,
-    Utensils,
-    Activity,
-    Home,
-    Settings
-} from "lucide-react";
+import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, LogOut, Menu, X, History as HistoryIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-    { label: "Dashboard", href: "/dashboard", icon: Home },
-    { label: "Treino", href: "/dashboard/workout", icon: Dumbbell },
-    { label: "Dieta", href: "/dashboard/meals", icon: Utensils },
-    { label: "Saúde", href: "/dashboard/health", icon: Activity },
-    { label: "Ajustes", href: "/dashboard/settings", icon: Settings },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }, // Changed from Home to LayoutDashboard
+    { name: "Treino", href: "/dashboard/workout", icon: Dumbbell },
+    { name: "Refeições", href: "/dashboard/meals", icon: Utensils },
+    { name: "Histórico", href: "/dashboard/history", icon: HistoryIcon },
+    { name: "Saúde", href: "/dashboard/health", icon: Activity },
+    { name: "Ajustes", href: "/dashboard/settings", icon: Settings },
 ];
 
 
@@ -70,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             )}
                         >
                             <item.icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", pathname.startsWith(item.href) ? "stroke-[2.5px]" : "stroke-2")} />
-                            {item.label}
+                            {item.name}
                         </Link>
                     ))}
                 </nav>
@@ -131,7 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         )}
                     >
                         <item.icon className={cn("h-6 w-6", pathname.startsWith(item.href) ? "stroke-[2.5px]" : "stroke-2")} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
                     </Link>
                 ))}
             </nav>

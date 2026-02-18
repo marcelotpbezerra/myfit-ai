@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { exercises, workoutLogs, userSettings } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 const MOCK_BASE_EXERCISES = [
@@ -214,4 +214,23 @@ export async function getRecentLogs(exerciseId: number) {
         orderBy: [desc(workoutLogs.createdAt)],
         limit: 5,
     });
+}
+
+export async function getWorkoutLogsByDate(dateStr: string) {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const logs = await db.select({
+        log: workoutLogs,
+        exercise: exercises
+    })
+        .from(workoutLogs)
+        .innerJoin(exercises, eq(workoutLogs.exerciseId, exercises.id))
+        .where(and(
+            eq(workoutLogs.userId, userId),
+            sql`DATE(${workoutLogs.createdAt}) = ${dateStr}`
+        ))
+        .orderBy(desc(workoutLogs.createdAt));
+
+    return logs;
 }

@@ -87,10 +87,56 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [mealName, setMealName] = useState("");
     const [currentItems, setCurrentItems] = useState<MealItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isCustomFoodOpen, setIsCustomFoodOpen] = useState(false);
+    const [customFood, setCustomFood] = useState({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
 
     const filteredFoods = MOCK_FOODS.filter(food =>
         food.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    function addCustomFood() {
+        if (!customFood.name) return;
+        setCurrentItems([...currentItems, {
+            food: customFood.name,
+            protein: Number(customFood.protein),
+            carbs: Number(customFood.carbs),
+            fat: Number(customFood.fat),
+            qty: Number(customFood.qty)
+        }]);
+        setCustomFood({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
+        setIsCustomFoodOpen(false);
+    }
+
+    async function applySubstitution(plan: DietPlanItem, sub: Substitution) {
+        const existingMeal = meals.find(m => m.mealName === plan.mealName);
+        const newItem: MealItem = {
+            food: sub.item,
+            protein: sub.protein,
+            carbs: sub.carbs,
+            fat: sub.fat || 0,
+            qty: 100
+        };
+
+        startTransition(async () => {
+            if (existingMeal) {
+                await saveMeal({
+                    id: existingMeal.id,
+                    date: existingMeal.date,
+                    mealName: existingMeal.mealName,
+                    items: [...existingMeal.items, newItem],
+                    isCompleted: existingMeal.isCompleted
+                });
+            } else {
+                await saveMeal({
+                    date,
+                    mealName: plan.mealName,
+                    items: [newItem],
+                    isCompleted: false
+                });
+            }
+            router.refresh();
+        });
+    }
 
     function openCreateDialog() {
         setEditingMeal(null);
@@ -263,14 +309,23 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                 <ScrollArea className="max-h-96">
                                                     <div className="space-y-4 p-4">
                                                         {plan.substitutions.map((sub, idx) => (
-                                                            <div key={idx} className="p-4 rounded-xl bg-card border">
-                                                                <p className="font-bold text-sm mb-1">{sub.item}</p>
-                                                                <p className="text-xs text-muted-foreground mb-2">Pode substituir por: <span className="text-primary font-semibold">{sub.canReplace}</span></p>
-                                                                <div className="flex gap-3 text-[10px] font-black uppercase">
-                                                                    <span className="text-red-500">P: {sub.protein}g</span>
-                                                                    <span className="text-blue-500">C: {sub.carbs}g</span>
-                                                                    {sub.fat !== undefined && <span className="text-yellow-500">F: {sub.fat}g</span>}
+                                                            <div key={idx} className="p-4 rounded-xl bg-card border flex flex-col gap-2">
+                                                                <div>
+                                                                    <p className="font-bold text-sm mb-1">{sub.item}</p>
+                                                                    <p className="text-xs text-muted-foreground mb-2">Pode substituir por: <span className="text-primary font-semibold">{sub.canReplace}</span></p>
+                                                                    <div className="flex gap-3 text-[10px] font-black uppercase">
+                                                                        <span className="text-red-500">P: {sub.protein}g</span>
+                                                                        <span className="text-blue-500">C: {sub.carbs}g</span>
+                                                                        {sub.fat !== undefined && <span className="text-yellow-500">F: {sub.fat}g</span>}
+                                                                    </div>
                                                                 </div>
+                                                                <Button
+                                                                    size="sm"
+                                                                    className="w-full h-8 text-[10px] font-black uppercase rounded-lg shadow-md shadow-primary/10"
+                                                                    onClick={() => applySubstitution(plan, sub)}
+                                                                >
+                                                                    Aplicar esta sugestão
+                                                                </Button>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -337,18 +392,89 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                     className="w-full text-left p-4 hover:bg-primary/5 transition-colors border-b last:border-0 flex justify-between items-center"
                                                 >
                                                     <div>
-                                                        <p className="font-bold">{food.name}</p>
-                                                        <p className="text-[10px] text-muted-foreground uppercase">{food.unit}</p>
+                                                        <p className="font-bold text-sm">{food.name}</p>
+                                                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{food.unit}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-xs font-semibold text-primary">{Math.round(food.protein * 4 + food.carbs * 4 + food.fat * 9)} kcal</p>
+                                                        <p className="text-xs font-black text-primary">
+                                                            {Math.round(food.protein * 4 + food.carbs * 4 + food.fat * 9)} <span className="font-normal text-[10px] text-muted-foreground">kcal</span>
+                                                        </p>
                                                     </div>
                                                 </button>
                                             ))}
+                                            {filteredFoods.length === 0 && (
+                                                <div className="p-8 text-center">
+                                                    <p className="text-xs text-muted-foreground italic mb-4">Nenhum alimento encontrado</p>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setIsCustomFoodOpen(true)}
+                                                        className="rounded-xl"
+                                                    >
+                                                        <Plus className="h-3 w-3 mr-2" /> Criar Alimento
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </ScrollArea>
                                     </div>
                                 )}
                             </div>
+
+                            {isCustomFoodOpen && (
+                                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-primary">Novo Alimento</p>
+                                        <Button variant="ghost" size="sm" onClick={() => setIsCustomFoodOpen(false)} className="h-6 text-[10px] uppercase font-bold">Cancelar</Button>
+                                    </div>
+                                    <Input
+                                        placeholder="Nome do alimento..."
+                                        value={customFood.name}
+                                        onChange={(e) => setCustomFood({ ...customFood, name: e.target.value })}
+                                        className="h-10 rounded-xl bg-background border-none shadow-inner text-sm"
+                                    />
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Proteína</Label>
+                                            <Input
+                                                type="number"
+                                                value={customFood.protein}
+                                                onChange={(e) => setCustomFood({ ...customFood, protein: Number(e.target.value) })}
+                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Carbs</Label>
+                                            <Input
+                                                type="number"
+                                                value={customFood.carbs}
+                                                onChange={(e) => setCustomFood({ ...customFood, carbs: Number(e.target.value) })}
+                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Gordura</Label>
+                                            <Input
+                                                type="number"
+                                                value={customFood.fat}
+                                                onChange={(e) => setCustomFood({ ...customFood, fat: Number(e.target.value) })}
+                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Qtd (g)</Label>
+                                            <Input
+                                                type="number"
+                                                value={customFood.qty}
+                                                onChange={(e) => setCustomFood({ ...customFood, qty: Number(e.target.value) })}
+                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button onClick={addCustomFood} className="w-full h-10 rounded-xl font-bold shadow-lg shadow-primary/10">
+                                        Adicionar à Refeição
+                                    </Button>
+                                </div>
+                            )}
 
                             <ScrollArea className="h-48 rounded-2xl bg-card/50 p-2">
                                 <div className="space-y-2">
