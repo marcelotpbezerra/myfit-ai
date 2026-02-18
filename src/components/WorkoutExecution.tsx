@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { logSet, getRecentLogs, updateTargetWeight } from "@/actions/workout";
