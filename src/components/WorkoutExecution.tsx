@@ -204,21 +204,6 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
     return (
         <div className="space-y-4 pb-24">
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-destructive/10 border border-destructive/20 text-destructive rounded-3xl p-4 flex items-center gap-3"
-            >
-                <div className="h-10 w-10 rounded-2xl bg-destructive/20 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="h-5 w-5 animate-bounce" />
-                </div>
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">Warning: Valsalva Protection</p>
-                    <p className="text-[11px] font-bold opacity-80 leading-snug">
-                        Lembrete: Mantenha a expiração no esforço máximo. Não prenda a respiração.
-                    </p>
-                </div>
-            </motion.div>
 
             <Reorder.Group axis="y" values={orderedExercises} onReorder={setOrderedExercises} className="grid gap-4">
                 {orderedExercises.map((ex, index) => (
