@@ -13,10 +13,15 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     const workoutLogs = await getWorkoutLogsByDate(dateStr);
     const mealLogs = await getMealsByDate(dateStr);
 
-    const totalVolume = workoutLogs.reduce((acc, l) => acc + (Number(l.log.weight || 0) * (l.log.reps || 0)), 0);
-    const totalCals = mealLogs.reduce((acc, m) => {
-        const items = (m.items as any[]) || [];
-        const mealCals = items.reduce((sum, item) => sum + (Number(item.protein || 0) * 4 + Number(item.carbs || 0) * 4 + Number(item.fat || 0) * 9), 0);
+    const totalVolume = (workoutLogs || []).reduce((acc, l) => {
+        if (!l?.log) return acc;
+        return acc + (Number(l.log.weight || 0) * (l.log.reps || 0));
+    }, 0);
+
+    const totalCals = (mealLogs || []).reduce((acc, m) => {
+        const items = Array.isArray(m.items) ? m.items : [];
+        const mealCals = items.reduce((sum, item: any) =>
+            sum + (Number(item?.protein || 0) * 4 + Number(item?.carbs || 0) * 4 + Number(item?.fat || 0) * 9), 0);
         return acc + mealCals;
     }, 0);
 
@@ -87,10 +92,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                                     <div className="flex-1">
                                         <p className="text-sm font-bold">{m.mealName}</p>
                                         <div className="flex gap-2 text-[9px] text-muted-foreground uppercase font-black">
-                                            {((m.items as any[]) || []).slice(0, 2).map((it, idx) => (
-                                                <span key={idx}>{it.food}</span>
-                                            ))}
-                                            {((m.items as any[]) || []).length > 2 && <span>...</span>}
+                                            {(() => {
+                                                const items = Array.isArray(m.items) ? m.items : [];
+                                                return items.slice(0, 2).map((it: any, idx: number) => (
+                                                    <span key={idx}>{it.food}</span>
+                                                ));
+                                            })()}
+                                            {Array.isArray(m.items) && m.items.length > 2 && <span>...</span>}
                                         </div>
                                     </div>
                                     {m.isCompleted && <div className="h-2 w-2 rounded-full bg-green-500" />}

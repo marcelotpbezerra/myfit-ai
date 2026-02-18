@@ -127,11 +127,25 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         startTransition(async () => {
             let result;
             if (existingMeal) {
+                // Tenta substituir ou apenas adiciona?
+                // Se o usuário quer substituir, procuramos por um item que bata com 'canReplace'
+                const currentItems = [...existingMeal.items];
+                const matchIndex = currentItems.findIndex(it =>
+                    it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
+                    sub.canReplace.toLowerCase().includes(it.food.toLowerCase())
+                );
+
+                if (matchIndex > -1) {
+                    currentItems[matchIndex] = newItem;
+                } else {
+                    currentItems.push(newItem);
+                }
+
                 result = await saveMeal({
                     id: existingMeal.id,
                     date: existingMeal.date,
                     mealName: existingMeal.mealName,
-                    items: [...existingMeal.items, newItem],
+                    items: currentItems,
                     isCompleted: existingMeal.isCompleted
                 });
             } else {
