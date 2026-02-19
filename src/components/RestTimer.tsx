@@ -13,13 +13,51 @@ interface RestTimerProps {
     onClose: () => void;
 }
 
+const playBeep = (frequency = 440, duration = 0.1) => {
+    try {
+        const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContextClass) return;
+
+        const audioCtx = new AudioContextClass();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+
+        // Close context after playing to release resources
+        setTimeout(() => audioCtx.close(), duration * 1000 + 100);
+    } catch (e) {
+        console.warn("Audio beep failed", e);
+    }
+};
+
 export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
     const [timeLeft, setTimeLeft] = useState(duration);
 
     useEffect(() => {
         if (timeLeft <= 0) {
+            // Final beep to signal the end of rest
+            playBeep(1320, 0.4);
             onComplete?.();
             return;
+        }
+
+        // Logic for beeps
+        const alertSeconds = [20, 10, 5, 4, 3, 2, 1];
+        if (alertSeconds.includes(timeLeft)) {
+            // Higher pitch for the countdown
+            const freq = timeLeft <= 5 ? 880 : 440;
+            playBeep(freq, 0.1);
         }
 
         const timer = setInterval(() => {
