@@ -227,27 +227,35 @@ export async function getNextSuggestedWorkout() {
 
         // 2. Encontrar o último exercício registrado
         const lastLog = await db.select({
-            split: exercises.split
+            split: exercises.split,
+            completedAt: workoutLogs.completedAt
         })
             .from(workoutLogs)
             .innerJoin(exercises, eq(workoutLogs.exerciseId, exercises.id))
             .where(eq(workoutLogs.userId, userId))
-            .orderBy(desc(workoutLogs.createdAt))
+            .orderBy(desc(workoutLogs.createdAt)) // Usando createdAt pois o completedAt pode ser nulo em alguns casos
             .limit(1);
 
         const lastSplit = lastLog[0]?.split || null;
+        console.log("DEBUG: splitType =", splitType);
+        console.log("DEBUG: lastSplit found =", lastSplit);
 
         // 3. Lógica de rotação
         const splitsArray = splitType.split(''); // ['A', 'B', 'C']
         let nextSplit = splitsArray[0];
 
         if (lastSplit) {
-            const lastIndex = splitsArray.indexOf(lastSplit);
+            const lastIndex = splitsArray.indexOf(lastSplit.toUpperCase());
             if (lastIndex !== -1) {
                 // Se existe no array, pega o próximo ou volta pro primeiro
                 const nextIndex = (lastIndex + 1) % splitsArray.length;
                 nextSplit = splitsArray[nextIndex];
+                console.log("DEBUG: Rotating from", lastSplit, "to", nextSplit, "(Index:", lastIndex, "->", nextIndex, ")");
+            } else {
+                console.log("DEBUG: lastSplit not in splitsArray, defaulting to A");
             }
+        } else {
+            console.log("DEBUG: No lastLog found, defaulting to A");
         }
 
         // 4. Buscar um nome/grupo muscular para esse split
