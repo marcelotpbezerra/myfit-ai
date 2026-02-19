@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { getUserSettings, getExercisesBySplit, getAllExercises } from "@/actions/workout";
+import { getUserSettings, getExercisesBySplit, getAllExercises, getNextSuggestedWorkout } from "@/actions/workout";
 import { WorkoutSplitter } from "@/components/WorkoutSplitter";
 import { WorkoutExecution } from "@/components/WorkoutExecution";
 import { WorkoutBuilder } from "@/components/WorkoutBuilder";
@@ -10,6 +10,7 @@ import { Dumbbell, Settings, PlusCircle, AlertCircle } from "lucide-react";
 export default async function WorkoutPage() {
     const settings = await getUserSettings();
     const currentSplit = settings?.workoutSplit || "ABC";
+    const nextWorkout = await getNextSuggestedWorkout();
 
     // Vamos buscar os exercícios para as letras da divisão
     // Simplificação: buscamos A por padrão ou deixamos o usuário escolher
@@ -18,6 +19,8 @@ export default async function WorkoutPage() {
     const exercisesC = await getExercisesBySplit("C");
     const exercisesD = await getExercisesBySplit("D");
     const allExercises = await getAllExercises();
+
+    const defaultTab = nextWorkout.letter;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -65,7 +68,7 @@ export default async function WorkoutPage() {
                 </TabsList>
 
                 <TabsContent value="training" className="mt-8 space-y-8">
-                    <Tabs defaultValue="A" className="w-full">
+                    <Tabs defaultValue={defaultTab} className="w-full">
                         <div className="flex justify-center mb-6">
                             <TabsList className="bg-muted/50 p-1 rounded-2xl h-12">
                                 <TabsTrigger value="A" className="px-6 rounded-xl font-black">TREINO A</TabsTrigger>

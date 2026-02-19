@@ -216,6 +216,66 @@ export async function getRecentLogs(exerciseId: number) {
     });
 }
 
+export async function getNextSuggestedWorkout() {
+    const { userId } = await auth();
+    if (!userId) return { letter: 'A', name: 'Treino A — Empurre' };
+
+    try {
+        // 1. Pegar configurações do usuário
+        const settings = await getUserSettings();
+        const splitType = settings?.workoutSplit || "ABC";
+
+        // 2. Encontrar o último exercício registrado
+        const lastLog = await db.select({
+            split: exercises.split
+        })
+            .from(workoutLogs)
+            .innerJoin(exercises, eq(workoutLogs.exerciseId, exercises.id))
+            .where(eq(workoutLogs.userId, userId))
+            .orderBy(desc(workoutLogs.createdAt))
+            .limit(1);
+
+        const lastSplit = lastLog[0]?.split || null;
+
+        // 3. Lógica de rotação
+        const splitsArray = splitType.split(''); // ['A', 'B', 'C']
+        let nextSplit = splitsArray[0];
+
+        if (lastSplit) {
+            const lastIndex = splitsArray.indexOf(lastSplit);
+            if (lastIndex !== -1) {
+                // Se existe no array, pega o próximo ou volta pro primeiro
+                const nextIndex = (lastIndex + 1) % splitsArray.length;
+                nextSplit = splitsArray[nextIndex];
+            }
+        }
+
+        // 4. Buscar um nome/grupo muscular para esse split
+        const exampleExercise = await db.query.exercises.findFirst({
+            where: and(eq(exercises.userId, userId), eq(exercises.split, nextSplit))
+        });
+
+        // Tentar obter grupos musculares únicos para esse split
+        const allExercisesInSplit = await db.query.exercises.findMany({
+            where: and(eq(exercises.userId, userId), eq(exercises.split, nextSplit)),
+            columns: { muscleGroup: true }
+        });
+
+        const muscleGroups = Array.from(new Set(allExercisesInSplit.map(e => e.muscleGroup).filter(Boolean)));
+        const muscleString = muscleGroups.slice(0, 2).join(" & ");
+
+        const descriptiveName = muscleString || (nextSplit === 'A' ? 'Empurre' : nextSplit === 'B' ? 'Puxe' : 'Pernas');
+
+        return {
+            letter: nextSplit,
+            name: `Treino ${nextSplit} — ${descriptiveName}`
+        };
+    } catch (error) {
+        console.error("Erro ao sugerir próximo treino:", error);
+        return { letter: 'A', name: 'Treino A — Empurre' };
+    }
+}
+
 export async function getWorkoutLogsByDate(dateStr: string) {
     const { userId } = await auth();
     if (!userId) return [];

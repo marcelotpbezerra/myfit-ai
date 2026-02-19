@@ -10,6 +10,7 @@ import Link from "next/link";
 import { WeightCard } from "@/components/WeightCard";
 import { getWaterGoal, getUserSettings } from "@/actions/health";
 import { getDietPlan } from "@/actions/diet";
+import { getNextSuggestedWorkout } from "@/actions/workout";
 import { BiometricInvite } from "@/components/BiometricInvite";
 import { MealNotificationManager } from "@/components/MealNotificationManager";
 
@@ -19,12 +20,21 @@ export default async function DashboardPage() {
     const waterGoal = await getWaterGoal();
     const todayMacros = await getTodayMacros();
     const latestStats = await getLatestStats();
+    const nextWorkout = await getNextSuggestedWorkout();
     const currentWeight = latestStats.weight || "82.5";
     const dietPlan = await getDietPlan();
     const settings = await getUserSettings();
     const biometricEnabled = settings?.biometricEnabled ?? false;
 
     const calorieGoal = dietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
+
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+    });
+    const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -39,7 +49,7 @@ export default async function DashboardPage() {
                             Olá, {user?.firstName || "Atleta"}!
                         </h1>
                         <p className="text-muted-foreground font-medium text-sm">
-                            Sexta-feira, 20 de Fevereiro — Foco total hoje.
+                            {capitalizedDate} — Foco total hoje.
                         </p>
                     </div>
                 </div>
@@ -76,7 +86,7 @@ export default async function DashboardPage() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Próximo Treino</p>
-                                <p className="text-lg font-black italic group-hover:text-primary transition-colors">Treino A — Empurre</p>
+                                <p className="text-lg font-black italic group-hover:text-primary transition-colors">{nextWorkout.name}</p>
                             </div>
                         </div>
                         <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
