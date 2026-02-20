@@ -13,8 +13,13 @@ interface RestTimerProps {
     onClose: () => void;
 }
 
-const playBeep = (frequency = 440, duration = 0.1) => {
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
+
+const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
     try {
+        // High-pitch frequencies are more audible over music
+        // 2500Hz - 3000Hz range is very "piercing"
         const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
         if (!AudioContextClass) return;
 
@@ -25,14 +30,29 @@ const playBeep = (frequency = 440, duration = 0.1) => {
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
-        oscillator.type = "sine";
+        // Triangle wave is sharper and louder than sine
+        oscillator.type = "triangle";
         oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
 
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        // Increased volume significantly (from 0.1 to 0.8)
+        gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
 
         oscillator.start();
         oscillator.stop(audioCtx.currentTime + duration);
+
+        // Trigger native ducking via Local Notification if on mobile
+        if (isFinal && Capacitor.isNativePlatform()) {
+            LocalNotifications.schedule({
+                notifications: [{
+                    title: "Tempo Esgotado!",
+                    body: "Próxima série agora!",
+                    id: 999,
+                    schedule: { at: new Date(Date.now() + 10) },
+                    sound: 'beep.wav' // This triggers OS audio ducking
+                }]
+            }).catch(err => console.error("Notification ducking failed", err));
+        }
 
         // Close context after playing to release resources
         setTimeout(() => audioCtx.close(), duration * 1000 + 100);
@@ -46,18 +66,18 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
 
     useEffect(() => {
         if (timeLeft <= 0) {
-            // Final beep to signal the end of rest
-            playBeep(1320, 0.4);
+            // Final beep to signal the end of rest - very high pitch and triggers ducking
+            playBeep(2500, 0.6, true);
             onComplete?.();
             return;
         }
 
-        // Logic for beeps
-        const alertSeconds = [20, 10, 5, 4, 3, 2, 1];
+        // Logic for countdown beeps
+        const alertSeconds = [10, 5, 4, 3, 2, 1];
         if (alertSeconds.includes(timeLeft)) {
-            // Higher pitch for the countdown
-            const freq = timeLeft <= 5 ? 880 : 440;
-            playBeep(freq, 0.1);
+            // High frequency for countdown (piercing 2000Hz)
+            const freq = timeLeft <= 3 ? 3000 : 2000;
+            playBeep(freq, 0.15);
         }
 
         const timer = setInterval(() => {

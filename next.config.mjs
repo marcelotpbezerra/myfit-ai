@@ -12,6 +12,7 @@ const nextConfig = {
     reactStrictMode: true,
     typescript: { ignoreBuildErrors: true },
     images: { unoptimized: true },
+    turbopack: {}, // Empty turbopack config to silence the error as per Next 16 tip
 };
 
 export default withPWA(nextConfig);
