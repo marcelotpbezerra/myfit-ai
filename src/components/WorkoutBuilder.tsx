@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
 import { addExerciseToWorkout, deleteExercise, addExerciseToCatalog } from "@/actions/workout";
 import { searchExerciseFromAPI, RemoteExercise } from "@/lib/exercise-api";
-import { Plus, Trash2, Search, Dumbbell, Target, X, Save, ArrowRight, Info, Zap, Globe, Loader2, Sparkles, Database } from "lucide-react";
+import {
+    Plus, Trash2, Search, Dumbbell, Target, X, Save,
+    ArrowRight, Info, Zap, Globe, Loader2, Sparkles,
+    Database, Play
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +29,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const [isSearchingAPI, setIsSearchingAPI] = useState(false);
     const [remoteResults, setRemoteResults] = useState<RemoteExercise[]>([]);
     const [showRemote, setShowRemote] = useState(false);
+    const [previewGifId, setPreviewGifId] = useState<number | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
 
     // Form state for adding/editing targets
@@ -66,13 +71,13 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     // Listar exercícios locais (banco de dados) + Base estática
     const filteredExercises = [...currentExercises, ...EXERCISES_DB]
         // Remover duplicatas pelo nome (priorizando os do banco para ter IDs corretos)
-        .reduce((acc, curr) => {
+        .reduce((acc: any[], curr: any) => {
             if (!acc.find(ex => ex.name.toLowerCase() === curr.name.toLowerCase())) {
                 acc.push(curr);
             }
             return acc;
         }, [] as any[])
-        .filter(ex =>
+        .filter((ex: any) =>
             ex.name.toLowerCase().includes(search.toLowerCase()) ||
             ex.muscleGroup.toLowerCase().includes(search.toLowerCase())
         );
@@ -399,23 +404,55 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                 key={ex.id}
                                                 className="flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04]"
                                             >
-                                                <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-start justify-between mb-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                            <Zap className="h-4 w-4 text-primary" />
+                                                        {ex.gifUrl ? (
+                                                            <div className="relative group/gif cursor-pointer" onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}>
+                                                                <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-white/10" />
+                                                                <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/gif:opacity-100 flex items-center justify-center transition-opacity">
+                                                                    <Play className="h-4 w-4 text-white" />
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                                <Zap className="h-5 w-5 text-primary" />
+                                                            </div>
+                                                        )}
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">{ex.name}</span>
+                                                            {ex.gifUrl && (
+                                                                <button
+                                                                    onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
+                                                                    className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
+                                                                >
+                                                                    {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                        <span className="text-sm font-black uppercase tracking-tight text-white">{ex.name}</span>
                                                     </div>
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
                                                         onClick={() => handleDelete(ex.id)}
                                                         disabled={isPending}
-                                                        className="h-8 w-8 p-0 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                                                        className="h-8 w-8 p-0 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all ml-2"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
+
+                                                <AnimatePresence>
+                                                    {previewGifId === ex.id && ex.gifUrl && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: "auto", opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className="mb-4 rounded-2xl overflow-hidden border border-white/5 ring-1 ring-white/10"
+                                                        >
+                                                            <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-cover" />
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                                 <div className="grid grid-cols-4 gap-2">
                                                     <div className="flex flex-col items-center p-2 rounded-xl bg-black/20">
                                                         <span className="text-[7px] font-black uppercase text-muted-foreground/60 tracking-tighter">Sets</span>

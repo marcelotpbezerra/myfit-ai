@@ -98,7 +98,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const [inputs, setInputs] = useState<Record<number, { weight: string, reps: string }>>({});
     const [notes, setNotes] = useState<Record<number, string>>({});
     const [exerciseStartedAt, setExerciseStartedAt] = useState<Record<number, Date>>({});
-    const [showNotes, setShowNotes] = useState<Record<number, boolean>>({});
+    const [showNotes, setShowNotes] = useState<Record<string, boolean>>({});
 
     const [isMounted, setIsMounted] = useState(false);
 
@@ -367,19 +367,21 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                             <NotebookPen className="h-4 w-4" />
                                                             <span>Notas</span>
                                                         </button>
-                                                        {ex.gifUrl && (
-                                                            <button
-                                                                type="button"
-                                                                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-                                                                onClick={() => {
-                                                                    // Podemos abrir o GIF em um modal ou mostrar abaixo
+                                                        <button
+                                                            type="button"
+                                                            className={cn(
+                                                                "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all px-4 py-2 rounded-xl",
+                                                                ex.gifUrl ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/5 text-muted-foreground/40 cursor-not-allowed"
+                                                            )}
+                                                            onClick={() => {
+                                                                if (ex.gifUrl) {
                                                                     setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: !prev[`gif_${ex.id}`] }));
-                                                                }}
-                                                            >
-                                                                <Play className="h-4 w-4" />
-                                                                <span>Ver Execução</span>
-                                                            </button>
-                                                        )}
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Play className={cn("h-4 w-4", !ex.gifUrl && "opacity-20")} />
+                                                            <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR TUTORIAL" : "VER EXECUÇÃO") : "SEM TUTORIAL"}</span>
+                                                        </button>
                                                     </div>
 
                                                     <AnimatePresence>
