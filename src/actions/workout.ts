@@ -302,3 +302,27 @@ export async function getWorkoutLogsByDate(dateStr: string) {
 
     return logs;
 }
+
+export async function addExerciseToCatalog(data: {
+    name: string;
+    muscleGroup: string;
+    equipment: string;
+    gifUrl: string;
+}) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(exercises)
+        .values({
+            userId,
+            name: data.name,
+            muscleGroup: data.muscleGroup,
+            equipment: data.equipment,
+            gifUrl: data.gifUrl,
+            isCustom: false, // Vem da API externa
+        })
+        .onConflictDoNothing({ target: [exercises.userId, exercises.name] });
+
+    revalidatePath("/dashboard/workout");
+    return { success: true };
+}

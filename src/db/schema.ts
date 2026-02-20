@@ -20,6 +20,8 @@ export const exercises = pgTable("exercises", {
   split: text("split"), // 'A', 'B', 'C', 'D'
   isCustom: boolean("is_custom").default(true),
   apiId: text("api_id"), // ID caso venha da API externa
+  equipment: text("equipment"),
+  gifUrl: text("gif_url"),
   targetSets: integer("target_sets").default(3),
   targetReps: integer("target_reps").default(12),
   targetWeight: numeric("target_weight").default("0"),

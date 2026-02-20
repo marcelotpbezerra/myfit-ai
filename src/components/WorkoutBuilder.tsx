@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
-import { addExerciseToWorkout, deleteExercise } from "@/actions/workout";
-import { Plus, Trash2, Search, Dumbbell, Target, X, Save, ArrowRight, Info, Zap } from "lucide-react";
+import { addExerciseToWorkout, deleteExercise, addExerciseToCatalog } from "@/actions/workout";
+import { searchExerciseFromAPI, RemoteExercise } from "@/lib/exercise-api";
+import { Plus, Trash2, Search, Dumbbell, Target, X, Save, ArrowRight, Info, Zap, Globe, Loader2, Sparkles, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,11 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const [search, setSearch] = useState("");
     const [selectedSplit, setSelectedSplit] = useState("A");
 
+    // Estados para Busca Global (API)
+    const [isSearchingAPI, setIsSearchingAPI] = useState(false);
+    const [remoteResults, setRemoteResults] = useState<RemoteExercise[]>([]);
+    const [showRemote, setShowRemote] = useState(false);
+
     // Form state for adding/editing targets
     const [editingExercise, setEditingExercise] = useState<any | null>(null);
     const [form, setForm] = useState({
@@ -28,6 +34,30 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
         targetWeight: "0",
         targetRestTime: 60
     });
+
+    // Debounce manual para busca na API
+    useEffect(() => {
+        if (search.length < 3) {
+            setRemoteResults([]);
+            setShowRemote(false);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setIsSearchingAPI(true);
+            try {
+                const results = await searchExerciseFromAPI(search);
+                setRemoteResults(results);
+                if (results.length > 0) setShowRemote(true);
+            } catch (err) {
+                console.error("Erro na busca global:", err);
+            } finally {
+                setIsSearchingAPI(false);
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const filteredExercises = EXERCISES_DB.filter(ex =>
         ex.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,6 +71,21 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
             targetReps: 12,
             targetWeight: "0",
             targetRestTime: 60
+        });
+    };
+
+    const handleAddFromRemote = async (ex: RemoteExercise) => {
+        startTransition(async () => {
+            await addExerciseToCatalog({
+                name: ex.name,
+                muscleGroup: ex.targetMuscle,
+                equipment: ex.equipment,
+                gifUrl: ex.gifUrl
+            });
+            // Limpar busca para mostrar o novo exercício no catálogo local
+            setSearch("");
+            setRemoteResults([]);
+            setShowRemote(false);
         });
     };
 
@@ -116,9 +161,63 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
+                                {isSearchingAPI && (
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                        <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="grid gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="grid gap-3 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                                {/* BUSCA GLOBAL (API) */}
+                                {showRemote && remoteResults.length > 0 && (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 px-2 py-1">
+                                            <Globe className="h-3 w-3 text-primary" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">Busca Global (ExerciseDB)</span>
+                                        </div>
+                                        {remoteResults.map((ex, idx) => (
+                                            <motion.div
+                                                key={`remote-${idx}`}
+                                                initial={{ opacity: 0, x: 10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-all group"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    {ex.gifUrl ? (
+                                                        <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-primary/20" />
+                                                    ) : (
+                                                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                            <Dumbbell className="h-6 w-6" />
+                                                        </div>
+                                                    )}
+                                                    <div className="max-w-[120px] sm:max-w-none truncate">
+                                                        <p className="font-bold text-sm text-white truncate">{ex.name}</p>
+                                                        <p className="text-[10px] uppercase font-black text-primary/60 tracking-widest truncate">{ex.targetMuscle} • {ex.equipment}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAddFromRemote(ex);
+                                                    }}
+                                                    className="h-10 px-4 rounded-xl bg-primary text-black font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    <Sparkles className="h-3 w-3 mr-2" />
+                                                    Add
+                                                </Button>
+                                            </motion.div>
+                                        ))}
+                                        <div className="h-px bg-white/5 my-4" />
+                                    </div>
+                                )}
+
+                                {/* BUSCA LOCAL */}
+                                <div className="flex items-center gap-2 px-2 py-1">
+                                    <Database className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Catálogo Local</span>
+                                </div>
                                 {filteredExercises.map((ex, index) => (
                                     <motion.div
                                         key={ex.name}

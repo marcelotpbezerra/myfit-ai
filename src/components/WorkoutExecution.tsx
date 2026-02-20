@@ -3,12 +3,23 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { logSet, getRecentLogs, updateTargetWeight } from "@/actions/workout";
-// ... (rest of imports remain same)
 import {
     ChevronRight,
     ChevronDown,
+    ChevronUp,
     Dumbbell,
     History,
+    Play,
+    Pause,
+    RotateCcw,
+    Save,
+    Trash2,
+    GripVertical,
+    Plus,
+    Search,
+    Info,
+    Clock,
+    ExternalLink,
     CheckCircle2,
     Circle,
     TrendingUp,
@@ -16,11 +27,10 @@ import {
     AlertTriangle,
     NotebookPen,
     Zap,
-    GripVertical,
     Flag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RestTimer } from "./RestTimer";
 import { cn } from "@/lib/utils";
@@ -36,6 +46,40 @@ interface Exercise {
 }
 
 const STORAGE_KEY = "myfit_workout_session_v1";
+
+// 1. Skeleton Loader para evitar o flicker de hidratação (Next.js 15)
+function WorkoutSkeleton() {
+    return (
+        <div className="space-y-6 animate-pulse">
+            <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                    <div className="h-8 w-48 bg-muted rounded-xl" />
+                    <div className="h-4 w-32 bg-muted rounded-lg" />
+                </div>
+                <div className="h-12 w-12 bg-muted rounded-2xl" />
+            </div>
+
+            <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+                <CardHeader className="p-6 pb-2">
+                    <div className="h-4 w-20 bg-muted rounded mb-2" />
+                    <div className="h-10 w-full bg-muted rounded-xl" />
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="h-20 bg-muted rounded-2xl" />
+                        <div className="h-20 bg-muted rounded-2xl" />
+                    </div>
+                    <div className="h-48 bg-muted rounded-2xl" />
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="h-16 bg-muted rounded-2xl" />
+                <div className="h-16 bg-muted rounded-2xl" />
+            </div>
+        </div>
+    );
+}
 
 export function WorkoutExecution({ exercises: initialExercises }: { exercises: Exercise[] }) {
     const [orderedExercises, setOrderedExercises] = useState<Exercise[]>(initialExercises);
@@ -200,7 +244,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         }
     };
 
-    if (!isMounted) return null;
+    // 2. Prevenção de flicker com Skeleton em vez de null
+    if (!isMounted) return <WorkoutSkeleton />;
 
     return (
         <div className="space-y-4 pb-24">

@@ -10,8 +10,10 @@ import {
     ChevronRight,
     Search,
     CheckCircle2,
-    Circle
+    Circle,
+    Loader2
 } from "lucide-react";
+import { searchFoodNutrition } from "@/lib/nutrition-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,16 +29,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-// Mock Database de Alimentos
-const MOCK_FOODS = [
-    { name: "Frango Grelhado", protein: 31, carbs: 0, fat: 3.6, unit: "100g" },
-    { name: "Arroz Branco", protein: 2.7, carbs: 28, fat: 0.3, unit: "100g" },
-    { name: "Ovo Cozido", protein: 6, carbs: 0.6, fat: 5, unit: "unidade" },
-    { name: "Feijão Carioca", protein: 4.8, carbs: 13.6, fat: 0.5, unit: "100g" },
-    { name: "Batata Doce", protein: 1.6, carbs: 20, fat: 0.1, unit: "100g" },
-    { name: "Azeite de Oliva", protein: 0, carbs: 0, fat: 14, unit: "colher sopa" },
-    { name: "Whey Protein", protein: 24, carbs: 2, fat: 1.5, unit: "scoop" },
-];
+// Retirado MOCK_FOODS para usar API real
 
 interface MealItem {
     food: string;
@@ -93,13 +86,32 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [mealName, setMealName] = useState("");
     const [currentItems, setCurrentItems] = useState<MealItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
     const [isCustomFoodOpen, setIsCustomFoodOpen] = useState(false);
     const [customFood, setCustomFood] = useState({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
     const [subDialogOpenId, setSubDialogOpenId] = useState<number | null>(null);
 
-    const filteredFoods = MOCK_FOODS.filter(food =>
-        food.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Busca de alimentos com debounce
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchQuery.trim().length > 2) {
+                setIsSearching(true);
+                try {
+                    const results = await searchFoodNutrition(searchQuery);
+                    setSearchResults(results);
+                } catch (error) {
+                    console.error("Search failed:", error);
+                } finally {
+                    setIsSearching(false);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     function addCustomFood() {
         if (!customFood.name) return;
@@ -177,7 +189,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         setIsDialogOpen(true);
     }
 
-    function addItem(food: typeof MOCK_FOODS[0]) {
+    function addItem(food: any) {
         setCurrentItems([...currentItems, {
             food: food.name,
             protein: food.protein,
@@ -186,6 +198,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
             qty: 100
         }]);
         setSearchQuery("");
+        setSearchResults([]);
     }
 
     function removeItem(index: number) {
@@ -457,35 +470,49 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                 {searchQuery && (
                                     <div className="absolute top-12 left-0 right-0 z-50 bg-card border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                         <ScrollArea className="h-64">
-                                            {filteredFoods.map(food => (
-                                                <button
-                                                    key={food.name}
-                                                    onClick={() => addItem(food)}
-                                                    className="w-full text-left p-4 hover:bg-primary/5 transition-colors border-b last:border-0 flex justify-between items-center"
-                                                >
-                                                    <div>
-                                                        <p className="font-bold text-sm">{food.name}</p>
-                                                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{food.unit}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-xs font-black text-primary">
-                                                            {Math.round(food.protein * 4 + food.carbs * 4 + food.fat * 9)} <span className="font-normal text-[10px] text-muted-foreground">kcal</span>
-                                                        </p>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                            {filteredFoods.length === 0 && (
-                                                <div className="p-8 text-center">
-                                                    <p className="text-xs text-muted-foreground italic mb-4">Nenhum alimento encontrado</p>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => setIsCustomFoodOpen(true)}
-                                                        className="rounded-xl"
-                                                    >
-                                                        <Plus className="h-3 w-3 mr-2" /> Criar Alimento
-                                                    </Button>
+                                            {isSearching ? (
+                                                <div className="p-8 flex flex-col items-center gap-2 text-muted-foreground">
+                                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                                    <p className="text-xs">Buscando na base de dados...</p>
                                                 </div>
+                                            ) : (
+                                                <>
+                                                    {searchResults.map((food, idx) => (
+                                                        <button
+                                                            key={`${food.name}-${idx}`}
+                                                            onClick={() => addItem(food)}
+                                                            className="w-full text-left p-4 hover:bg-primary/5 transition-colors border-b last:border-0 flex justify-between items-center"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                {food.image && (
+                                                                    <img src={food.image} alt={food.name} className="h-10 w-10 rounded-lg object-cover bg-muted" />
+                                                                )}
+                                                                <div>
+                                                                    <p className="font-bold text-sm">{food.name}</p>
+                                                                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{food.unit}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-xs font-black text-primary">
+                                                                    {food.calories} <span className="font-normal text-[10px] text-muted-foreground">kcal</span>
+                                                                </p>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                    {searchResults.length === 0 && searchQuery.length > 2 && (
+                                                        <div className="p-8 text-center">
+                                                            <p className="text-xs text-muted-foreground italic mb-4">Nenhum alimento encontrado</p>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => setIsCustomFoodOpen(true)}
+                                                                className="rounded-xl"
+                                                            >
+                                                                <Plus className="h-3 w-3 mr-2" /> Criar Alimento
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </ScrollArea>
                                     </div>
