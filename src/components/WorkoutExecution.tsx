@@ -2,7 +2,12 @@
 
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useState, useTransition, useEffect, useRef } from "react";
-import { logSet, getRecentLogs, updateTargetWeight } from "@/actions/workout";
+import {
+    logSet,
+    updateTargetWeight,
+    getUserSettings,
+    syncExerciseTutorial
+} from "@/actions/workout";
 import {
     ChevronRight,
     ChevronDown,
@@ -27,7 +32,8 @@ import {
     AlertTriangle,
     NotebookPen,
     Zap,
-    Flag
+    Flag,
+    RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -369,18 +375,23 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                         </button>
                                                         <button
                                                             type="button"
+                                                            disabled={isPending}
                                                             className={cn(
                                                                 "flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all px-4 py-2 rounded-xl",
-                                                                ex.gifUrl ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-white/5 text-muted-foreground/40 cursor-not-allowed"
+                                                                ex.gifUrl ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-primary/10 text-primary/60 hover:bg-primary/20"
                                                             )}
-                                                            onClick={() => {
+                                                            onClick={async () => {
                                                                 if (ex.gifUrl) {
                                                                     setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: !prev[`gif_${ex.id}`] }));
+                                                                } else {
+                                                                    startTransition(async () => {
+                                                                        await syncExerciseTutorial(ex.id, ex.name);
+                                                                    });
                                                                 }
                                                             }}
                                                         >
-                                                            <Play className={cn("h-4 w-4", !ex.gifUrl && "opacity-20")} />
-                                                            <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR TUTORIAL" : "VER EXECUÇÃO") : "SEM TUTORIAL"}</span>
+                                                            <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
+                                                            <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR TUTORIAL" : "VER EXECUÇÃO") : (isPending ? "BUSCANDO..." : "BUSCAR TUTORIAL")}</span>
                                                         </button>
                                                     </div>
 

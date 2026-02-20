@@ -3,12 +3,18 @@
 import { useState, useTransition, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
-import { addExerciseToWorkout, deleteExercise, addExerciseToCatalog } from "@/actions/workout";
+import {
+    addExerciseToWorkout,
+    deleteExercise,
+    addExerciseToCatalog,
+    syncExerciseTutorial,
+    syncAllMissingTutorials
+} from "@/actions/workout";
 import { searchExerciseFromAPI, RemoteExercise } from "@/lib/exercise-api";
 import {
     Plus, Trash2, Search, Dumbbell, Target, X, Save,
     ArrowRight, Info, Zap, Globe, Loader2, Sparkles,
-    Database, Play
+    Database, Play, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -414,19 +420,31 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                                <Zap className="h-5 w-5 text-primary" />
+                                                            <div
+                                                                className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-all group/sync"
+                                                                title="Sincronizar Tutorial"
+                                                                onClick={() => {
+                                                                    startTransition(async () => {
+                                                                        await syncExerciseTutorial(ex.id, ex.name);
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <RefreshCw className={cn("h-5 w-5 text-primary", isPending && "animate-spin")} />
                                                             </div>
                                                         )}
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">{ex.name}</span>
-                                                            {ex.gifUrl && (
+                                                            {ex.gifUrl ? (
                                                                 <button
                                                                     onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
                                                                     className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
                                                                 >
                                                                     {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
                                                                 </button>
+                                                            ) : (
+                                                                <span className="text-[7px] font-medium uppercase tracking-widest text-white/20 mt-0.5">
+                                                                    Aguardando tutorial...
+                                                                </span>
                                                             )}
                                                         </div>
                                                     </div>

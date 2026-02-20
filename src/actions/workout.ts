@@ -339,3 +339,76 @@ export async function addExerciseToCatalog(data: {
     revalidatePath("/dashboard/workout");
     return { success: true };
 }
+
+export async function syncExerciseTutorial(exerciseId: number, name: string) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    const { searchExerciseFromAPI } = await import("@/lib/exercise-api");
+
+    try {
+        const results = await searchExerciseFromAPI(name);
+        if (results && results.length > 0) {
+            // Pegar o primeiro resultado mais relevante
+            const bestMatch = results[0];
+
+            await db.update(exercises)
+                .set({
+                    gifUrl: bestMatch.gifUrl,
+                    muscleGroup: bestMatch.targetMuscle,
+                    equipment: bestMatch.equipment,
+                    updatedAt: new Date()
+                })
+                .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)));
+
+            revalidatePath("/dashboard/workout");
+            return { success: true, gifUrl: bestMatch.gifUrl };
+        }
+        return { success: false, error: "Nenhum tutorial encontrado" };
+    } catch (error) {
+        console.error("Erro ao sincronizar tutorial:", error);
+        return { success: false, error: "Falha na busca" };
+    }
+}
+
+export async function syncAllMissingTutorials() {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    const missingExercises = await db.query.exercises.findMany({
+        where: and(
+            eq(exercises.userId, userId),
+            sql`${exercises.gifUrl} IS NULL OR ${exercises.gifUrl} = ''`
+        )
+    });
+
+    if (missingExercises.length === 0) return { success: true, count: 0 };
+
+    const { searchExerciseFromAPI } = await import("@/lib/exercise-api");
+    let syncedCount = 0;
+
+    for (const ex of missingExercises) {
+        try {
+            const results = await searchExerciseFromAPI(ex.name);
+            if (results && results.length > 0) {
+                const bestMatch = results[0];
+                await db.update(exercises)
+                    .set({
+                        gifUrl: bestMatch.gifUrl,
+                        muscleGroup: bestMatch.targetMuscle,
+                        equipment: bestMatch.equipment,
+                        updatedAt: new Date()
+                    })
+                    .where(eq(exercises.id, ex.id));
+                syncedCount++;
+            }
+            // Pequeno delay para evitar rate limit da RapidAPI/Gemini
+            await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (e) {
+            console.error(`Falha ao sincronizar ${ex.name}:`, e);
+        }
+    }
+
+    revalidatePath("/dashboard/workout");
+    return { success: true, count: syncedCount };
+}
