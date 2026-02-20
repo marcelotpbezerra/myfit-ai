@@ -29,19 +29,25 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         console.log(`[Exercise Middleware] PT-BR: "${query}" -> EN: "${englishQuery}"`);
 
         // 2. Fetch from ExerciseDB (RapidAPI)
-        // Usamos o endpoint de busca por nome
         const response = await fetch(
             `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(englishQuery.toLowerCase())}?limit=8`,
             {
                 method: "GET",
                 headers: {
-                    "X-RapidAPI-Key": rapidKey,
+                    "X-RapidAPI-Key": rapidKey!,
                     "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
                 }
             }
         );
 
-        if (!response.ok) throw new Error("Failed to fetch from ExerciseDB");
+        console.log(`[ExerciseDB] Status: ${response.status} (${response.statusText})`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[ExerciseDB] Error: ${errorText}`);
+            throw new Error(`ExerciseDB API Error: ${response.status}`);
+        }
+
         const rawResults = await response.json();
 
         if (!rawResults || rawResults.length === 0) return [];
