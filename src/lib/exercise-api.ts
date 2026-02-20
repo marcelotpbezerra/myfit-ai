@@ -21,7 +21,7 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
 
     try {
         // 1. Inbound Translation: PT-BR -> EN
-        const modelFlash = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const modelFlash = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const translationPrompt = `Translate the following exercise/muscle search term from Portuguese (PT-BR) to English. Return only the translated term: "${query}"`;
         const translationResult = await modelFlash.generateContent(translationPrompt);
         const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
@@ -54,7 +54,7 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
 
         // 3. Outbound Translation & Normalização com Structured Output
         const structuringModel = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {

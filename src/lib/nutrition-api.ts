@@ -17,7 +17,7 @@ export async function searchFoodNutrition(query: string) {
     try {
         // 1. Inbound Translation: PT-BR -> EN
         // Precisamos do inglês para a Edamam dar resultados melhores
-        const modelFlash = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const modelFlash = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const translationPrompt = `Translate the following food search query from Portuguese (PT-BR) to English. Return only the translated term or phrase, nothing else: "${query}"`;
         const translationResult = await modelFlash.generateContent(translationPrompt);
         const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
@@ -52,7 +52,7 @@ export async function searchFoodNutrition(query: string) {
         // 3. Outbound Translation & Normalização com Structured Output
         // Traduzimos de volta para PT-BR e garantimos o formato JSON rígido
         const structuringModel = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -75,7 +75,7 @@ export async function searchFoodNutrition(query: string) {
                             }
                         }
                     }
-                }
+                } as any
             }
         });
 
