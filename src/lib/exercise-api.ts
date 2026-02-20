@@ -20,15 +20,16 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
     }
 
     try {
-        // 1. Inbound Translation: PT-BR -> EN
+        // Passo 1: Inbound Translation: PT-BR -> EN
+        console.log("1. Buscando tradução para:", query);
         const modelFlash = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const translationPrompt = `Translate the following exercise/muscle search term from Portuguese (PT-BR) to English. Return only the translated term: "${query}"`;
         const translationResult = await modelFlash.generateContent(translationPrompt);
         const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
 
-        console.log(`[Exercise Middleware] PT-BR: "${query}" -> EN: "${englishQuery}"`);
+        console.log("2. Traduzido para Inglês:", englishQuery);
 
-        // 2. Fetch from ExerciseDB (RapidAPI)
+        // Passo 2: Fetch from ExerciseDB (RapidAPI)
         const response = await fetch(
             `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(englishQuery.toLowerCase())}?limit=8`,
             {
@@ -40,19 +41,23 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
             }
         );
 
-        console.log(`[ExerciseDB] Status: ${response.status} (${response.statusText})`);
+        console.log("3. Status RapidAPI:", response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[ExerciseDB] Error: ${errorText}`);
-            throw new Error(`ExerciseDB API Error: ${response.status}`);
+            console.error(`[ExerciseDB ERROR] Status: ${response.status} - Body: ${errorText}`);
+            throw new Error(`ExerciseDB API Error: ${response.status} - ${errorText}`);
         }
 
         const rawResults = await response.json();
+        console.log("4. Resposta bruta da RapidAPI:", JSON.stringify(rawResults).substring(0, 500) + "...");
 
-        if (!rawResults || rawResults.length === 0) return [];
+        if (!rawResults || rawResults.length === 0) {
+            console.warn("Aviso: RapidAPI retornou um array vazio.");
+            return [];
+        }
 
-        // 3. Outbound Translation & Normalização com Structured Output
+        // Passo 3: Outbound Translation & Normalização com Structured Output
         const structuringModel = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
             generationConfig: {
@@ -87,12 +92,15 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         `;
 
         const structuringResult = await structuringModel.generateContent(structuringPrompt);
-        const structuredData = JSON.parse(structuringResult.response.text());
+        const finalText = structuringResult.response.text();
+        console.log("5. Retorno do Gemini (Structured Output):", finalText);
+
+        const structuredData = JSON.parse(finalText);
 
         return structuredData.exercises;
 
-    } catch (error) {
-        console.error("Exercise Search Error with Gemini Middleware:", error);
-        return [];
+    } catch (error: any) {
+        console.error("ERRO FATAL NA BUSCA:", error);
+        throw new Error(error.message || "Erro desconhecido na busca global");
     }
 }

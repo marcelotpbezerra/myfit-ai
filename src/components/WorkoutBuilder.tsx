@@ -25,6 +25,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const [isSearchingAPI, setIsSearchingAPI] = useState(false);
     const [remoteResults, setRemoteResults] = useState<RemoteExercise[]>([]);
     const [showRemote, setShowRemote] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     // Form state for adding/editing targets
     const [editingExercise, setEditingExercise] = useState<any | null>(null);
@@ -45,12 +46,15 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
 
         const timer = setTimeout(async () => {
             setIsSearchingAPI(true);
+            setApiError(null);
             try {
                 const results = await searchExerciseFromAPI(search);
                 setRemoteResults(results);
-                if (results.length > 0) setShowRemote(true);
-            } catch (err) {
+                setShowRemote(true);
+            } catch (err: any) {
                 console.error("Erro na busca global:", err);
+                setApiError(err.message || "Falha na conexão com ExerciseDB");
+                setShowRemote(true);
             } finally {
                 setIsSearchingAPI(false);
             }
@@ -170,45 +174,65 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
 
                             <div className="grid gap-3 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                                 {/* BUSCA GLOBAL (API) */}
-                                {showRemote && remoteResults.length > 0 && (
+                                {showRemote && (
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-2 px-2 py-1">
-                                            <Globe className="h-3 w-3 text-primary" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">Busca Global (ExerciseDB)</span>
-                                        </div>
-                                        {remoteResults.map((ex, idx) => (
-                                            <motion.div
-                                                key={`remote-${idx}`}
-                                                initial={{ opacity: 0, x: 10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-all group"
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    {ex.gifUrl ? (
-                                                        <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-primary/20" />
-                                                    ) : (
-                                                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                                            <Dumbbell className="h-6 w-6" />
-                                                        </div>
-                                                    )}
-                                                    <div className="max-w-[120px] sm:max-w-none truncate">
-                                                        <p className="font-bold text-sm text-white truncate">{ex.name}</p>
-                                                        <p className="text-[10px] uppercase font-black text-primary/60 tracking-widest truncate">{ex.targetMuscle} • {ex.equipment}</p>
-                                                    </div>
+                                        <div className="flex items-center justify-between px-2 py-1">
+                                            <div className="flex items-center gap-2">
+                                                <Globe className="h-3 w-3 text-primary animate-pulse" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Busca Global (AI)</span>
+                                            </div>
+                                            {isSearchingAPI && (
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-primary italic">
+                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                    Sincronizando...
                                                 </div>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleAddFromRemote(ex);
-                                                    }}
-                                                    className="h-10 px-4 rounded-xl bg-primary text-black font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                            )}
+                                        </div>
+
+                                        {apiError ? (
+                                            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium flex items-center gap-3">
+                                                <Info className="h-4 w-4" />
+                                                {apiError}
+                                            </div>
+                                        ) : remoteResults.length > 0 ? (
+                                            remoteResults.map((ex, idx) => (
+                                                <motion.div
+                                                    key={`remote-${idx}`}
+                                                    initial={{ opacity: 0, x: 10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-all group"
                                                 >
-                                                    <Sparkles className="h-3 w-3 mr-2" />
-                                                    Add
-                                                </Button>
-                                            </motion.div>
-                                        ))}
+                                                    <div className="flex items-center gap-4">
+                                                        {ex.gifUrl ? (
+                                                            <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-primary/20" />
+                                                        ) : (
+                                                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                                <Dumbbell className="h-6 w-6" />
+                                                            </div>
+                                                        )}
+                                                        <div className="max-w-[120px] sm:max-w-none truncate">
+                                                            <p className="font-bold text-sm text-white truncate">{ex.name}</p>
+                                                            <p className="text-[10px] uppercase font-black text-primary/60 tracking-widest truncate">{ex.targetMuscle} • {ex.equipment}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddFromRemote(ex);
+                                                        }}
+                                                        className="h-10 px-4 rounded-xl bg-primary text-black font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        <Sparkles className="h-3 w-3 mr-2" />
+                                                        Add
+                                                    </Button>
+                                                </motion.div>
+                                            ))
+                                        ) : !isSearchingAPI && (
+                                            <div className="px-4 py-2 text-[10px] text-muted-foreground/40 italic">
+                                                Nenhum resultado externo encontrado para "{search}"
+                                            </div>
+                                        )}
                                         <div className="h-px bg-white/5 my-4" />
                                     </div>
                                 )}
