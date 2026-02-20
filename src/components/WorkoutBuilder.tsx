@@ -84,8 +84,9 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                 name: ex.name,
                 muscleGroup: ex.targetMuscle,
                 equipment: ex.equipment,
-                gifUrl: ex.gifUrl
-            });
+                gifUrl: ex.gifUrl,
+                split: selectedSplit // Usa o split que o usuário selecionou na UI
+            } as any);
             // Limpar busca para mostrar o novo exercício no catálogo local
             setSearch("");
             setRemoteResults([]);
@@ -252,9 +253,13 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                         onClick={() => handleSelectForAdd(ex)}
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20">
-                                                <Dumbbell className="h-6 w-6" />
-                                            </div>
+                                            {ex.gifUrl ? (
+                                                <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-primary/20" />
+                                            ) : (
+                                                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary ring-1 ring-primary/20">
+                                                    <Dumbbell className="h-6 w-6" />
+                                                </div>
+                                            )}
                                             <div>
                                                 <p className="font-bold text-sm text-white">{ex.name}</p>
                                                 <p className="text-[10px] uppercase font-black text-muted-foreground/60 tracking-widest">{ex.muscleGroup}</p>
@@ -342,12 +347,13 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                 {isPending ? "Syncing..." : "Confirmar Exercício"}
                             </Button>
                         </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+                    )
+                    }
+                </AnimatePresence >
+            </div >
 
             {/* Visualização do Treino Atual */}
-            <div className="space-y-8 pt-8 border-t border-white/5">
+            < div className="space-y-8 pt-8 border-t border-white/5" >
                 <div>
                     <h3 className="font-black text-xl uppercase tracking-tight flex items-center gap-2 text-white">
                         <Target className="h-5 w-5 text-primary" />
@@ -427,7 +433,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                         );
                     })}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

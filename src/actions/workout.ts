@@ -308,6 +308,7 @@ export async function addExerciseToCatalog(data: {
     muscleGroup: string;
     equipment: string;
     gifUrl: string;
+    split?: string;
 }) {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
@@ -319,9 +320,21 @@ export async function addExerciseToCatalog(data: {
             muscleGroup: data.muscleGroup,
             equipment: data.equipment,
             gifUrl: data.gifUrl,
-            isCustom: false, // Vem da API externa
+            isCustom: false,
+            split: data.split || "A", // Padrão inicial ou o selecionado
+            targetSets: 3,
+            targetReps: 12,
+            targetRestTime: 60,
         })
-        .onConflictDoNothing({ target: [exercises.userId, exercises.name] });
+        .onConflictDoUpdate({
+            target: [exercises.userId, exercises.name],
+            set: {
+                muscleGroup: data.muscleGroup,
+                equipment: data.equipment,
+                gifUrl: data.gifUrl,
+                updatedAt: new Date()
+            }
+        });
 
     revalidatePath("/dashboard/workout");
     return { success: true };
