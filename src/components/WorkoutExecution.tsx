@@ -43,6 +43,7 @@ interface Exercise {
     targetReps: number | null;
     targetWeight: string | null;
     targetRestTime: number | null;
+    gifUrl?: string | null;
 }
 
 const STORAGE_KEY = "myfit_workout_session_v1";
@@ -357,14 +358,43 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                 </div>
 
                                                 <div className="space-y-3">
-                                                    <button
-                                                        type="button"
-                                                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mx-auto"
-                                                        onClick={() => setShowNotes(prev => ({ ...prev, [ex.id]: !prev[ex.id] }))}
-                                                    >
-                                                        <NotebookPen className="h-4 w-4" />
-                                                        <span>Notas de Execução</span>
-                                                    </button>
+                                                    <div className="flex items-center justify-center gap-4">
+                                                        <button
+                                                            type="button"
+                                                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                                                            onClick={() => setShowNotes(prev => ({ ...prev, [ex.id]: !prev[ex.id] }))}
+                                                        >
+                                                            <NotebookPen className="h-4 w-4" />
+                                                            <span>Notas</span>
+                                                        </button>
+                                                        {ex.gifUrl && (
+                                                            <button
+                                                                type="button"
+                                                                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                                                                onClick={() => {
+                                                                    // Podemos abrir o GIF em um modal ou mostrar abaixo
+                                                                    setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: !prev[`gif_${ex.id}`] }));
+                                                                }}
+                                                            >
+                                                                <Play className="h-4 w-4" />
+                                                                <span>Ver Execução</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    <AnimatePresence>
+                                                        {showNotes[`gif_${ex.id}`] && ex.gifUrl && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                                className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                                                            >
+                                                                <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-cover" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+
                                                     <AnimatePresence>
                                                         {showNotes[ex.id] && (
                                                             <motion.div

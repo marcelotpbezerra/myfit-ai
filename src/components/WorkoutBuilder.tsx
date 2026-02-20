@@ -63,10 +63,19 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
         return () => clearTimeout(timer);
     }, [search]);
 
-    const filteredExercises = EXERCISES_DB.filter(ex =>
-        ex.name.toLowerCase().includes(search.toLowerCase()) ||
-        ex.muscleGroup.toLowerCase().includes(search.toLowerCase())
-    );
+    // Listar exercícios locais (banco de dados) + Base estática
+    const filteredExercises = [...currentExercises, ...EXERCISES_DB]
+        // Remover duplicatas pelo nome (priorizando os do banco para ter IDs corretos)
+        .reduce((acc, curr) => {
+            if (!acc.find(ex => ex.name.toLowerCase() === curr.name.toLowerCase())) {
+                acc.push(curr);
+            }
+            return acc;
+        }, [] as any[])
+        .filter(ex =>
+            ex.name.toLowerCase().includes(search.toLowerCase()) ||
+            ex.muscleGroup.toLowerCase().includes(search.toLowerCase())
+        );
 
     const handleSelectForAdd = (exercise: any) => {
         setEditingExercise(exercise);
