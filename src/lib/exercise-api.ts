@@ -21,16 +21,24 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
 
     try {
         // Passo 1: Inbound Translation: PT-BR -> EN
-        console.log("1. Buscando tradução para:", query);
+        console.log("1. Buscando termo otimizado para:", query);
         const modelFlash = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-        const translationPrompt = `Translate the following exercise/muscle search term from Portuguese (PT-BR) to English. Return only the translated term: "${query}"`;
+        const translationPrompt = `
+            Otimize este termo de busca de exercício (em PT-BR) para uma busca por nome em um banco de dados de exercícios em inglês.
+            Retorne APENAS o termo em inglês mais provável de retornar resultados (curto e direto, 1-3 palavras).
+            Exemplos: 
+            - "Agachamento Smith" -> "smith squat"
+            - "Supino Inclinado com Halteres" -> "inclined dumbbell bench press"
+            - "Cadeira extensora" -> "leg extension"
+            Termo: "${query}"
+        `;
         const translationResult = await modelFlash.generateContent(translationPrompt);
-        const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
+        let englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
 
-        console.log("2. Traduzido para Inglês:", englishQuery);
+        console.log("2. Termo Otimizado (Inglês):", englishQuery);
 
         // Passo 2: Fetch from ExerciseDB (RapidAPI)
-        const response = await fetch(
+        let response = await fetch(
             `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(englishQuery.toLowerCase())}?limit=8`,
             {
                 method: "GET",
@@ -49,8 +57,30 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
             throw new Error(`ExerciseDB API Error: ${response.status} - ${errorText}`);
         }
 
-        const rawResults = await response.json();
-        console.log("4. Resposta bruta da RapidAPI:", JSON.stringify(rawResults).substring(0, 500) + "...");
+        let rawResults = await response.json();
+
+        // Fallback: Se não encontrar nada, tenta algo mais genérico (ex: pega última palavra)
+        if (!rawResults || rawResults.length === 0) {
+            const fallbackQuery = englishQuery.split(' ').pop();
+            if (fallbackQuery && fallbackQuery !== englishQuery) {
+                console.log(`4a. Sem resultados para "${englishQuery}". Tentando fallback: "${fallbackQuery}"`);
+                const fallbackResponse = await fetch(
+                    `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(fallbackQuery.toLowerCase())}?limit=8`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "X-RapidAPI-Key": rapidKey!,
+                            "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+                        }
+                    }
+                );
+                if (fallbackResponse.ok) {
+                    rawResults = await fallbackResponse.json();
+                }
+            }
+        }
+
+        console.log("4. Resposta Final RapidAPI:", JSON.stringify(rawResults).substring(0, 500) + "...");
 
         if (!rawResults || rawResults.length === 0) {
             console.warn("Aviso: RapidAPI retornou um array vazio.");
