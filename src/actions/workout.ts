@@ -70,6 +70,7 @@ export async function getExercisesBySplit(split: string) {
             eq(exercises.userId, userId),
             eq(exercises.split, split)
         ),
+        orderBy: [exercises.order]
     });
 }
 
@@ -467,4 +468,28 @@ export async function syncAllMissingTutorials() {
     }
 
     return { success: true, count: syncedCount };
+}
+
+export async function updateExerciseOrder(orderedIds: number[]) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    console.log(`[Persistence V7] Atualizando ordem dos exercícios para o usuário: ${userId}`);
+
+    try {
+        // Usamos uma transação para garantir que toda a ordem seja atualizada ou nada
+        await db.transaction(async (tx) => {
+            for (let i = 0; i < orderedIds.length; i++) {
+                await tx.update(exercises)
+                    .set({ order: i, updatedAt: new Date() })
+                    .where(and(eq(exercises.id, orderedIds[i]), eq(exercises.userId, userId)));
+            }
+        });
+
+        revalidatePath("/dashboard/workout");
+        return { success: true };
+    } catch (error) {
+        console.error("[Persistence V7] Erro ao atualizar ordem:", error);
+        return { success: false, error: "Falha ao ordenar" };
+    }
 }

@@ -26,6 +26,7 @@ export const exercises = pgTable("exercises", {
   targetReps: integer("target_reps").default(12),
   targetWeight: numeric("target_weight").default("0"),
   targetRestTime: integer("target_rest_time").default(60),
+  order: integer("order").default(0),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (t) => ({
   unqNameUser: unique().on(t.userId, t.name), // Chave composta para evitar duplicidade

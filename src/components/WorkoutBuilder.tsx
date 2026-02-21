@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
 import {
     addExerciseToWorkout,
@@ -10,6 +10,7 @@ import {
     addExerciseToCatalog,
     syncExerciseTutorial,
     removeExerciseTutorial,
+    updateExerciseOrder,
     syncAllMissingTutorials,
     getExercisesMissingTutorials
 } from "@/actions/workout";
@@ -17,7 +18,7 @@ import { searchExerciseFromAPI, RemoteExercise } from "@/lib/exercise-api";
 import {
     Plus, Trash2, Search, Dumbbell, Target, X, Save,
     ArrowRight, Info, Zap, Globe, Loader2, Sparkles,
-    Database, Play, RefreshCw
+    Database, Play, RefreshCw, GripVertical
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,12 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const [isPending, startTransition] = useTransition();
     const [search, setSearch] = useState("");
     const [selectedSplit, setSelectedSplit] = useState("A");
+    const [localExercises, setLocalExercises] = useState<any[]>(currentExercises);
+
+    // Sincronizar estado local quando os props mudam
+    useEffect(() => {
+        setLocalExercises(currentExercises);
+    }, [currentExercises]);
 
     // Estados para Busca Global (API)
     const [isSearchingAPI, setIsSearchingAPI] = useState(false);
@@ -139,6 +146,31 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     };
 
     const splitLetters = currentSplit.split("");
+
+    const handleReorder = async (newOrder: any[], letter: string) => {
+        // Atualiza estado visual imediatamente
+        const updatedAll = localExercises.map(ex => {
+            if (ex.split === letter) {
+                // Encontrar o novo item baseado no índice
+                const index = newOrder.findIndex(n => n.id === ex.id);
+                // No drag-n-drop do framer-motion, o array inteiro é reordenado
+                // Mas aqui estamos lidando com um subset (split)
+                return ex;
+            }
+            return ex;
+        });
+
+        // Estratégia correta: substituir apenas os exercícios do split atual mantendo a ordem do reorder
+        const others = localExercises.filter(ex => ex.split !== letter);
+        const finalOrder = [...others, ...newOrder];
+        setLocalExercises(finalOrder);
+
+        // Persistir no banco
+        startTransition(async () => {
+            const orderedIds = newOrder.map(ex => ex.id);
+            await updateExerciseOrder(orderedIds);
+        });
+    };
 
     return (
         <div className="space-y-8 pb-10">
@@ -426,7 +458,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
 
                 <div className="grid gap-6">
                     {splitLetters.map(letter => {
-                        const exercisesInSplit = currentExercises.filter(ex => ex.split === letter);
+                        const exercisesInSplit = localExercises.filter(ex => ex.split === letter);
                         return (
                             <div key={letter} className="space-y-4">
                                 <div className="flex items-center gap-3">
@@ -443,77 +475,97 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                         <span>Nenhum exercício definido</span>
                                     </div>
                                 ) : (
-                                    <div className="grid gap-4 ml-4 pl-6 border-l-2 border-primary/5">
+                                    <Reorder.Group
+                                        axis="y"
+                                        values={exercisesInSplit}
+                                        onReorder={(newOrder) => handleReorder(newOrder, letter)}
+                                        className="grid gap-4 ml-4 pl-6 border-l-2 border-primary/5"
+                                    >
                                         {exercisesInSplit.map((ex) => (
-                                            <motion.div
-                                                layout
+                                            <Reorder.Item
                                                 key={ex.id}
+                                                value={ex}
                                                 className="flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04]"
                                             >
                                                 <div className="flex items-start justify-between mb-4">
-                                                    <div className="flex items-center gap-3">
-                                                        {ex.gifUrl ? (
-                                                            <div className="relative group/gif cursor-pointer" onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}>
-                                                                <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-white/10" />
-                                                                <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/gif:opacity-100 flex items-center justify-center transition-opacity">
-                                                                    <Play className="h-4 w-4 text-white" />
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div
-                                                                className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-all group/sync"
-                                                                title={ex.gifUrl ? "Refazer Sincronização" : "Sincronizar Tutorial"}
-                                                                onClick={() => {
-                                                                    const customName = prompt(
-                                                                        ex.gifUrl
-                                                                            ? "Deseja refazer a busca deste tutorial com outro nome?"
-                                                                            : "Digite o nome para busca (ou deixe vazio para o padrão):",
-                                                                        ex.name
-                                                                    );
-                                                                    if (customName !== null) {
-                                                                        startTransition(async () => {
-                                                                            const res = await syncExerciseTutorial(ex.id, customName || ex.name);
-                                                                            if (res.success) {
-                                                                                router.refresh();
-                                                                            } else {
-                                                                                alert("Tutorial não encontrado. Tente outro nome.");
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <RefreshCw className={cn("h-5 w-5 text-primary", isPending && "animate-spin")} />
-                                                            </div>
-                                                        )}
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">{ex.name}</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <GripVertical className="h-5 w-5 text-white/10 group-hover:text-white/40 cursor-grab active:cursor-grabbing transition-colors" />
+                                                        <div className="flex items-center gap-3">
                                                             {ex.gifUrl ? (
-                                                                <>
-                                                                    <button
-                                                                        onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
-                                                                        className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
-                                                                    >
-                                                                        {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (confirm("Deseja remover o tutorial deste exercício?")) {
-                                                                                startTransition(async () => {
-                                                                                    await removeExerciseTutorial(ex.id);
-                                                                                    router.refresh();
-                                                                                });
-                                                                            }
-                                                                        }}
-                                                                        className="text-[8px] font-black uppercase tracking-[0.2em] text-destructive/60 hover:text-destructive transition-colors text-left mt-0.5"
-                                                                    >
-                                                                        REMOVER VÍDEO
-                                                                    </button>
-                                                                </>
+                                                                <div className="relative group/gif cursor-pointer" onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}>
+                                                                    <img src={ex.gifUrl} alt={ex.name} className="h-12 w-12 rounded-xl object-cover ring-1 ring-white/10" />
+                                                                    <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover/gif:opacity-100 flex items-center justify-center transition-opacity">
+                                                                        <Play className="h-4 w-4 text-white" />
+                                                                    </div>
+                                                                </div>
                                                             ) : (
-                                                                <span className="text-[7px] font-medium uppercase tracking-widest text-white/20 mt-0.5">
-                                                                    Aguardando tutorial...
-                                                                </span>
+                                                                <div
+                                                                    className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-all group/sync"
+                                                                    title="Sincronizar Tutorial"
+                                                                    onClick={() => {
+                                                                        const customName = prompt("Digite o nome para busca (ou deixe vazio para o padrão):", ex.name);
+                                                                        if (customName !== null) {
+                                                                            startTransition(async () => {
+                                                                                const res = await syncExerciseTutorial(ex.id, customName || ex.name);
+                                                                                if (res.success) {
+                                                                                    router.refresh();
+                                                                                } else {
+                                                                                    alert("Tutorial não encontrado. Tente outro nome.");
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <RefreshCw className={cn("h-5 w-5 text-primary", isPending && "animate-spin")} />
+                                                                </div>
                                                             )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">{ex.name}</span>
+                                                                {ex.gifUrl ? (
+                                                                    <>
+                                                                        <div className="flex gap-2">
+                                                                            <button
+                                                                                onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
+                                                                                className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
+                                                                            >
+                                                                                {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
+                                                                            </button>
+                                                                            <span className="text-[8px] text-white/10 mt-0.5">|</span>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const customName = prompt("Deseja refazer a busca deste tutorial com outro nome?", ex.name);
+                                                                                    if (customName) {
+                                                                                        startTransition(async () => {
+                                                                                            const res = await syncExerciseTutorial(ex.id, customName);
+                                                                                            if (res.success) router.refresh();
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                                className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-colors text-left mt-0.5"
+                                                                            >
+                                                                                REFAZER BUSCA
+                                                                            </button>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                if (confirm("Deseja remover o tutorial deste exercício?")) {
+                                                                                    startTransition(async () => {
+                                                                                        await removeExerciseTutorial(ex.id);
+                                                                                        router.refresh();
+                                                                                    });
+                                                                                }
+                                                                            }}
+                                                                            className="text-[8px] font-black uppercase tracking-[0.2em] text-destructive/60 hover:text-destructive transition-colors text-left mt-1"
+                                                                        >
+                                                                            REMOVER VÍDEO
+                                                                        </button>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-[7px] font-medium uppercase tracking-widest text-white/20 mt-0.5">
+                                                                        Aguardando tutorial...
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <Button
@@ -557,15 +609,15 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                         <span className="text-xs font-black text-white">{ex.targetRestTime}s</span>
                                                     </div>
                                                 </div>
-                                            </motion.div>
+                                            </Reorder.Item>
                                         ))}
-                                    </div>
+                                    </Reorder.Group>
                                 )}
                             </div>
                         );
                     })}
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }

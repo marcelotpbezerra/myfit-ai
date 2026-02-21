@@ -7,7 +7,8 @@ import {
     logSet,
     updateTargetWeight,
     getUserSettings,
-    syncExerciseTutorial
+    syncExerciseTutorial,
+    removeExerciseTutorial
 } from "@/actions/workout";
 import {
     ChevronRight,
@@ -117,22 +118,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             try {
                 const data = JSON.parse(saved);
                 if (data.orderedExercises) {
-                    const existingMap = new Map(initialExercises.map(e => [e.id, e]));
-
-                    // Filtramos os salvos que ainda existem e ATUALIZAMOS com os dados frescos do servidor
-                    const validOrdered = (data.orderedExercises as Exercise[])
-                        .filter(ex => existingMap.has(ex.id))
-                        .map(ex => {
-                            const fresh = existingMap.get(ex.id)!;
-                            // Mesclamos: prioridade para o 'fresh' em metadados (GIF, Muscle)
-                            // mas mantemos o estado da sessão se necessário
-                            return { ...ex, ...fresh };
-                        });
-
-                    const savedIds = new Set(validOrdered.map(e => e.id));
-                    const missing = initialExercises.filter(e => !savedIds.has(e.id));
-
-                    setOrderedExercises([...validOrdered, ...missing]);
+                    // Ignora a ordem do localStorage para respeitar o que o usuário definiu no WorkoutBuilder (server-side)
+                    // No WorkoutExecution, o drag-n-drop é apenas para a sessão atual
                 }
                 if (data.completedSets) setCompletedSets(data.completedSets);
                 if (data.exerciseFinished) setExerciseFinished(data.exerciseFinished);
@@ -429,6 +416,24 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                             <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
                                                             <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR / REFAZER" : "VER EXECUÇÃO") : (isPending ? "BUSCANDO..." : "BUSCAR TUTORIAL")}</span>
                                                         </button>
+                                                        {ex.gifUrl && (
+                                                            <button
+                                                                type="button"
+                                                                disabled={isPending}
+                                                                onClick={() => {
+                                                                    if (confirm("Deseja remover o tutorial deste exercício?")) {
+                                                                        startTransition(async () => {
+                                                                            await removeExerciseTutorial(ex.id);
+                                                                            router.refresh();
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] text-destructive/60 hover:text-destructive transition-colors px-3 h-8 bg-destructive/5 rounded-lg border border-destructive/10"
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                                REMOVER VÍDEO
+                                                            </button>
+                                                        )}
                                                     </div>
 
                                                     <AnimatePresence>

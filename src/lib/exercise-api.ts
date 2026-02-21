@@ -21,20 +21,31 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
     }
 
     try {
-        // Passo 1: Inbound Translation: PT-BR -> EN
-        console.log("1. Buscando termo otimizado para:", query);
+        // Passo 1: Inbound Translation: Smart Multi-language processing
+        console.log("1. Processando query inteligente para:", query);
         const modelFlash = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
         const translationPrompt = `
-            Otimize este termo de busca de exercício (em PT-BR) para uma busca por nome em um banco de dados de exercícios em inglês.
-            Retorne APENAS o termo em inglês mais provável de retornar resultados (curto e direto, 1-3 palavras).
+            Você é um assistente fitness especializado em exercícios.
+            Sua tarefa é converter este termo de busca para o nome técnico de exercício em INGLÊS que terá melhor resultado no ExerciseDB.
+
+            REGRAS:
+            1. Se o termo estiver em PT-BR, traduza para o nome técnico em inglês.
+            2. Se o termo já estiver em INGLÊS, valide se é um nome de exercício válido e corrija apenas se houver erros ortográficos óbvios.
+            3. Retorne APENAS o termo em inglês (curto e direto, 1-3 palavras). SEM aspas ou explicações.
+            
             Exemplos: 
             - "Agachamento Smith" -> "smith squat"
-            - "Supino Inclinado com Halteres" -> "inclined dumbbell bench press"
-            - "Cadeira extensora" -> "leg extension"
+            - "Leg press" -> "leg press"
+            - "Supino" -> "bench press"
+            - "bench press" -> "bench press"
+            
             Termo: "${query}"
         `;
         const translationResult = await modelFlash.generateContent(translationPrompt);
-        let englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
+        let englishQuery = translationResult.response.text().trim().replace(/['"“”]/g, '').toLowerCase();
+
+        // Limpeza extra caso a IA retorne texto extra
+        if (englishQuery.includes(":")) englishQuery = englishQuery.split(":").pop()?.trim() || englishQuery;
 
         console.log("2. Termo Otimizado (Inglês):", englishQuery);
 
