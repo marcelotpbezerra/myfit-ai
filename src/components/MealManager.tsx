@@ -238,13 +238,14 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     }
 
     function addItem(food: any) {
-        setCurrentItems([...currentItems, {
+        const newItem = {
             food: food.name,
             protein: food.protein,
             carbs: food.carbs,
             fat: food.fat,
             qty: 100
-        }]);
+        };
+        setCurrentItems(prev => [...prev, newItem]);
         setSearchQuery("");
         setSearchResults([]);
     }
@@ -369,13 +370,14 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     icon: "/icons/icon-192x192.png",
                     data: {
                         mealId: dietPlan[0]?.id || 1, // Simula o primeiro item do plano
+                        mealName: dietPlan[0]?.mealName || "Refeição",
                         url: "/dashboard/meals"
                     },
                     actions: [
                         { action: "log", title: "Registrar Plano" },
                         { action: "edit", title: "Substituir" }
                     ]
-                });
+                } as any);
             }
         } catch (error) {
             console.error("Erro ao simular:", error);
@@ -607,19 +609,24 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                             <Button
                                                 variant="outline"
                                                 onClick={() => {
-                                                    // Mock do item principal a partir da sugestão
-                                                    addItem({
-                                                        name: p.suggestions?.split('+')[0].trim() || p.mealName,
-                                                        protein: p.targetProtein || 0,
-                                                        carbs: p.targetCarbs || 0,
-                                                        fat: p.targetFat || 0,
-                                                        calories: p.targetCalories || 0
+                                                    // Adiciona todos os itens básicos sugeridos
+                                                    const suggestions = p.suggestions || "";
+                                                    const parts = suggestions.split('+').map(part => part.trim());
+
+                                                    parts.forEach((part, partIdx) => {
+                                                        addItem({
+                                                            name: part,
+                                                            protein: partIdx === 0 ? (p.targetProtein || 0) : 0, // Distribui ou bota no primeiro?
+                                                            carbs: partIdx === 0 ? (p.targetCarbs || 0) : 0,
+                                                            fat: partIdx === 0 ? (p.targetFat || 0) : 0,
+                                                            calories: partIdx === 0 ? (p.targetCalories || 0) : 0
+                                                        });
                                                     });
                                                 }}
                                                 className="w-full h-auto py-3 justify-start rounded-xl bg-primary/5 border-primary/20 hover:bg-primary/10 transition-all flex flex-col items-start gap-1"
                                             >
                                                 <div className="flex items-center justify-between w-full">
-                                                    <span className="font-bold text-xs">Usar Plano Base</span>
+                                                    <span className="font-bold text-xs">Registrar Plano Base</span>
                                                     <Plus className="h-4 w-4 opacity-50" />
                                                 </div>
                                                 <span className="text-[10px] text-muted-foreground truncate w-full text-left">{p.suggestions}</span>

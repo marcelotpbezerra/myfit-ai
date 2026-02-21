@@ -17,10 +17,10 @@ export async function searchFoodNutrition(query: string) {
     try {
         // 1. Inbound Translation: PT-BR -> EN
         // Precisamos do inglês para a Edamam dar resultados melhores
-        const modelFlash = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-        const translationPrompt = `Translate the following food search query from Portuguese (PT-BR) to English. Return only the translated term or phrase, nothing else: "${query}"`;
+        const modelFlash = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const translationPrompt = `Translate the following food search query from Portuguese (PT-BR) to English. Return only the translated term or phrase, nothing else. If it is already in English, return it exactly as is: "${query}"`;
         const translationResult = await modelFlash.generateContent(translationPrompt);
-        const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '');
+        const englishQuery = translationResult.response.text().trim().replace(/['"]/g, '').toLowerCase();
 
         console.log(`[Nutrition Middleware] PT-BR: "${query}" -> EN: "${englishQuery}"`);
 
@@ -57,7 +57,7 @@ export async function searchFoodNutrition(query: string) {
         // 3. Outbound Translation & Normalização com Structured Output
         // Traduzimos de volta para PT-BR e garantimos o formato JSON rígido
         const structuringModel = genAI.getGenerativeModel({
-            model: "gemini-3-flash-preview",
+            model: "gemini-1.5-flash",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
