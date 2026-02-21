@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
 
 export interface RemoteExercise {
+    id: string; // Adicionado para mapeamento robusto
     name: string;
     targetMuscle: string;
     equipment: string;
@@ -100,12 +101,13 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
                             items: {
                                 type: "object",
                                 properties: {
+                                    id: { type: "string" }, // Adicionado no Schema
                                     name: { type: "string" },
                                     targetMuscle: { type: "string" },
                                     equipment: { type: "string" },
                                     gifUrl: { type: "string" }
                                 },
-                                required: ["name", "targetMuscle", "equipment", "gifUrl"]
+                                required: ["id", "name", "targetMuscle", "equipment", "gifUrl"]
                             }
                         }
                     }
@@ -123,11 +125,19 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
 
         const structuringResult = await structuringModel.generateContent(structuringPrompt);
         const finalText = structuringResult.response.text();
-        console.log("5. Retorno do Gemini (Structured Output):", finalText);
-
         const structuredData = JSON.parse(finalText);
 
-        return structuredData.exercises;
+        // Mapeamento Robusto: O Gemini costuma "limpar" o gifUrl ou traduzi-lo errado.
+        // Vamos restaurar o gifUrl original do RapidAPI usando o ID único.
+        const mappedExercises = structuredData.exercises.map((ex: any) => {
+            const original = rawResults.find((r: any) => r.id === ex.id);
+            return {
+                ...ex,
+                gifUrl: original ? original.gifUrl : ex.gifUrl // Prioriza o original real
+            };
+        });
+
+        return mappedExercises;
 
     } catch (error: any) {
         console.error("ERRO FATAL NA BUSCA:", error);

@@ -8,7 +8,8 @@ import {
     deleteExercise,
     addExerciseToCatalog,
     syncExerciseTutorial,
-    syncAllMissingTutorials
+    syncAllMissingTutorials,
+    getExercisesMissingTutorials
 } from "@/actions/workout";
 import { searchExerciseFromAPI, RemoteExercise } from "@/lib/exercise-api";
 import {
@@ -158,9 +159,24 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                             onClick={async () => {
                                 if (confirm("Deseja buscar tutoriais para todos os seus exercícios? Os GIFs aparecerão um a um assim que forem encontrados.")) {
                                     startTransition(async () => {
-                                        const res = await syncAllMissingTutorials();
-                                        if (res.success) {
-                                            alert(`Sincronização concluída! ${res.count} exercícios atualizados.`);
+                                        try {
+                                            const missing = await getExercisesMissingTutorials();
+                                            if (missing.length === 0) {
+                                                alert("Todos os seus exercícios já possuem tutoriais!");
+                                                return;
+                                            }
+
+                                            let successCount = 0;
+                                            for (const ex of missing) {
+                                                // Chama a unit de trabalho individualmente para evitar timeout global e mostrar progresso real
+                                                const res = await syncExerciseTutorial(ex.id, ex.name);
+                                                if (res.success) successCount++;
+                                            }
+
+                                            alert(`Sincronização concluída! ${successCount} exercícios atualizados.`);
+                                        } catch (error) {
+                                            console.error("Erro na sincronização em lote:", error);
+                                            alert("Ocorreu um erro durante a sincronização em lote.");
                                         }
                                     });
                                 }

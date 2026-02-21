@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { exercises, workoutLogs, userSettings } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, or, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 const MOCK_BASE_EXERCISES = [
@@ -338,6 +338,23 @@ export async function addExerciseToCatalog(data: {
 
     revalidatePath("/dashboard/workout");
     return { success: true };
+}
+
+export async function getExercisesMissingTutorials() {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    const missingExercises = await db.select({
+        id: exercises.id,
+        name: exercises.name
+    })
+        .from(exercises)
+        .where(and(
+            eq(exercises.userId, userId),
+            or(isNull(exercises.gifUrl), eq(exercises.gifUrl, ""))
+        ));
+
+    return missingExercises;
 }
 
 export async function syncExerciseTutorial(exerciseId: number, name: string) {
