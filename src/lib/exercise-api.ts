@@ -146,8 +146,10 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
             1. Keep the gifUrl and id EXACTLY the same.
             2. Translate name and equipment naturally to PT-BR.
             3. Use the STRICT MUSCLE MAPPING for the targetMuscle field based on the 'bodyPart' or 'target' from the original data.
+            4. IMPORTANT: Rank the exercises in the output array by their relevance to the USER'S ORIGINAL QUERY: "${query}".
+               The first item in the array MUST be the most accurate match for the user's intended exercise. Consider words like "cable", "rope", "dumbbell" as high priority if present in the search.
             
-            Original Data: ${JSON.stringify(rawResults.slice(0, 8))}
+            Original Data (ExerciseDB results): ${JSON.stringify(rawResults.slice(0, 8))}
             
             Return a JSON object with a single 'exercises' array property.
         `;
@@ -157,7 +159,6 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         const structuredData = JSON.parse(finalText);
 
         // Mapeamento Robusto V7: Proxy GIF Strategy
-        // Já que a API JSON parou de retornar gifUrl, usamos nossa rota de proxy segura
         const mappedExercises = structuredData.exercises.map((ex: any) => {
             const normalizeId = (id: any) => String(id || "").trim().replace(/^0+/, "");
             const normalizedExId = normalizeId(ex.id);
