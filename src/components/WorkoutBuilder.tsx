@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
 import {
@@ -28,6 +29,7 @@ interface WorkoutBuilderProps {
 }
 
 export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilderProps) {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [search, setSearch] = useState("");
     const [selectedSplit, setSelectedSplit] = useState("A");
@@ -462,7 +464,8 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                                 title="Sincronizar Tutorial"
                                                                 onClick={() => {
                                                                     startTransition(async () => {
-                                                                        await syncExerciseTutorial(ex.id, ex.name);
+                                                                        const res = await syncExerciseTutorial(ex.id, ex.name);
+                                                                        if (res.success) router.refresh();
                                                                     });
                                                                 }}
                                                             >

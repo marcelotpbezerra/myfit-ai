@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useState, useTransition, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
     logSet,
     updateTargetWeight,
@@ -89,6 +90,7 @@ function WorkoutSkeleton() {
 }
 
 export function WorkoutExecution({ exercises: initialExercises }: { exercises: Exercise[] }) {
+    const router = useRouter();
     const [orderedExercises, setOrderedExercises] = useState<Exercise[]>(initialExercises);
     const [activeExercise, setActiveExercise] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -114,14 +116,20 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                // Update states if they exist in saved data
                 if (data.orderedExercises) {
-                    // Filter to only include exercises that still exist in initialExercises
-                    const existingIds = new Set(initialExercises.map(e => e.id));
-                    const validOrdered = data.orderedExercises.filter((ex: Exercise) => existingIds.has(ex.id));
+                    const existingMap = new Map(initialExercises.map(e => [e.id, e]));
 
-                    // Add any missing exercises from initialExercises
-                    const savedIds = new Set(validOrdered.map((e: Exercise) => e.id));
+                    // Filtramos os salvos que ainda existem e ATUALIZAMOS com os dados frescos do servidor
+                    const validOrdered = (data.orderedExercises as Exercise[])
+                        .filter(ex => existingMap.has(ex.id))
+                        .map(ex => {
+                            const fresh = existingMap.get(ex.id)!;
+                            // Mesclamos: prioridade para o 'fresh' em metadados (GIF, Muscle)
+                            // mas mantemos o estado da sessão se necessário
+                            return { ...ex, ...fresh };
+                        });
+
+                    const savedIds = new Set(validOrdered.map(e => e.id));
                     const missing = initialExercises.filter(e => !savedIds.has(e.id));
 
                     setOrderedExercises([...validOrdered, ...missing]);
@@ -134,6 +142,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             } catch (e) {
                 console.error("Failed to load workout state", e);
             }
+        } else {
+            setOrderedExercises(initialExercises);
         }
         setIsMounted(true);
     }, [initialExercises]);
@@ -385,7 +395,13 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                                     setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: !prev[`gif_${ex.id}`] }));
                                                                 } else {
                                                                     startTransition(async () => {
-                                                                        await syncExerciseTutorial(ex.id, ex.name);
+                                                                        const res = await syncExerciseTutorial(ex.id, ex.name);
+                                                                        if (res.success && res.gifUrl) {
+                                                                            setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: true }));
+                                                                            router.refresh();
+                                                                        } else {
+                                                                            alert("Tutorial não encontrado. Tente outro nome para o exercício.");
+                                                                        }
                                                                     });
                                                                 }
                                                             }}
