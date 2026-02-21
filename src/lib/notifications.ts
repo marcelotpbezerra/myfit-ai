@@ -6,7 +6,25 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 export const NotificationService = {
     async requestPermissions() {
         const { display } = await LocalNotifications.requestPermissions();
-        return display === 'granted';
+        if (display === 'granted') {
+            await this.registerActions();
+            return true;
+        }
+        return false;
+    },
+
+    async registerActions() {
+        await LocalNotifications.registerActionTypes({
+            types: [
+                {
+                    id: 'MEAL_NOTIFICATION',
+                    actions: [
+                        { id: 'log', title: 'Registrar Plano', foreground: true },
+                        { id: 'edit', title: 'Substituir', foreground: true }
+                    ]
+                }
+            ]
+        });
     },
 
     async scheduleMealReminders(dietPlan: any[]) {
@@ -36,8 +54,11 @@ export const NotificationService = {
                         },
                         sound: 'beep.wav',
                         attachments: [],
-                        actionTypeId: "",
-                        extra: null
+                        actionTypeId: "MEAL_NOTIFICATION",
+                        extra: {
+                            mealId: plan.id,
+                            mealName: plan.mealName
+                        }
                     };
                 });
 

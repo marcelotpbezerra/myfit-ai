@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { saveMeal, deleteMeal, toggleMealCompletion } from "@/actions/diet";
+import { useRouter, useSearchParams } from "next/navigation";
+import { saveMeal, deleteMeal, toggleMealCompletion, clearMealLog } from "@/actions/diet";
 import {
     Plus,
     Trash2,
@@ -11,7 +11,9 @@ import {
     Search,
     CheckCircle2,
     Circle,
-    Loader2
+    Loader2,
+    RotateCcw,
+    AlertCircle
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
 import { Button } from "@/components/ui/button";
@@ -77,10 +79,50 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
     const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
 
+    const searchParams = useSearchParams();
+
     // Sincronizar estado local com props do servidor
     useEffect(() => {
         setMeals(initialMeals);
     }, [initialMeals]);
+
+    // Lidar com deep links de notificações
+    useEffect(() => {
+        const mealId = searchParams.get("mealId");
+        const action = searchParams.get("action");
+
+        if (mealId && action === "edit") {
+            const mealToEdit = meals.find(m => m.id === Number(mealId));
+            if (mealToEdit) {
+                openEditDialog(mealToEdit);
+            } else {
+                // Se não achou na lista de meals, pode ser que ainda não tenha sido criado
+                // Mas o deep link costuma vir com o plano se for 'log' ou algo assim
+                // Se for um plano de dieta sem refeição criada ainda:
+                const plan = dietPlan.find(p => p.id === Number(mealId));
+                if (plan) {
+                    setEditingMeal(null);
+                    setMealName(plan.mealName);
+                    // Adiciona sugestões por padrão
+                    const suggestionItems: MealItem[] = [];
+                    if (plan.suggestions) {
+                        const parts = plan.suggestions.split('+').map(p => p.trim());
+                        parts.forEach(p => {
+                            suggestionItems.push({
+                                food: p,
+                                protein: Math.round((plan.targetProtein || 0) / parts.length),
+                                carbs: Math.round((plan.targetCarbs || 0) / parts.length),
+                                fat: Math.round((plan.targetFat || 0) / parts.length),
+                                qty: 100
+                            });
+                        });
+                    }
+                    setCurrentItems(suggestionItems);
+                    setIsDialogOpen(true);
+                }
+            }
+        }
+    }, [searchParams, meals, dietPlan]);
 
     // Form State
     const [mealName, setMealName] = useState("");
@@ -235,8 +277,17 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         });
     }
 
+    async function handleUndo(mealId: number) {
+        if (confirm("Deseja limpar o registro desta refeição e voltar ao plano original?")) {
+            startTransition(async () => {
+                await clearMealLog(mealId);
+                router.refresh();
+            });
+        }
+    }
+
     async function handleDelete(id: number) {
-        if (confirm("Deseja excluir esta refeição?")) {
+        if (confirm("Deseja excluir esta refeição permanentemente?")) {
             await deleteMeal(id);
             router.refresh();
         }
@@ -363,15 +414,47 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                         <h3 className={cn("font-bold text-lg", existingMeal?.isCompleted && "line-through text-muted-foreground")}>
                                             {plan.mealName}
                                         </h3>
+                                        {existingMeal && (
+                                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-tighter">
+                                                Registrado
+                                            </span>
+                                        )}
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground font-medium italic mt-1 leading-tight bg-white/5 p-1 px-2 rounded-lg border border-white/5">
-                                        💡 {plan.suggestions}
-                                    </p>
-                                    <div className="flex gap-3 mt-2 text-[10px] font-black uppercase tracking-widest">
-                                        <span className="text-red-500">P: {plan.targetProtein}g</span>
-                                        <span className="text-blue-500">C: {plan.targetCarbs}g</span>
-                                        <span className="text-yellow-500">F: {plan.targetFat}g</span>
-                                        <span className="text-muted-foreground">{plan.targetCalories} kcal</span>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                        <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
+                                            <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
+                                                <Utensils className="h-3 w-3" /> Refeição Planejada
+                                            </p>
+                                            <p className="text-[10px] text-primary/80 font-medium italic leading-tight">
+                                                {plan.suggestions}
+                                            </p>
+                                            <div className="flex gap-2 text-[8px] font-black uppercase tracking-tighter opacity-60">
+                                                <span className="text-red-500/80">P: {plan.targetProtein}g</span>
+                                                <span className="text-blue-500/80">C: {plan.targetCarbs}g</span>
+                                                <span className="text-yellow-500/80">F: {plan.targetFat}g</span>
+                                                <span>{plan.targetCalories} kcal</span>
+                                            </div>
+                                        </div>
+
+                                        {existingMeal && existingMeal.items.length > 0 && (
+                                            <div className="space-y-1 p-2 rounded-xl bg-primary/5 border border-primary/10">
+                                                <p className="text-[9px] font-black uppercase text-primary tracking-widest flex items-center gap-1">
+                                                    <CheckCircle2 className="h-3 w-3" /> O que você comeu
+                                                </p>
+                                                <div className="text-[10px] font-bold">
+                                                    {existingMeal.items.map(it => it.food).join(", ")}
+                                                </div>
+                                                <div className="flex gap-2 text-[8px] font-black uppercase tracking-tighter">
+                                                    <span className="text-red-500">P: {existingMeal.items.reduce((a, b) => a + b.protein, 0).toFixed(0)}g</span>
+                                                    <span className="text-blue-500">C: {existingMeal.items.reduce((a, b) => a + b.carbs, 0).toFixed(0)}g</span>
+                                                    <span className="text-yellow-500">F: {existingMeal.items.reduce((a, b) => a + b.fat, 0).toFixed(0)}g</span>
+                                                    <span className="text-primary">
+                                                        {Math.round(existingMeal.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0))} kcal
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -419,14 +502,17 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                         </Dialog>
                                     )}
                                     {existingMeal && (
-                                        <>
-                                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} className="h-8 w-8 text-muted-foreground hover:text-primary">
-                                                <Search className="h-4 w-4" />
+                                        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
+                                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} title="Editar/Adicionar Alimento" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors">
+                                                <Plus className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(existingMeal.id!)} className="text-muted-foreground hover:text-destructive">
+                                            <Button variant="ghost" size="icon" onClick={() => handleUndo(existingMeal.id!)} title="Desfazer Registro" className="h-8 w-8 text-muted-foreground hover:text-yellow-500 transition-colors">
+                                                <RotateCcw className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(editingMeal?.id || existingMeal.id!)} title="Excluir" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors">
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
-                                        </>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -461,11 +547,14 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                             <div className="relative">
                                 <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Buscar alimento..."
+                                    placeholder="Buscar Alimento Extra (Edamam)..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 h-11 rounded-xl bg-card border-none focus-visible:ring-primary"
+                                    className="pl-10 h-11 rounded-xl bg-card border-none focus-visible:ring-primary shadow-inner"
                                 />
+                                <div className="absolute right-3 top-2.5">
+                                    {isSearching && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+                                </div>
 
                                 {searchQuery && (
                                     <div className="absolute top-12 left-0 right-0 z-50 bg-card border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">

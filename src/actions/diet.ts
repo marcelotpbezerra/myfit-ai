@@ -184,3 +184,20 @@ export async function deleteDietMeal(id: number) {
     revalidatePath("/dashboard/meals");
     return { success: true };
 }
+
+export async function clearMealLog(mealId: number) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.update(meals)
+        .set({
+            items: [],
+            isCompleted: false,
+            notes: ""
+        })
+        .where(and(eq(meals.id, mealId), eq(meals.userId, userId)));
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/meals");
+    return { success: true };
+}
