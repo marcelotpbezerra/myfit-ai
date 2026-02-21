@@ -185,10 +185,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         };
 
         startTransition(async () => {
-            let result;
             if (existingMeal) {
                 // Tenta substituir ou apenas adiciona?
-                // Se o usuário quer substituir, procuramos por um item que bata com 'canReplace'
                 const currentItems = [...existingMeal.items];
                 const matchIndex = currentItems.findIndex(it =>
                     it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
@@ -209,10 +207,36 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     isCompleted: existingMeal.isCompleted
                 });
             } else {
+                // Seleção Inteligente: Se não tem refeição, carrega o plano base e substitui o item correto
+                let itemsToSave = [newItem];
+                if (plan.suggestions) {
+                    const baseParts = plan.suggestions.split('+').map(p => p.trim());
+                    const baseItems: MealItem[] = baseParts.map((p, idx) => ({
+                        food: p,
+                        protein: idx === 0 ? (plan.targetProtein || 0) : 0,
+                        carbs: idx === 0 ? (plan.targetCarbs || 0) : 0,
+                        fat: idx === 0 ? (plan.targetFat || 0) : 0,
+                        qty: 100
+                    }));
+
+                    // Tenta encontrar qual item do base substituir
+                    const matchIdx = baseItems.findIndex(it =>
+                        it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
+                        sub.canReplace.toLowerCase().includes(it.food.toLowerCase())
+                    );
+
+                    if (matchIdx > -1) {
+                        baseItems[matchIdx] = newItem;
+                        itemsToSave = baseItems;
+                    } else {
+                        itemsToSave = [...baseItems, newItem];
+                    }
+                }
+
                 result = await saveMeal({
                     date,
                     mealName: plan.mealName,
-                    items: [newItem],
+                    items: itemsToSave,
                     isCompleted: false
                 });
             }
@@ -452,12 +476,12 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                 ) : (
                                     <div className="flex flex-col items-center gap-1">
                                         <button
-                                            onClick={() => handleQuickAdd(plan)}
-                                            className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-all active:scale-90 shadow-lg shadow-primary/5 group"
+                                            onClick={() => openEditDialog({ mealName: plan.mealName, items: [], isCompleted: false, date })}
+                                            className="h-12 w-12 rounded-2xl bg-card border border-dashed border-primary/30 text-primary flex items-center justify-center hover:bg-primary/5 transition-all active:scale-90 shadow-lg shadow-primary/5 group"
                                         >
                                             <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform" />
                                         </button>
-                                        <span className="text-[8px] font-black uppercase text-primary/60 tracking-tighter">Registrar</span>
+                                        <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">Extra</span>
                                     </div>
                                 )}
 
@@ -514,43 +538,72 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {plan.substitutions && plan.substitutions.length > 0 && (
+                                    {(plan.suggestions || (plan.substitutions && plan.substitutions.length > 0)) && (
                                         <Dialog
                                             open={subDialogOpenId === plan.id}
                                             onOpenChange={(open) => setSubDialogOpenId(open ? plan.id : null)}
                                         >
                                             <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg">
-                                                    Substituições
+                                                <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg gap-2">
+                                                    <Utensils className="h-3 w-3" />
+                                                    Protocolo
                                                 </Button>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-md rounded-3xl">
                                                 <DialogHeader>
-                                                    <DialogTitle>{plan.mealName} - Opções</DialogTitle>
+                                                    <DialogTitle>{plan.mealName} - Opções do Protocolo</DialogTitle>
                                                 </DialogHeader>
-                                                <ScrollArea className="max-h-96">
+                                                <ScrollArea className="max-h-[70vh]">
                                                     <div className="space-y-4 p-4">
-                                                        {plan.substitutions.map((sub, idx) => (
-                                                            <div key={idx} className="p-4 rounded-xl bg-card border flex flex-col gap-2">
-                                                                <div>
-                                                                    <p className="font-bold text-sm mb-1">{sub.item}</p>
-                                                                    <p className="text-xs text-muted-foreground mb-2">Pode substituir por: <span className="text-primary font-semibold">{sub.canReplace}</span></p>
-                                                                    <div className="flex gap-3 text-[10px] font-black uppercase">
-                                                                        <span className="text-red-500">P: {sub.protein}g</span>
-                                                                        <span className="text-blue-500">C: {sub.carbs}g</span>
-                                                                        {sub.fat !== undefined && <span className="text-yellow-500">F: {sub.fat}g</span>}
-                                                                    </div>
+                                                        {/* Opção 1: Registrar todo o plano base */}
+                                                        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 flex flex-col gap-3">
+                                                            <div className="flex justify-between items-start">
+                                                                <div className="space-y-1">
+                                                                    <p className="font-bold text-sm">Plano Completo</p>
+                                                                    <p className="text-[10px] text-muted-foreground italic">{plan.suggestions}</p>
                                                                 </div>
-                                                                <Button
-                                                                    size="sm"
-                                                                    disabled={isPending}
-                                                                    className="w-full h-8 text-[10px] font-black uppercase rounded-lg shadow-md shadow-primary/10"
-                                                                    onClick={() => applySubstitution(plan, sub)}
-                                                                >
-                                                                    {isPending ? "Aplicando..." : "Aplicar esta sugestão"}
-                                                                </Button>
+                                                                <div className="bg-primary/10 px-2 py-1 rounded text-[10px] font-black text-primary">
+                                                                    {plan.targetCalories} kcal
+                                                                </div>
                                                             </div>
-                                                        ))}
+                                                            <Button
+                                                                onClick={() => handleQuickAdd(plan)}
+                                                                disabled={isPending}
+                                                                className="w-full h-10 font-bold rounded-xl shadow-lg shadow-primary/10"
+                                                            >
+                                                                {isPending ? "Registrando..." : "Registrar Tudo conforme Plano"}
+                                                            </Button>
+                                                        </div>
+
+                                                        {/* Opção 2: Substituições Individuais */}
+                                                        {plan.substitutions && plan.substitutions.length > 0 && (
+                                                            <div className="space-y-3 pt-2">
+                                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Substituições Disponíveis</p>
+                                                                {plan.substitutions.map((sub, idx) => (
+                                                                    <div key={idx} className="p-4 rounded-xl bg-card border shadow-sm flex flex-col gap-3">
+                                                                        <div>
+                                                                            <div className="flex justify-between items-center mb-1">
+                                                                                <p className="font-bold text-sm">{sub.item}</p>
+                                                                                <div className="flex gap-2 text-[9px] font-black uppercase opacity-60">
+                                                                                    <span className="text-red-500">P:{sub.protein}</span>
+                                                                                    <span className="text-blue-500">C:{sub.carbs}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p className="text-[10px] text-muted-foreground">Substituir <span className="font-bold text-primary">{sub.canReplace}</span> por esta opção.</p>
+                                                                        </div>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            disabled={isPending}
+                                                                            className="w-full h-9 text-[10px] font-bold uppercase rounded-xl border-primary/20 hover:bg-primary/5 transition-all"
+                                                                            onClick={() => applySubstitution(plan, sub)}
+                                                                        >
+                                                                            {isPending ? "Processando..." : "Aplicar esta Substituição"}
+                                                                        </Button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </ScrollArea>
                                             </DialogContent>
@@ -596,72 +649,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                             />
                         </div>
 
-                        {/* Substituições do Protocolo */}
-                        {dietPlan.some(p => p.mealName.toLowerCase() === mealName.toLowerCase()) && (
-                            <div className="space-y-3">
-                                <Label className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                                    <Utensils className="h-4 w-4" /> Opções do Protocolo
-                                </Label>
-                                <div className="grid gap-2">
-                                    {/* Opção Principal baseada na sugestão */}
-                                    {dietPlan.filter(p => p.mealName.toLowerCase() === mealName.toLowerCase()).map(p => (
-                                        <div key={`main-${p.id}`} className="space-y-2">
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => {
-                                                    // Adiciona todos os itens básicos sugeridos
-                                                    const suggestions = p.suggestions || "";
-                                                    const parts = suggestions.split('+').map(part => part.trim());
-
-                                                    parts.forEach((part, partIdx) => {
-                                                        addItem({
-                                                            name: part,
-                                                            protein: partIdx === 0 ? (p.targetProtein || 0) : 0, // Distribui ou bota no primeiro?
-                                                            carbs: partIdx === 0 ? (p.targetCarbs || 0) : 0,
-                                                            fat: partIdx === 0 ? (p.targetFat || 0) : 0,
-                                                            calories: partIdx === 0 ? (p.targetCalories || 0) : 0
-                                                        });
-                                                    });
-                                                }}
-                                                className="w-full h-auto py-3 justify-start rounded-xl bg-primary/5 border-primary/20 hover:bg-primary/10 transition-all flex flex-col items-start gap-1"
-                                            >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <span className="font-bold text-xs">Registrar Plano Base</span>
-                                                    <Plus className="h-4 w-4 opacity-50" />
-                                                </div>
-                                                <span className="text-[10px] text-muted-foreground truncate w-full text-left">{p.suggestions}</span>
-                                            </Button>
-
-                                            {/* Listagem de substituições reais cadastradas */}
-                                            {p.substitutions?.map((sub, sIdx) => (
-                                                <Button
-                                                    key={`sub-${sIdx}`}
-                                                    variant="outline"
-                                                    onClick={() => addItem({
-                                                        name: sub.item,
-                                                        protein: sub.protein,
-                                                        carbs: sub.carbs,
-                                                        fat: sub.fat || 0,
-                                                        calories: (sub.protein * 4) + (sub.carbs * 4) + ((sub.fat || 0) * 9)
-                                                    })}
-                                                    className="w-full h-auto py-3 justify-start rounded-xl border-dashed hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-start gap-1"
-                                                >
-                                                    <div className="flex items-center justify-between w-full">
-                                                        <span className="font-bold text-xs truncate">Substituir por: {sub.item}</span>
-                                                        <Check className="h-4 w-4 text-primary" />
-                                                    </div>
-                                                    <div className="flex gap-2 text-[8px] font-black uppercase tracking-widest opacity-60">
-                                                        <span className="text-red-500">P: {sub.protein}g</span>
-                                                        <span className="text-blue-500">C: {sub.carbs}g</span>
-                                                        <span className="text-yellow-500">F: {sub.fat || 0}g</span>
-                                                    </div>
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         <div className="space-y-4">
                             <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Alimentos</Label>
