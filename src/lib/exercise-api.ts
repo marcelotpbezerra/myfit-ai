@@ -146,17 +146,44 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         const structuredData = JSON.parse(finalText);
 
         // Mapeamento Robusto V4: Normalização de IDs e Log Extremo
-        const mappedExercises = structuredData.exercises.map((ex: any) => {
+        const mappedExercises = await Promise.all(structuredData.exercises.map(async (ex: any) => {
             // Normalizamos ambos os IDs para string, removemos espaços e zeros à esquerda para comparação
             const normalizeId = (id: any) => String(id || "").trim().replace(/^0+/, "");
             const normalizedExId = normalizeId(ex.id);
 
-            const original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
+            let original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
+
+            // HIDRATAÇÃO V6: Se achamos o ID mas o GIF está vindo vazio da busca por nome, 
+            // tentamos buscar os detalhes específicos pelo ID (algumas listagens do RapidAPI vem parciais)
+            if (original && !original.gifUrl) {
+                console.log(`[Sync V6] GIF ausente para ID ${ex.id}. Tentando hidratação direta...`);
+                try {
+                    const hydrationRes = await fetch(
+                        `https://exercisedb.p.rapidapi.com/exercises/exercise/${ex.id}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "X-RapidAPI-Key": rapidKey!,
+                                "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
+                            }
+                        }
+                    );
+                    if (hydrationRes.ok) {
+                        const hydratedData = await hydrationRes.json();
+                        if (hydratedData && hydratedData.gifUrl) {
+                            console.log(`[Sync V6] Hidratação Sucesso para ID ${ex.id}! GIF recuperado.`);
+                            original = hydratedData;
+                        }
+                    }
+                } catch (e) {
+                    console.error(`[Sync V6] Erro na hidratação do ID ${ex.id}:`, e);
+                }
+            }
 
             if (original) {
-                console.log(`[Sync V4] Match Sucesso: ID ${ex.id} -> GIF Original ${original.gifUrl ? "OK" : "MISSING"}`);
+                console.log(`[Sync V6] Match Sucesso: ID ${ex.id} -> GIF Original ${original.gifUrl ? "OK" : "MISSING"}`);
             } else {
-                console.warn(`[Sync V4] Match FALHA: Não encontrei ID ${ex.id} (Normalizado: ${normalizedExId}) no rawResults.`);
+                console.warn(`[Sync V6] Match FALHA: Não encontrei ID ${ex.id} (Normalizado: ${normalizedExId}) no rawResults.`);
             }
 
             const finalGif = original?.gifUrl || ex.gifUrl || "";
@@ -166,7 +193,7 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
                 gifUrl: finalGif,
                 targetMuscle: ex.targetMuscle || (original?.target || "Outros")
             };
-        });
+        }));
 
         return mappedExercises;
 
