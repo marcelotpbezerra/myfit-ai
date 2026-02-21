@@ -23,7 +23,7 @@ Este documento consolida o ecossistema técnico e as regras de negócio do proje
 - **Banco de Dados:** Neon Postgres (PostgreSQL Serverless).
 - **ORM:** Drizzle ORM.
 - **Estilização:** Tailwind CSS + shadcn/ui.
-- **IA:** Google Gemini API (model `gemini-1.5-flash`) para análise de progresso.
+- **IA:** Google Gemini API (modelo oficial: `gemini-3-flash-preview`) para busca inteligente, tradução de exercícios e análise de performance.
 - **Deploy:** Vercel.
 - **Integrações Externas:**
   - `Nutritionix/Edamam`: Base de dados de alimentos.
@@ -42,7 +42,10 @@ Este documento consolida o ecossistema técnico e as regras de negócio do proje
 | `health_stats` | Logs biométricos e fotos | `id` (PK), `userId`, `type` | Suporta múltiplos tipos |
 
 ## 5. FLUXOS CRÍTICOS E LOG DE DECISÕES
-- **Integração Gemini AI:** Localizado em `src/actions/ai.ts`. Analisa os últimos 7 dias de treino e dieta para gerar insights provocativos e técnicos.
+- **Busca Global e Inteligente (Bilingual Engine):** Localizada em `src/lib/exercise-api.ts`. Utiliza o Gemini para traduzir e otimizar buscas de exercícios (PT-BR/EN), aplicando ranking de relevância por implementos (ex: prioritiza "cable" ou "dumbbell") para garantir que o primeiro resultado seja o mais preciso.
+- **Proxy de GIFs (Estratégia V7):** Implementado em `src/app/api/exercise-image/route.ts`. Atua como um middleware de segurança e estabilidade, resolvendo problemas de expiração de links e CORS, garantindo que as demonstrações de exercícios funcionem consistentemente.
+- **Motor de Treino (Gestão de Ordem):** Implementação de drag-and-drop no `WorkoutBuilder` com persistência via coluna `order` na tabela `exercises`, garantindo paridade entre o planejamento e a execução.
+- **Integração Gemini AI:** Analisa os últimos 7 dias de treino e dieta para gerar insights provocativos e técnicos, seguindo o perfil de consultor especialista.
 - **Estratégia de Seeding:** O sistema utiliza `seedExercises` e `seedDietPlan` em `src/actions/sync.ts` para restaurar protocolos padrão (Protocolo 2026) via `ON CONFLICT DO NOTHING`.
 - **Proteção contra Duplicatas:** A tabela `exercises` possui uma chave única composta em `(user_id, name)` para garantir que o catálogo não fique poluído em sincronizações repetidas.
 - **Flexibilidade Diária:** A tabela `meals` armazena o consumo real do dia, permitindo que o usuário se desvie do `diet_plan` planejado sem perder a integridade da meta base.
