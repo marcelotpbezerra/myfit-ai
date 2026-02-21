@@ -363,27 +363,33 @@ export async function syncExerciseTutorial(exerciseId: number, name: string) {
 
     const { searchExerciseFromAPI } = await import("@/lib/exercise-api");
 
+    console.log(`[Persistence V4] Iniciando sinc para: "${name}" (ID Local: ${exerciseId}, User: ${userId})`);
+
     try {
         const results = await searchExerciseFromAPI(name);
         if (results && results.length > 0) {
-            // Pegar o primeiro resultado mais relevante
             const bestMatch = results[0];
+            console.log(`[Persistence V4] Match encontrado: ${bestMatch.name}. GIF: ${bestMatch.gifUrl.substring(0, 30)}...`);
 
-            await db.update(exercises)
+            const updateRes = await db.update(exercises)
                 .set({
                     gifUrl: bestMatch.gifUrl,
                     muscleGroup: bestMatch.targetMuscle,
                     equipment: bestMatch.equipment,
                     updatedAt: new Date()
                 })
-                .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)));
+                .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)))
+                .returning({ id: exercises.id });
+
+            console.log(`[Persistence V4] Resultado Update:`, updateRes.length > 0 ? `Sucesso (ID: ${updateRes[0].id})` : "FALHA - Nenhuma linha afetada");
 
             revalidatePath("/dashboard/workout");
             return { success: true, gifUrl: bestMatch.gifUrl };
         }
+        console.warn(`[Persistence V4] Nenhum resultado para "${name}"`);
         return { success: false, error: "Nenhum tutorial encontrado" };
     } catch (error) {
-        console.error("Erro ao sincronizar tutorial:", error);
+        console.error("[Persistence V4] Erro crítico:", error);
         return { success: false, error: "Falha na busca" };
     }
 }
@@ -392,12 +398,16 @@ export async function syncAllMissingTutorials() {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
 
+    console.log(`[Persistence V4] Sincronização em Lote Iniciada (User: ${userId})`);
+
     const missingExercises = await db.query.exercises.findMany({
         where: and(
             eq(exercises.userId, userId),
-            sql`${exercises.gifUrl} IS NULL OR ${exercises.gifUrl} = ''`
+            or(isNull(exercises.gifUrl), eq(exercises.gifUrl, ""))
         )
     });
+
+    console.log(`[Persistence V4] Exercícios sem tutorial: ${missingExercises.length}`);
 
     if (missingExercises.length === 0) return { success: true, count: 0 };
 
@@ -406,25 +416,31 @@ export async function syncAllMissingTutorials() {
 
     for (const ex of missingExercises) {
         try {
+            console.log(`[Persistence V4] Processando: "${ex.name}" (ID: ${ex.id})`);
             const results = await searchExerciseFromAPI(ex.name);
             if (results && results.length > 0) {
                 const bestMatch = results[0];
-                await db.update(exercises)
+                const updateRes = await db.update(exercises)
                     .set({
                         gifUrl: bestMatch.gifUrl,
                         muscleGroup: bestMatch.targetMuscle,
                         equipment: bestMatch.equipment,
                         updatedAt: new Date()
                     })
-                    .where(eq(exercises.id, ex.id));
-                syncedCount++;
-                // Revalida a cada sucesso para que o usuário veja o progresso
-                revalidatePath("/dashboard/workout");
+                    .where(eq(exercises.id, ex.id))
+                    .returning({ id: exercises.id });
+
+                if (updateRes.length > 0) {
+                    console.log(`[Persistence V4] "${ex.name}" atualizado.`);
+                    syncedCount++;
+                    revalidatePath("/dashboard/workout");
+                } else {
+                    console.warn(`[Persistence V4] FALHA ao atualizar "${ex.name}" (ID: ${ex.id})`);
+                }
             }
-            // Pequeno delay para evitar rate limit da RapidAPI/Gemini
             await new Promise(resolve => setTimeout(resolve, 500));
         } catch (e) {
-            console.error(`Falha ao sincronizar ${ex.name}:`, e);
+            console.error(`[Persistence V4] Erro em "${ex.name}":`, e);
         }
     }
 
