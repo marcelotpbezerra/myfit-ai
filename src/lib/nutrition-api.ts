@@ -10,7 +10,7 @@ export async function searchFoodNutrition(query: string) {
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
 
     if (!appId || !appKey || !apiKey) {
-        console.warn("Credentials missing. Check EDAMAM and GOOGLE_GEMINI keys.");
+        console.error("❌ Credentials missing. Check EDAMAM_APP_ID, EDAMAM_APP_KEY and GOOGLE_GEMINI_API_KEY.");
         return [];
     }
 
@@ -29,8 +29,13 @@ export async function searchFoodNutrition(query: string) {
             `https://api.edamam.com/api/food-database/v2/parser?app_id=${appId}&app_key=${appKey}&ingr=${encodeURIComponent(englishQuery)}&nutrition-type=logging`
         );
 
-        if (!response.ok) throw new Error("Failed to fetch from Edamam");
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ Edamam Error (${response.status}):`, errorText);
+            throw new Error(`Failed to fetch from Edamam: ${response.status}`);
+        }
         const data = await response.json();
+        console.log(`[Nutrition API] Edamam returned ${data.hints?.length || 0} results.`);
 
         if (!data.hints || data.hints.length === 0) return [];
 

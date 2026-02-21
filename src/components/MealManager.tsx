@@ -13,7 +13,9 @@ import {
     Circle,
     Loader2,
     RotateCcw,
-    AlertCircle
+    AlertCircle,
+    BellRing,
+    Check
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
 import { Button } from "@/components/ui/button";
@@ -78,6 +80,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
     const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
+
+    const [isSimulating, setIsSimulating] = useState(false);
 
     const searchParams = useSearchParams();
 
@@ -157,13 +161,15 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
     function addCustomFood() {
         if (!customFood.name) return;
-        setCurrentItems([...currentItems, {
+        const newItem = {
             food: customFood.name,
             protein: Number(customFood.protein),
             carbs: Number(customFood.carbs),
             fat: Number(customFood.fat),
             qty: Number(customFood.qty)
-        }]);
+        };
+        console.log("Adding custom food:", newItem);
+        setCurrentItems(prev => [...prev, newItem]);
         setCustomFood({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
         setIsCustomFoodOpen(false);
     }
@@ -343,6 +349,41 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         });
     }
 
+    async function simulateNotification() {
+        setIsSimulating(true);
+        try {
+            if (!("Notification" in window)) {
+                alert("Este navegador não suporta notificações.");
+                return;
+            }
+
+            let permission = Notification.permission;
+            if (permission !== "granted") {
+                permission = await Notification.requestPermission();
+            }
+
+            if (permission === "granted") {
+                const registration = await navigator.serviceWorker.ready;
+                registration.showNotification("🍽️ Simulação: Hora do Almoço!", {
+                    body: "Sua dieta está pronta. O que vai comer?",
+                    icon: "/icons/icon-192x192.png",
+                    data: {
+                        mealId: dietPlan[0]?.id || 1, // Simula o primeiro item do plano
+                        url: "/dashboard/meals"
+                    },
+                    actions: [
+                        { action: "log", title: "Registrar Plano" },
+                        { action: "edit", title: "Substituir" }
+                    ]
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao simular:", error);
+        } finally {
+            setIsSimulating(false);
+        }
+    }
+
     const totals = currentItems.reduce((acc, item) => ({
         p: acc.p + item.protein,
         c: acc.c + item.carbs,
@@ -363,9 +404,21 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                         })}
                     </p>
                 </div>
-                <Button onClick={openCreateDialog} className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
-                    <Plus className="mr-2 h-5 w-5" /> Adicionar
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={simulateNotification}
+                        disabled={isSimulating}
+                        className="rounded-xl border-dashed h-12 px-4 text-xs font-bold gap-2 animate-pulse hover:animate-none"
+                    >
+                        <BellRing className="h-4 w-4" />
+                        Simular Notify
+                    </Button>
+                    <Button onClick={openCreateDialog} className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
+                        <Plus className="mr-2 h-5 w-5" /> Adicionar
+                    </Button>
+                </div>
             </div>
 
             <div className="grid gap-4">
@@ -540,6 +593,68 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                 className="h-12 rounded-xl bg-card border-none shadow-sm focus-visible:ring-primary"
                             />
                         </div>
+
+                        {/* Substituições do Protocolo */}
+                        {dietPlan.some(p => p.mealName.toLowerCase() === mealName.toLowerCase()) && (
+                            <div className="space-y-3">
+                                <Label className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                    <Utensils className="h-4 w-4" /> Opções do Protocolo
+                                </Label>
+                                <div className="grid gap-2">
+                                    {/* Opção Principal baseada na sugestão */}
+                                    {dietPlan.filter(p => p.mealName.toLowerCase() === mealName.toLowerCase()).map(p => (
+                                        <div key={`main-${p.id}`} className="space-y-2">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    // Mock do item principal a partir da sugestão
+                                                    addItem({
+                                                        name: p.suggestions?.split('+')[0].trim() || p.mealName,
+                                                        protein: p.targetProtein || 0,
+                                                        carbs: p.targetCarbs || 0,
+                                                        fat: p.targetFat || 0,
+                                                        calories: p.targetCalories || 0
+                                                    });
+                                                }}
+                                                className="w-full h-auto py-3 justify-start rounded-xl bg-primary/5 border-primary/20 hover:bg-primary/10 transition-all flex flex-col items-start gap-1"
+                                            >
+                                                <div className="flex items-center justify-between w-full">
+                                                    <span className="font-bold text-xs">Usar Plano Base</span>
+                                                    <Plus className="h-4 w-4 opacity-50" />
+                                                </div>
+                                                <span className="text-[10px] text-muted-foreground truncate w-full text-left">{p.suggestions}</span>
+                                            </Button>
+
+                                            {/* Listagem de substituições reais cadastradas */}
+                                            {p.substitutions?.map((sub, sIdx) => (
+                                                <Button
+                                                    key={`sub-${sIdx}`}
+                                                    variant="outline"
+                                                    onClick={() => addItem({
+                                                        name: sub.item,
+                                                        protein: sub.protein,
+                                                        carbs: sub.carbs,
+                                                        fat: sub.fat || 0,
+                                                        calories: (sub.protein * 4) + (sub.carbs * 4) + ((sub.fat || 0) * 9)
+                                                    })}
+                                                    className="w-full h-auto py-3 justify-start rounded-xl border-dashed hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-start gap-1"
+                                                >
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <span className="font-bold text-xs truncate">Substituir por: {sub.item}</span>
+                                                        <Check className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div className="flex gap-2 text-[8px] font-black uppercase tracking-widest opacity-60">
+                                                        <span className="text-red-500">P: {sub.protein}g</span>
+                                                        <span className="text-blue-500">C: {sub.carbs}g</span>
+                                                        <span className="text-yellow-500">F: {sub.fat || 0}g</span>
+                                                    </div>
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Alimentos</Label>
