@@ -141,14 +141,35 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
             {/* Montador Section */}
             <div className="space-y-6">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center justify-between">
-                    <div>
-                        <h3 className="font-black text-xl uppercase tracking-tight flex items-center gap-2 text-white">
-                            <Plus className="h-5 w-5 text-primary" />
-                            Montar Treino
-                        </h3>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-7">
-                            Estruture sua rotina
-                        </p>
+                    <div className="flex items-center justify-between w-full">
+                        <div>
+                            <h3 className="font-black text-xl uppercase tracking-tight flex items-center gap-2 text-white">
+                                <Plus className="h-5 w-5 text-primary" />
+                                Montar Treino
+                            </h3>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-7">
+                                Estruture sua rotina
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isPending}
+                            onClick={async () => {
+                                if (confirm("Deseja buscar tutoriais para todos os seus exercícios que não possuem? Isso pode levar algum tempo.")) {
+                                    startTransition(async () => {
+                                        const res = await syncAllMissingTutorials();
+                                        if (res.success) {
+                                            alert(`Sincronização concluída! ${res.count} exercícios atualizados.`);
+                                        }
+                                    });
+                                }
+                            }}
+                            className="h-8 border-white/5 bg-white/[0.02] text-[9px] font-black uppercase tracking-widest px-4 hover:bg-white/[0.05] transition-all"
+                        >
+                            <RefreshCw className={cn("h-3 w-3 mr-2 text-primary", isPending && "animate-spin")} />
+                            {isPending ? "Sincronizando..." : "Sincronizar Tudo"}
+                        </Button>
                     </div>
                     <div className="flex flex-col gap-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Destino:</span>
