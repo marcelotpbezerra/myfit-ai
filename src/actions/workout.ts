@@ -369,7 +369,7 @@ export async function syncExerciseTutorial(exerciseId: number, name: string) {
         const results = await searchExerciseFromAPI(name);
         if (results && results.length > 0) {
             const bestMatch = results[0];
-            console.log(`[Persistence V4] Match encontrado: ${bestMatch.name}. GIF: ${bestMatch.gifUrl.substring(0, 30)}...`);
+            console.log(`[Persistence V4] Match encontrado: ${bestMatch.name}. GIF: ${(bestMatch.gifUrl || "").substring(0, 30)}...`);
 
             const updateRes = await db.update(exercises)
                 .set({

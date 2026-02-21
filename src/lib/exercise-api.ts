@@ -154,16 +154,17 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
             const original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
 
             if (original) {
-                console.log(`[Sync V4] Match Sucesso: ID ${ex.id} -> GIF Original OK`);
+                console.log(`[Sync V4] Match Sucesso: ID ${ex.id} -> GIF Original ${original.gifUrl ? "OK" : "MISSING"}`);
             } else {
                 console.warn(`[Sync V4] Match FALHA: Não encontrei ID ${ex.id} (Normalizado: ${normalizedExId}) no rawResults.`);
             }
 
+            const finalGif = original?.gifUrl || ex.gifUrl || "";
+
             return {
                 ...ex,
-                gifUrl: original ? original.gifUrl : ex.gifUrl, // Prioriza o original real da API
-                // Se o Gemini errou o músculo mesmo com o roteiro, forçamos um fallback se possível
-                targetMuscle: ex.targetMuscle || (original ? original.target : "Outros")
+                gifUrl: finalGif,
+                targetMuscle: ex.targetMuscle || (original?.target || "Outros")
             };
         });
 
