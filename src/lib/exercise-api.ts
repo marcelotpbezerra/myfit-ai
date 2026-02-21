@@ -116,8 +116,26 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         });
 
         const structuringPrompt = `
+            You are a PT-BR fitness specialist.
             Translate these exercises from English to Portuguese (PT-BR). 
-            Keep the gifUrl EXACTLY the same.
+
+            STRICT MUSCLE MAPPING:
+            - "back" -> "Costas"
+            - "cardiovascular" -> "Cardio"
+            - "chest" -> "Peitoral"
+            - "lower arms" -> "Antebraço"
+            - "lower legs" -> "Panturrilhas"
+            - "neck" -> "Pescoço"
+            - "shoulders" -> "Ombros"
+            - "upper arms" -> "Braços"
+            - "upper legs" -> "Pernas"
+            - "waist" -> "Cintura / Abdômen"
+
+            STRICT RULES:
+            1. Keep the gifUrl and id EXACTLY the same.
+            2. Translate name and equipment naturally to PT-BR.
+            3. Use the STRICT MUSCLE MAPPING for the targetMuscle field based on the 'bodyPart' or 'target' from the original data.
+            
             Original Data: ${JSON.stringify(rawResults.slice(0, 8))}
             
             Return a JSON object with a single 'exercises' array property.
@@ -127,13 +145,25 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         const finalText = structuringResult.response.text();
         const structuredData = JSON.parse(finalText);
 
-        // Mapeamento Robusto: O Gemini costuma "limpar" o gifUrl ou traduzi-lo errado.
-        // Vamos restaurar o gifUrl original do RapidAPI usando o ID único.
+        // Mapeamento Robusto V4: Normalização de IDs e Log Extremo
         const mappedExercises = structuredData.exercises.map((ex: any) => {
-            const original = rawResults.find((r: any) => r.id === ex.id);
+            // Normalizamos ambos os IDs para string, removemos espaços e zeros à esquerda para comparação
+            const normalizeId = (id: any) => String(id || "").trim().replace(/^0+/, "");
+            const normalizedExId = normalizeId(ex.id);
+
+            const original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
+
+            if (original) {
+                console.log(`[Sync V4] Match Sucesso: ID ${ex.id} -> GIF Original OK`);
+            } else {
+                console.warn(`[Sync V4] Match FALHA: Não encontrei ID ${ex.id} (Normalizado: ${normalizedExId}) no rawResults.`);
+            }
+
             return {
                 ...ex,
-                gifUrl: original ? original.gifUrl : ex.gifUrl // Prioriza o original real
+                gifUrl: original ? original.gifUrl : ex.gifUrl, // Prioriza o original real da API
+                // Se o Gemini errou o músculo mesmo com o roteiro, forçamos um fallback se possível
+                targetMuscle: ex.targetMuscle || (original ? original.target : "Outros")
             };
         });
 
