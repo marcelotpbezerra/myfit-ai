@@ -145,55 +145,29 @@ export async function searchExerciseFromAPI(query: string): Promise<RemoteExerci
         const finalText = structuringResult.response.text();
         const structuredData = JSON.parse(finalText);
 
-        // Mapeamento Robusto V4: Normalização de IDs e Log Extremo
-        const mappedExercises = await Promise.all(structuredData.exercises.map(async (ex: any) => {
-            // Normalizamos ambos os IDs para string, removemos espaços e zeros à esquerda para comparação
+        // Mapeamento Robusto V7: Proxy GIF Strategy
+        // Já que a API JSON parou de retornar gifUrl, usamos nossa rota de proxy segura
+        const mappedExercises = structuredData.exercises.map((ex: any) => {
             const normalizeId = (id: any) => String(id || "").trim().replace(/^0+/, "");
             const normalizedExId = normalizeId(ex.id);
 
-            let original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
+            const original = rawResults.find((r: any) => normalizeId(r.id) === normalizedExId);
 
-            // HIDRATAÇÃO V6: Se achamos o ID mas o GIF está vindo vazio da busca por nome, 
-            // tentamos buscar os detalhes específicos pelo ID (algumas listagens do RapidAPI vem parciais)
-            if (original && !original.gifUrl) {
-                console.log(`[Sync V6] GIF ausente para ID ${ex.id}. Tentando hidratação direta...`);
-                try {
-                    const hydrationRes = await fetch(
-                        `https://exercisedb.p.rapidapi.com/exercises/exercise/${ex.id}`,
-                        {
-                            method: "GET",
-                            headers: {
-                                "X-RapidAPI-Key": rapidKey!,
-                                "X-RapidAPI-Host": "exercisedb.p.rapidapi.com"
-                            }
-                        }
-                    );
-                    if (hydrationRes.ok) {
-                        const hydratedData = await hydrationRes.json();
-                        if (hydratedData && hydratedData.gifUrl) {
-                            console.log(`[Sync V6] Hidratação Sucesso para ID ${ex.id}! GIF recuperado.`);
-                            original = hydratedData;
-                        }
-                    }
-                } catch (e) {
-                    console.error(`[Sync V6] Erro na hidratação do ID ${ex.id}:`, e);
-                }
-            }
+            // Geramos o URL do nosso proxy interno
+            const proxyGifUrl = `/api/exercise-image?exerciseId=${ex.id}`;
 
             if (original) {
-                console.log(`[Sync V6] Match Sucesso: ID ${ex.id} -> GIF Original ${original.gifUrl ? "OK" : "MISSING"}`);
+                console.log(`[Sync V7] Match Sucesso: ID ${ex.id} -> Proxy GIF Link Gerado`);
             } else {
-                console.warn(`[Sync V6] Match FALHA: Não encontrei ID ${ex.id} (Normalizado: ${normalizedExId}) no rawResults.`);
+                console.warn(`[Sync V7] Match FALHA: ID ${ex.id} não encontrado no rawResults.`);
             }
-
-            const finalGif = original?.gifUrl || ex.gifUrl || "";
 
             return {
                 ...ex,
-                gifUrl: finalGif,
+                gifUrl: proxyGifUrl, // Sempre usamos o proxy agora para segurança e estabilidade
                 targetMuscle: ex.targetMuscle || (original?.target || "Outros")
             };
-        }));
+        });
 
         return mappedExercises;
 

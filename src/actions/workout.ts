@@ -363,13 +363,13 @@ export async function syncExerciseTutorial(exerciseId: number, name: string) {
 
     const { searchExerciseFromAPI } = await import("@/lib/exercise-api");
 
-    console.log(`[Persistence V4] Iniciando sinc para: "${name}" (ID Local: ${exerciseId}, User: ${userId})`);
+    console.log(`[Persistence V7] Iniciando sinc para: "${name}" (ID Local: ${exerciseId}, User: ${userId})`);
 
     try {
         const results = await searchExerciseFromAPI(name);
         if (results && results.length > 0) {
             const bestMatch = results[0];
-            console.log(`[Persistence V4] Match encontrado: ${bestMatch.name}. GIF: ${(bestMatch.gifUrl || "").substring(0, 30)}...`);
+            console.log(`[Persistence V7] Match encontrado: ${bestMatch.name}. Link Proxy Gerado.`);
 
             const updateRes = await db.update(exercises)
                 .set({
@@ -381,15 +381,15 @@ export async function syncExerciseTutorial(exerciseId: number, name: string) {
                 .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)))
                 .returning({ id: exercises.id });
 
-            console.log(`[Persistence V4] Resultado Update:`, updateRes.length > 0 ? `Sucesso (ID: ${updateRes[0].id})` : "FALHA - Nenhuma linha afetada");
+            console.log(`[Persistence V7] Resultado Update:`, updateRes.length > 0 ? `Sucesso (ID: ${updateRes[0].id})` : "FALHA - Nenhuma linha afetada");
 
             revalidatePath("/dashboard/workout");
             return { success: true, gifUrl: bestMatch.gifUrl };
         }
-        console.warn(`[Persistence V4] Nenhum resultado para "${name}"`);
+        console.warn(`[Persistence V7] Nenhum resultado para "${name}" após otimização.`);
         return { success: false, error: "Nenhum tutorial encontrado" };
     } catch (error) {
-        console.error("[Persistence V4] Erro crítico:", error);
+        console.error("[Persistence V7] Erro crítico:", error);
         return { success: false, error: "Falha na busca" };
     }
 }
