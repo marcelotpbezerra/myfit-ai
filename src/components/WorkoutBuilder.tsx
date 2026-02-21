@@ -9,6 +9,7 @@ import {
     deleteExercise,
     addExerciseToCatalog,
     syncExerciseTutorial,
+    removeExerciseTutorial,
     syncAllMissingTutorials,
     getExercisesMissingTutorials
 } from "@/actions/workout";
@@ -461,9 +462,14 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                         ) : (
                                                             <div
                                                                 className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-all group/sync"
-                                                                title="Sincronizar Tutorial"
+                                                                title={ex.gifUrl ? "Refazer Sincronização" : "Sincronizar Tutorial"}
                                                                 onClick={() => {
-                                                                    const customName = prompt("Digite o nome para busca (ou deixe vazio para o padrão):", ex.name);
+                                                                    const customName = prompt(
+                                                                        ex.gifUrl
+                                                                            ? "Deseja refazer a busca deste tutorial com outro nome?"
+                                                                            : "Digite o nome para busca (ou deixe vazio para o padrão):",
+                                                                        ex.name
+                                                                    );
                                                                     if (customName !== null) {
                                                                         startTransition(async () => {
                                                                             const res = await syncExerciseTutorial(ex.id, customName || ex.name);
@@ -482,12 +488,27 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-black uppercase tracking-tight text-white leading-tight">{ex.name}</span>
                                                             {ex.gifUrl ? (
-                                                                <button
-                                                                    onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
-                                                                    className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
-                                                                >
-                                                                    {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}
+                                                                        className="text-[8px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors text-left mt-0.5"
+                                                                    >
+                                                                        {previewGifId === ex.id ? "FECHAR TUTORIAL" : "VER EXECUÇÃO"}
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (confirm("Deseja remover o tutorial deste exercício?")) {
+                                                                                startTransition(async () => {
+                                                                                    await removeExerciseTutorial(ex.id);
+                                                                                    router.refresh();
+                                                                                });
+                                                                            }
+                                                                        }}
+                                                                        className="text-[8px] font-black uppercase tracking-[0.2em] text-destructive/60 hover:text-destructive transition-colors text-left mt-0.5"
+                                                                    >
+                                                                        REMOVER VÍDEO
+                                                                    </button>
+                                                                </>
                                                             ) : (
                                                                 <span className="text-[7px] font-medium uppercase tracking-widest text-white/20 mt-0.5">
                                                                     Aguardando tutorial...

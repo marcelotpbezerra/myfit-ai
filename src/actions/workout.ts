@@ -394,6 +394,28 @@ export async function syncExerciseTutorial(exerciseId: number, name: string) {
     }
 }
 
+export async function removeExerciseTutorial(exerciseId: number) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    console.log(`[Persistence V7] Removendo tutorial do exercício (ID Local: ${exerciseId}, User: ${userId})`);
+
+    try {
+        await db.update(exercises)
+            .set({
+                gifUrl: null,
+                updatedAt: new Date()
+            })
+            .where(and(eq(exercises.id, exerciseId), eq(exercises.userId, userId)));
+
+        revalidatePath("/dashboard/workout");
+        return { success: true };
+    } catch (error) {
+        console.error("[Persistence V7] Erro ao remover tutorial:", error);
+        return { success: false, error: "Falha ao remover" };
+    }
+}
+
 export async function syncAllMissingTutorials() {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
