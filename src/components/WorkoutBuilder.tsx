@@ -156,7 +156,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                             size="sm"
                             disabled={isPending}
                             onClick={async () => {
-                                if (confirm("Deseja buscar tutoriais para todos os seus exercícios que não possuem? Isso pode levar algum tempo.")) {
+                                if (confirm("Deseja buscar tutoriais para todos os seus exercícios? Os GIFs aparecerão um a um assim que forem encontrados.")) {
                                     startTransition(async () => {
                                         const res = await syncAllMissingTutorials();
                                         if (res.success) {

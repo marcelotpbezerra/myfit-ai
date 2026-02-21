@@ -401,6 +401,8 @@ export async function syncAllMissingTutorials() {
                     })
                     .where(eq(exercises.id, ex.id));
                 syncedCount++;
+                // Revalida a cada sucesso para que o usuário veja o progresso
+                revalidatePath("/dashboard/workout");
             }
             // Pequeno delay para evitar rate limit da RapidAPI/Gemini
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -409,6 +411,5 @@ export async function syncAllMissingTutorials() {
         }
     }
 
-    revalidatePath("/dashboard/workout");
     return { success: true, count: syncedCount };
 }
