@@ -391,23 +391,43 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                                 ex.gifUrl ? "bg-primary/20 text-primary hover:bg-primary/30" : "bg-primary/10 text-primary/60 hover:bg-primary/20"
                                                             )}
                                                             onClick={async () => {
-                                                                if (ex.gifUrl) {
-                                                                    setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: !prev[`gif_${ex.id}`] }));
-                                                                } else {
-                                                                    startTransition(async () => {
-                                                                        const res = await syncExerciseTutorial(ex.id, ex.name);
-                                                                        if (res.success && res.gifUrl) {
-                                                                            setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: true }));
-                                                                            router.refresh();
-                                                                        } else {
-                                                                            alert("Tutorial não encontrado. Tente outro nome para o exercício.");
+                                                                if (ex.gifUrl && !showNotes[`gif_${ex.id}`]) {
+                                                                    setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: true }));
+                                                                } else if (ex.gifUrl && showNotes[`gif_${ex.id}`]) {
+                                                                    const reSync = confirm("Deseja refazer a busca deste tutorial com outro nome?");
+                                                                    if (reSync) {
+                                                                        const customName = prompt("Digite o nome do exercício (em português ou inglês):", ex.name);
+                                                                        if (customName) {
+                                                                            startTransition(async () => {
+                                                                                const res = await syncExerciseTutorial(ex.id, customName);
+                                                                                if (res.success && res.gifUrl) {
+                                                                                    router.refresh();
+                                                                                } else {
+                                                                                    alert("Tutorial não encontrado com esse nome.");
+                                                                                }
+                                                                            });
                                                                         }
-                                                                    });
+                                                                    } else {
+                                                                        setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: false }));
+                                                                    }
+                                                                } else {
+                                                                    const customName = prompt("Digite o nome para busca (ou deixe vazio para o padrão):", ex.name);
+                                                                    if (customName !== null) {
+                                                                        startTransition(async () => {
+                                                                            const res = await syncExerciseTutorial(ex.id, customName || ex.name);
+                                                                            if (res.success && res.gifUrl) {
+                                                                                setShowNotes(prev => ({ ...prev, [`gif_${ex.id}`]: true }));
+                                                                                router.refresh();
+                                                                            } else {
+                                                                                alert("Tutorial não encontrado. Tente outro nome.");
+                                                                            }
+                                                                        });
+                                                                    }
                                                                 }
                                                             }}
                                                         >
                                                             <RefreshCw className={cn("h-4 w-4", isPending && "animate-spin")} />
-                                                            <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR TUTORIAL" : "VER EXECUÇÃO") : (isPending ? "BUSCANDO..." : "BUSCAR TUTORIAL")}</span>
+                                                            <span>{ex.gifUrl ? (showNotes[`gif_${ex.id}`] ? "FECHAR / REFAZER" : "VER EXECUÇÃO") : (isPending ? "BUSCANDO..." : "BUSCAR TUTORIAL")}</span>
                                                         </button>
                                                     </div>
 
@@ -417,9 +437,9 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                                 initial={{ opacity: 0, scale: 0.95 }}
                                                                 animate={{ opacity: 1, scale: 1 }}
                                                                 exit={{ opacity: 0, scale: 0.95 }}
-                                                                className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                                                                className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black/40"
                                                             >
-                                                                <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-cover" />
+                                                                <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-contain" />
                                                             </motion.div>
                                                         )}
                                                     </AnimatePresence>

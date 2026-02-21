@@ -463,10 +463,17 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                                 className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-all group/sync"
                                                                 title="Sincronizar Tutorial"
                                                                 onClick={() => {
-                                                                    startTransition(async () => {
-                                                                        const res = await syncExerciseTutorial(ex.id, ex.name);
-                                                                        if (res.success) router.refresh();
-                                                                    });
+                                                                    const customName = prompt("Digite o nome para busca (ou deixe vazio para o padrão):", ex.name);
+                                                                    if (customName !== null) {
+                                                                        startTransition(async () => {
+                                                                            const res = await syncExerciseTutorial(ex.id, customName || ex.name);
+                                                                            if (res.success) {
+                                                                                router.refresh();
+                                                                            } else {
+                                                                                alert("Tutorial não encontrado. Tente outro nome.");
+                                                                            }
+                                                                        });
+                                                                    }
                                                                 }}
                                                             >
                                                                 <RefreshCw className={cn("h-5 w-5 text-primary", isPending && "animate-spin")} />
@@ -505,9 +512,9 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                             initial={{ height: 0, opacity: 0 }}
                                                             animate={{ height: "auto", opacity: 1 }}
                                                             exit={{ height: 0, opacity: 0 }}
-                                                            className="mb-4 rounded-2xl overflow-hidden border border-white/5 ring-1 ring-white/10"
+                                                            className="mb-4 rounded-2xl overflow-hidden border border-white/5 ring-1 ring-white/10 bg-black/40"
                                                         >
-                                                            <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-cover" />
+                                                            <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-contain" />
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
