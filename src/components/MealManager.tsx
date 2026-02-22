@@ -258,11 +258,11 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
     function addItem(food: any) {
         const newItem = {
-            food: food.name,
-            protein: food.protein,
-            carbs: food.carbs,
-            fat: food.fat,
-            qty: 100
+            food: food.name || "Alimento",
+            protein: Number(food.protein) || 0,
+            carbs: Number(food.carbs) || 0,
+            fat: Number(food.fat) || 0,
+            qty: Number(food.qty) || 100
         };
         setCurrentItems(prev => [...prev, newItem]);
         setSearchQuery("");
@@ -275,13 +275,14 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
     function updateItemQty(index: number, newQty: number) {
         const nextItems = [...currentItems];
-        const factor = newQty / nextItems[index].qty;
+        const safeQty = isNaN(newQty) || newQty <= 0 ? 1 : newQty;
+        const factor = nextItems[index].qty > 0 ? safeQty / nextItems[index].qty : 1;
         nextItems[index] = {
             ...nextItems[index],
             protein: Number((nextItems[index].protein * factor).toFixed(1)),
             carbs: Number((nextItems[index].carbs * factor).toFixed(1)),
             fat: Number((nextItems[index].fat * factor).toFixed(1)),
-            qty: newQty
+            qty: safeQty
         };
         setCurrentItems(nextItems);
     }
@@ -384,10 +385,10 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
         const newItems = [...targetMeal.items];
         newItems[itemIndex] = {
-            food: food.name,
-            protein: food.protein,
-            carbs: food.carbs,
-            fat: food.fat,
+            food: String(food.name || "Alimento"),
+            protein: Number(food.protein) || 0,
+            carbs: Number(food.carbs) || 0,
+            fat: Number(food.fat) || 0,
             qty: 100
         };
 

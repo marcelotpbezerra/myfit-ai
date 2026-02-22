@@ -73,13 +73,22 @@ export async function saveMeal(mealData: {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
 
+    // Sanitizar todos os campos numéricos dos itens antes de salvar no JSONB
+    const sanitizedItems = (Array.isArray(mealData.items) ? mealData.items : []).map((it: any) => ({
+        food: String(it.food || "Alimento"),
+        protein: isNaN(Number(it.protein)) ? 0 : Number(it.protein),
+        carbs: isNaN(Number(it.carbs)) ? 0 : Number(it.carbs),
+        fat: isNaN(Number(it.fat)) ? 0 : Number(it.fat),
+        qty: isNaN(Number(it.qty)) ? 100 : Number(it.qty),
+    }));
+
     try {
         if (mealData.id) {
             // Update
             await db.update(meals)
                 .set({
                     mealName: mealData.mealName,
-                    items: Array.isArray(mealData.items) ? mealData.items : [],
+                    items: sanitizedItems,
                     isCompleted: mealData.isCompleted,
                     notes: mealData.notes,
                 })
@@ -90,7 +99,7 @@ export async function saveMeal(mealData: {
                 userId,
                 date: mealData.date,
                 mealName: mealData.mealName,
-                items: Array.isArray(mealData.items) ? mealData.items : [],
+                items: sanitizedItems,
                 isCompleted: mealData.isCompleted || false,
                 notes: mealData.notes || "",
             });
@@ -99,8 +108,20 @@ export async function saveMeal(mealData: {
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/meals");
         return { success: true };
-    } catch (error) {
-        console.error("Error in saveMeal:", error);
+    } catch (error: any) {
+        console.error("ERRO AO SALVAR REFEIÇÃO:", {
+            message: error?.message,
+            code: error?.code,
+            detail: error?.detail,
+            stack: error?.stack,
+        });
+        console.error("PAYLOAD TENTADO:", JSON.stringify({
+            id: mealData.id,
+            date: mealData.date,
+            mealName: mealData.mealName,
+            isCompleted: mealData.isCompleted,
+            sanitizedItems,
+        }, null, 2));
         return { success: false, error: "Falha ao salvar a refeição" };
     }
 }
