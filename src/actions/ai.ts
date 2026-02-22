@@ -14,52 +14,78 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
  * Passo 2: A Action de Importação de Bioimpedância (Multimodal + Structured Output)
  */
 export async function uploadBioimpedance(formData: FormData) {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Não autorizado");
-
-    const file = formData.get("file") as File;
-    if (!file) throw new Error("Nenhum arquivo enviado");
-
-    // Prepara o arquivo para o Gemini
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64Data = buffer.toString("base64");
-
-    const schema: any = {
-        description: "Dados extraídos de um exame de bioimpedância",
-        type: SchemaType.OBJECT,
-        properties: {
-            weight: { type: SchemaType.NUMBER, description: "Peso total em kg" },
-            bodyFat: { type: SchemaType.NUMBER, description: "Percentual de gordura corporal" },
-            muscleMass: { type: SchemaType.NUMBER, description: "Massa muscular em kg" },
-            visceralFat: { type: SchemaType.NUMBER, description: "Nível de gordura visceral" },
-            waterPercentage: { type: SchemaType.NUMBER, description: "Percentual de água corporal" },
-        },
-        required: ["weight", "bodyFat", "muscleMass", "visceralFat"],
-    };
-
-    const model = genAI.getGenerativeModel({
-        model: "gemini-3-flash",
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: schema,
-        },
-    });
-
     try {
+        const { userId } = await auth();
+        if (!userId) {
+            console.error("[uploadBioimpedance] Erro: Usuário não autenticado");
+            return { success: false, error: "Não autorizado" };
+        }
+
+        const file = formData.get("file") as File | null;
+        if (!file || file.size === 0) {
+            console.error("[uploadBioimpedance] Erro: Nenhum arquivo enviado ou arquivo vazio");
+            return { success: false, error: "Nenhum arquivo enviado" };
+        }
+
+        console.log(`[uploadBioimpedance] Processando arquivo: ${file.name}, Tipo: ${file.type}, Tamanho: ${file.size}`);
+
+        // Conversão robusta para Base64
+        let base64Data: string;
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            base64Data = buffer.toString("base64");
+        } catch (e) {
+            console.error("[uploadBioimpedance] Erro ao converter arquivo para buffer:", e);
+            return { success: false, error: "Falha ao ler o arquivo físico" };
+        }
+
+        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        if (!apiKey) {
+            console.error("[uploadBioimpedance] Erro: GOOGLE_GEMINI_API_KEY não configurada");
+            return { success: false, error: "Configuração da IA pendente" };
+        }
+
+        const schema: any = {
+            description: "Dados extraídos de um exame de bioimpedância",
+            type: SchemaType.OBJECT,
+            properties: {
+                weight: { type: SchemaType.NUMBER, description: "Peso total em kg" },
+                bodyFat: { type: SchemaType.NUMBER, description: "Percentual de gordura corporal" },
+                muscleMass: { type: SchemaType.NUMBER, description: "Massa muscular em kg" },
+                visceralFat: { type: SchemaType.NUMBER, description: "Nível de gordura visceral" },
+                waterPercentage: { type: SchemaType.NUMBER, description: "Percentual de água corporal" },
+            },
+            required: ["weight", "bodyFat", "muscleMass", "visceralFat"],
+        };
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash", // Use a stable version name
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+
+        console.log("[uploadBioimpedance] Enviando para o Gemini...");
+
         const result = await model.generateContent([
             {
                 inlineData: {
                     data: base64Data,
-                    mimeType: file.type,
+                    mimeType: file.type || "application/pdf", // Fallback mime type
                 },
             },
-            "Analise este exame de bioimpedância e extraia os dados estruturados. Se os dados não estiverem claros, tente estimar ou retorne nulo para o campo específico.",
+            "Analise este exame de bioimpedância e extraia estritamente os dados solicitados no schema. Foque em: Peso (Weight), Gordura Corporal (Body Fat %), Massa Muscular (Muscle Mass) e Gordura Visceral (Visceral Fat).",
         ]);
 
-        const responseData = JSON.parse(result.response.text());
+        const text = result.response.text();
+        console.log("[uploadBioimpedance] Resposta do Gemini:", text);
+
+        const responseData = JSON.parse(text);
 
         // Salva na nova tabela de biometria
-        await db.insert(biometrics).values({
+        const [inserted] = await db.insert(biometrics).values({
             userId,
             weight: responseData.weight?.toString(),
             bodyFat: responseData.bodyFat?.toString(),
@@ -67,7 +93,9 @@ export async function uploadBioimpedance(formData: FormData) {
             visceralFat: responseData.visceralFat,
             waterPercentage: responseData.waterPercentage?.toString(),
             recordedAt: new Date(),
-        });
+        }).returning();
+
+        console.log("[uploadBioimpedance] Dados salvos no banco:", inserted.id);
 
         // Atualiza também o peso atual no health_stats (para compatibilidade com dashboard)
         if (responseData.weight) {
@@ -79,13 +107,24 @@ export async function uploadBioimpedance(formData: FormData) {
             });
         }
 
-        revalidatePath("/dashboard/health");
+        revalidatePath("/dashboard/health/bioimpedancia");
         revalidatePath("/dashboard");
 
         return { success: true, data: responseData };
-    } catch (error) {
-        console.error("Erro no processamento da Bioimpedância:", error);
-        throw new Error("Erro ao processar o exame de bioimpedância.");
+    } catch (error: any) {
+        console.error("###################################################");
+        console.error("CRITICAL ERROR IN uploadBioimpedance:");
+        console.error("Message:", error.message);
+        console.error("Stack:", error.stack);
+        if (error.response) {
+            console.error("Gemini Response Error:", JSON.stringify(error.response, null, 2));
+        }
+        console.error("###################################################");
+
+        return {
+            success: false,
+            error: error.message || "Erro interno ao processar bioimpedância"
+        };
     }
 }
 
@@ -165,11 +204,26 @@ export async function generateConsultantReport() {
     `;
 
     try {
+        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        if (!apiKey) {
+            console.error("[generateConsultantReport] Erro: GOOGLE_GEMINI_API_KEY não configurada");
+            return { error: "IA não configurada" };
+        }
+
         const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
-        return JSON.parse(result.response.text());
-    } catch (error) {
-        console.error("Erro no Consultor Gemini:", error);
-        throw new Error("Não foi possível gerar o relatório agora.");
+        const text = result.response.text();
+        console.log("[generateConsultantReport] Relatório gerado com sucesso.");
+        return JSON.parse(text);
+    } catch (error: any) {
+        console.error("###################################################");
+        console.error("ERROR IN generateConsultantReport:");
+        console.error("Message:", error.message);
+        console.error("Stack:", error.stack);
+        console.error("###################################################");
+
+        return {
+            error: "Não foi possível gerar o relatório agora. Verifique seus logs."
+        };
     }
 }
 

@@ -8,11 +8,13 @@ import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, LogOut, Menu, 
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }, // Changed from Home to LayoutDashboard
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Treino", href: "/dashboard/workout", icon: Dumbbell },
     { name: "Refeições", href: "/dashboard/meals", icon: Utensils },
     { name: "Histórico", href: "/dashboard/history", icon: HistoryIcon },
     { name: "Saúde", href: "/dashboard/health", icon: Activity },
+    { name: "Bioimpedância", href: "/dashboard/health/bioimpedancia", icon: Activity },
+    { name: "Consultor IA", href: "/dashboard/consultor", icon: Settings },
     { name: "Ajustes", href: "/dashboard/settings", icon: Settings },
 ];
 
