@@ -55,6 +55,7 @@ export async function uploadBioimpedance(formData: FormData) {
                 muscleMass: { type: SchemaType.NUMBER, description: "Massa muscular em kg" },
                 visceralFat: { type: SchemaType.NUMBER, description: "Nível de gordura visceral" },
                 waterPercentage: { type: SchemaType.NUMBER, description: "Percentual de água corporal" },
+                examDate: { type: SchemaType.STRING, description: "Data em que o exame foi realizado no formato YYYY-MM-DD. Procure no cabeçalho ou rodapé do documento." },
             },
             required: ["weight", "bodyFat", "muscleMass", "visceralFat"],
         };
@@ -76,13 +77,16 @@ export async function uploadBioimpedance(formData: FormData) {
                     mimeType: file.type || "application/pdf", // Fallback mime type
                 },
             },
-            "Analise este exame de bioimpedância e extraia estritamente os dados solicitados no schema. Foque em: Peso (Weight), Gordura Corporal (Body Fat %), Massa Muscular (Muscle Mass) e Gordura Visceral (Visceral Fat).",
+            "Analise este exame de bioimpedância e extraia estritamente os dados solicitados no schema. BUSQUE A DATA REAL DO EXAME (examDate). Foque em: Peso (Weight), Gordura Corporal (Body Fat %), Massa Muscular (Muscle Mass) e Gordura Visceral (Visceral Fat).",
         ]);
 
         const text = result.response.text();
         console.log("[uploadBioimpedance] Resposta do Gemini:", text);
 
         const responseData = JSON.parse(text);
+
+        // Data inteligente: extraída ou fallback para hoje
+        const finalDate = responseData.examDate ? new Date(responseData.examDate) : new Date();
 
         // Salva na nova tabela de biometria
         const [inserted] = await db.insert(biometrics).values({
@@ -92,7 +96,7 @@ export async function uploadBioimpedance(formData: FormData) {
             muscleMass: responseData.muscleMass?.toString(),
             visceralFat: responseData.visceralFat,
             waterPercentage: responseData.waterPercentage?.toString(),
-            recordedAt: new Date(),
+            recordedAt: finalDate,
         }).returning();
 
         console.log("[uploadBioimpedance] Dados salvos no banco:", inserted.id);
@@ -103,7 +107,7 @@ export async function uploadBioimpedance(formData: FormData) {
                 userId,
                 type: "weight",
                 value: responseData.weight.toString(),
-                recordedAt: new Date(),
+                recordedAt: finalDate,
             });
         }
 
