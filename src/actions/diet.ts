@@ -186,10 +186,13 @@ export async function addDietMeal(data: {
 
     try {
         const items = Array.isArray(data.items) ? data.items : [];
-        const targetProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
-        const targetCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
-        const targetFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
-        const targetCalories = (targetProtein * 4) + (targetCarbs * 4) + (targetFat * 9);
+        const rawProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
+        const rawCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
+        const rawFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
+        const targetProtein = Math.round(rawProtein);
+        const targetCarbs = Math.round(rawCarbs);
+        const targetFat = Math.round(rawFat);
+        const targetCalories = Math.round((rawProtein * 4) + (rawCarbs * 4) + (rawFat * 9));
 
         await db.insert(dietPlan).values({
             userId,
@@ -231,17 +234,20 @@ export async function updateDietMeal(id: number, data: Partial<{
 
         if (data.items) {
             const items = Array.isArray(data.items) ? data.items : [];
-            updateData.targetProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
-            updateData.targetCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
-            updateData.targetFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
-            updateData.targetCalories = (Number(updateData.targetProtein || 0) * 4) + (Number(updateData.targetCarbs || 0) * 4) + (Number(updateData.targetFat || 0) * 9);
+            const rawProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
+            const rawCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
+            const rawFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
+            updateData.targetProtein = Math.round(rawProtein);
+            updateData.targetCarbs = Math.round(rawCarbs);
+            updateData.targetFat = Math.round(rawFat);
+            updateData.targetCalories = Math.round((rawProtein * 4) + (rawCarbs * 4) + (rawFat * 9));
             updateData.items = items;
         } else if (data.targetProtein !== undefined || data.targetCarbs !== undefined || data.targetFat !== undefined) {
             const current = await db.query.dietPlan.findFirst({ where: eq(dietPlan.id, id) });
             const p = data.targetProtein !== undefined ? data.targetProtein : (current?.targetProtein || 0);
             const c = data.targetCarbs !== undefined ? data.targetCarbs : (current?.targetCarbs || 0);
             const f = data.targetFat !== undefined ? data.targetFat : (current?.targetFat || 0);
-            updateData.targetCalories = (p * 4) + (c * 4) + (f * 9);
+            updateData.targetCalories = Math.round((p * 4) + (c * 4) + (f * 9));
         }
 
         if (data.substitutions) {
