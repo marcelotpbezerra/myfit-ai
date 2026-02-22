@@ -4,6 +4,7 @@ import { History as HistoryIcon, Dumbbell, Utensils } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { HistoryDatePicker } from "@/components/HistoryDatePicker";
+import { WorkoutLogEditor } from "@/components/WorkoutLogEditor";
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
     const params = await searchParams;
@@ -76,28 +77,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                             Volume Total: <span className="text-white">{Math.round(totalVolume)} kg</span>
                         </p>
 
-                        <div className="mt-6 space-y-4">
-                            {safeWorkoutLogs.map((l, i) => {
-                                // Converter Date para string no servidor antes de renderizar
-                                const timeStr = l.log.createdAt
-                                    ? new Date(l.log.createdAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })
-                                    : "";
-                                return (
-                                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                                        <div className="flex-1">
-                                            <p className="text-sm font-bold">{l.exercise?.name ?? "—"}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase font-black">
-                                                {l.log.weight}kg x {l.log.reps} reps
-                                            </p>
-                                        </div>
-                                        <div className="text-[10px] font-black text-primary/60">{timeStr}</div>
-                                    </div>
-                                );
-                            })}
-                            {safeWorkoutLogs.length === 0 && (
-                                <p className="text-center py-10 text-xs text-muted-foreground italic">Nenhum treino registrado neste dia.</p>
-                            )}
-                        </div>
+                        <WorkoutLogEditor logs={safeWorkoutLogs} />
                     </CardContent>
                 </Card>
 

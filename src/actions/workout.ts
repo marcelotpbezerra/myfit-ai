@@ -339,6 +339,49 @@ export async function getTodayWorkoutStatus(): Promise<{
     }
 }
 
+export async function deleteWorkoutLog(logId: number): Promise<{ success: boolean; error?: string }> {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Não autenticado" };
+
+    try {
+        await db.delete(workoutLogs).where(
+            and(
+                eq(workoutLogs.id, logId),
+                eq(workoutLogs.userId, userId)
+            )
+        );
+        return { success: true };
+    } catch (error) {
+        console.error("[deleteWorkoutLog] Erro:", error);
+        return { success: false, error: "Erro ao deletar registro" };
+    }
+}
+
+export async function updateWorkoutLog(
+    logId: number,
+    weight: string,
+    reps: number
+): Promise<{ success: boolean; error?: string }> {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Não autenticado" };
+
+    try {
+        await db.update(workoutLogs)
+            .set({ weight, reps })
+            .where(
+                and(
+                    eq(workoutLogs.id, logId),
+                    eq(workoutLogs.userId, userId)
+                )
+            );
+        return { success: true };
+    } catch (error) {
+        console.error("[updateWorkoutLog] Erro:", error);
+        return { success: false, error: "Erro ao atualizar registro" };
+    }
+}
+
+
 export async function getWorkoutLogsByDate(dateStr: string) {
     const { userId } = await auth();
     if (!userId) return [];

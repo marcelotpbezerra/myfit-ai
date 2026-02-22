@@ -2,24 +2,32 @@ import { getMealsByDate, getDietPlan } from "@/actions/diet";
 import { seedMarceloProtocol } from "@/actions/seedMarcelo2026";
 import { MealManager } from "@/components/MealManager";
 import { DietConfig } from "@/components/DietConfig";
+import { MealsDatePicker } from "@/components/MealsDatePicker";
 import { Utensils, Calendar, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default async function MealsPage() {
-    let initialMeals: any[] = [];
-    let dietPlanData: any[] = [];
-    // Data local segura para evitar shift de fuso horário
+export default async function MealsPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+    const params = await searchParams;
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const dateStr = params.date || today;
+
+    let initialMeals: any[] = [];
+    let dietPlanData: any[] = [];
 
     try {
-        // Garantir que o protocolo Marcelo 2026 está carregado
         await seedMarceloProtocol();
-        initialMeals = await getMealsByDate(today);
+        initialMeals = await getMealsByDate(dateStr);
         dietPlanData = await getDietPlan();
     } catch (error) {
         console.error("[MEALS PAGE] Erro ao carregar dados:", error);
     }
+
+    const formattedDate = new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    });
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -27,10 +35,14 @@ export default async function MealsPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
                         <Utensils className="h-8 w-8 text-primary" />
-                        <h1 className="text-4xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase tracking-tight">
-                            Diet <span className="text-white">OS</span>
-                        </h1>
+                        <div>
+                            <h1 className="text-4xl font-black bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent uppercase tracking-tight">
+                                Diet <span className="text-white">OS</span>
+                            </h1>
+                            <p className="text-muted-foreground font-medium text-sm capitalize">{formattedDate}</p>
+                        </div>
                     </div>
+                    <MealsDatePicker defaultValue={dateStr} />
                 </div>
 
                 <Tabs defaultValue="daily" className="w-full">
@@ -46,7 +58,7 @@ export default async function MealsPage() {
                     </TabsList>
 
                     <TabsContent value="daily" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <MealManager initialMeals={initialMeals} dietPlan={dietPlanData} date={today} />
+                        <MealManager initialMeals={initialMeals} dietPlan={dietPlanData} date={dateStr} />
                     </TabsContent>
 
                     <TabsContent value="protocol" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
