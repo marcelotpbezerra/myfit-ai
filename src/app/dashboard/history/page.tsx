@@ -1,29 +1,51 @@
 import { getWorkoutLogsByDate } from "@/actions/workout";
 import { getMealsByDate } from "@/actions/diet";
-import { History as HistoryIcon, Dumbbell, Utensils, Calendar } from "lucide-react";
+import { History as HistoryIcon, Dumbbell, Utensils } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { ChangeEvent } from "react";
+import { HistoryDatePicker } from "@/components/HistoryDatePicker";
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
     const params = await searchParams;
     const dateStr = params.date || new Date().toISOString().split('T')[0];
 
-    const workoutLogs = await getWorkoutLogsByDate(dateStr);
-    const mealLogs = await getMealsByDate(dateStr);
+    let workoutLogs: Awaited<ReturnType<typeof getWorkoutLogsByDate>> = [];
+    let mealLogs: Awaited<ReturnType<typeof getMealsByDate>> = [];
 
-    const totalVolume = (workoutLogs || []).reduce((acc, l) => {
+    try {
+        workoutLogs = await getWorkoutLogsByDate(dateStr);
+    } catch (err) {
+        console.error("[History] Falha ao buscar logs de treino:", err);
+    }
+
+    try {
+        mealLogs = await getMealsByDate(dateStr);
+    } catch (err) {
+        console.error("[History] Falha ao buscar refeições:", err);
+    }
+
+    // Safety: garantir que são arrays antes de iterar
+    const safeWorkoutLogs = Array.isArray(workoutLogs) ? workoutLogs : [];
+    const safeMealLogs = Array.isArray(mealLogs) ? mealLogs : [];
+
+    const totalVolume = safeWorkoutLogs.reduce((acc, l) => {
         if (!l?.log) return acc;
-        return acc + (Number(l.log.weight || 0) * (l.log.reps || 0));
+        return acc + (Number(l.log.weight ?? 0) * (l.log.reps ?? 0));
     }, 0);
 
-    const totalCals = (mealLogs || []).reduce((acc, m) => {
-        const items = Array.isArray(m.items) ? m.items : [];
+    const totalCals = safeMealLogs.reduce((acc, m) => {
+        const items = Array.isArray(m.items) ? (m.items as any[]) : [];
         const mealCals = items.reduce((sum, item: any) =>
-            sum + (Number(item?.protein || 0) * 4 + Number(item?.carbs || 0) * 4 + Number(item?.fat || 0) * 9), 0);
+            sum + (Number(item?.protein ?? 0) * 4 + Number(item?.carbs ?? 0) * 4 + Number(item?.fat ?? 0) * 9), 0);
         return acc + mealCals;
     }, 0);
+
+    const formattedDate = new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
@@ -36,9 +58,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                         <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                             Histórico
                         </h1>
-                        <p className="text-muted-foreground font-medium text-sm">
-                            {new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
+                        <p className="text-muted-foreground font-medium text-sm">{formattedDate}</p>
                     </div>
                 </div>
             </div>
@@ -51,22 +71,30 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                         <Dumbbell className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-black text-primary mb-1">{workoutLogs.length} Exercícios</div>
-                        <p className="text-xs text-muted-foreground font-medium">Volume Total: <span className="text-white">{Math.round(totalVolume)} kg</span></p>
+                        <div className="text-3xl font-black text-primary mb-1">{safeWorkoutLogs.length} Exercícios</div>
+                        <p className="text-xs text-muted-foreground font-medium">
+                            Volume Total: <span className="text-white">{Math.round(totalVolume)} kg</span>
+                        </p>
 
                         <div className="mt-6 space-y-4">
-                            {workoutLogs.map((l, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                                    <div className="flex-1">
-                                        <p className="text-sm font-bold">{l.exercise.name}</p>
-                                        <p className="text-[10px] text-muted-foreground uppercase font-black">{l.log.weight}kg x {l.log.reps} reps</p>
+                            {safeWorkoutLogs.map((l, i) => {
+                                // Converter Date para string no servidor antes de renderizar
+                                const timeStr = l.log.createdAt
+                                    ? new Date(l.log.createdAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })
+                                    : "";
+                                return (
+                                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold">{l.exercise?.name ?? "—"}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase font-black">
+                                                {l.log.weight}kg x {l.log.reps} reps
+                                            </p>
+                                        </div>
+                                        <div className="text-[10px] font-black text-primary/60">{timeStr}</div>
                                     </div>
-                                    <div className="text-[10px] font-black text-primary/60">
-                                        {l.log.createdAt ? new Date(l.log.createdAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) : ""}
-                                    </div>
-                                </div>
-                            ))}
-                            {workoutLogs.length === 0 && (
+                                );
+                            })}
+                            {safeWorkoutLogs.length === 0 && (
                                 <p className="text-center py-10 text-xs text-muted-foreground italic">Nenhum treino registrado neste dia.</p>
                             )}
                         </div>
@@ -81,30 +109,32 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-black text-primary mb-1">{Math.round(totalCals)} kcal</div>
-                        <p className="text-xs text-muted-foreground font-medium">{mealLogs.filter(m => m.isCompleted).length} de {mealLogs.length} refeições concluídas</p>
+                        <p className="text-xs text-muted-foreground font-medium">
+                            {safeMealLogs.filter(m => m.isCompleted).length} de {safeMealLogs.length} refeições concluídas
+                        </p>
 
                         <div className="mt-6 space-y-4">
-                            {mealLogs.map((m, i) => (
-                                <div key={i} className={cn(
-                                    "flex items-center justify-between p-3 rounded-2xl border transition-all",
-                                    m.isCompleted ? "bg-green-500/10 border-green-500/20" : "bg-white/5 border-white/5"
-                                )}>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-bold">{m.mealName}</p>
-                                        <div className="flex gap-2 text-[9px] text-muted-foreground uppercase font-black">
-                                            {(() => {
-                                                const items = Array.isArray(m.items) ? m.items : [];
-                                                return items.slice(0, 2).map((it: any, idx: number) => (
-                                                    <span key={idx}>{it.food}</span>
-                                                ));
-                                            })()}
-                                            {Array.isArray(m.items) && m.items.length > 2 && <span>...</span>}
+                            {safeMealLogs.map((m, i) => {
+                                const items = Array.isArray(m.items) ? (m.items as any[]) : [];
+                                return (
+                                    <div key={i} className={cn(
+                                        "flex items-center justify-between p-3 rounded-2xl border transition-all",
+                                        m.isCompleted ? "bg-green-500/10 border-green-500/20" : "bg-white/5 border-white/5"
+                                    )}>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold">{m.mealName}</p>
+                                            <div className="flex gap-2 text-[9px] text-muted-foreground uppercase font-black">
+                                                {items.slice(0, 2).map((it: any, idx: number) => (
+                                                    <span key={idx}>{it?.food ?? ""}</span>
+                                                ))}
+                                                {items.length > 2 && <span>...</span>}
+                                            </div>
                                         </div>
+                                        {m.isCompleted && <div className="h-2 w-2 rounded-full bg-green-500" />}
                                     </div>
-                                    {m.isCompleted && <div className="h-2 w-2 rounded-full bg-green-500" />}
-                                </div>
-                            ))}
-                            {mealLogs.length === 0 && (
+                                );
+                            })}
+                            {safeMealLogs.length === 0 && (
                                 <p className="text-center py-10 text-xs text-muted-foreground italic">Nenhuma refeição registrada neste dia.</p>
                             )}
                         </div>
@@ -112,17 +142,9 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 </Card>
             </div>
 
-            {/* Simple Date Selector (Expandable later to a proper calendar) */}
+            {/* Date Selector — Client Component */}
             <div className="flex items-center justify-center gap-4 py-4">
-                <Input
-                    type="date"
-                    defaultValue={dateStr}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                        const newDate = e.target.value;
-                        if (newDate) window.location.href = `/dashboard/history?date=${newDate}`;
-                    }}
-                    className="w-48 h-12 rounded-2xl bg-card/50 border-none shadow-xl text-center font-bold"
-                />
+                <HistoryDatePicker defaultValue={dateStr} />
             </div>
         </div>
     );

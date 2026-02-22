@@ -5,31 +5,47 @@ import { MacroChart } from "@/components/MacroChart";
 import { AIInsights } from "@/components/AIInsights";
 import { getTodayWater, getLatestStats } from "@/actions/health";
 import { getTodayMacros } from "@/actions/diet";
-import { Dumbbell, Activity, Trophy } from "lucide-react";
+import { Dumbbell, Trophy, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { WeightCard } from "@/components/WeightCard";
 import { getWaterGoal, getUserSettings } from "@/actions/health";
 import { getDietPlan } from "@/actions/diet";
-import { getNextSuggestedWorkout } from "@/actions/workout";
+import { getNextSuggestedWorkout, getTodayWorkoutStatus } from "@/actions/workout";
 import { BiometricInvite } from "@/components/BiometricInvite";
 import { MealNotificationManager } from "@/components/MealNotificationManager";
 
 export default async function DashboardPage() {
     const user = await currentUser();
-    const todayWater = await getTodayWater();
-    const waterGoal = await getWaterGoal();
-    const todayMacros = await getTodayMacros();
-    const latestStats = await getLatestStats();
-    const nextWorkout = await getNextSuggestedWorkout();
+
+    // Buscar todos os dados em paralelo para melhor performance
+    const [
+        todayWater,
+        waterGoal,
+        todayMacros,
+        latestStats,
+        nextWorkout,
+        todayStatus,
+        dietPlan,
+        settings,
+    ] = await Promise.all([
+        getTodayWater(),
+        getWaterGoal(),
+        getTodayMacros(),
+        getLatestStats(),
+        getNextSuggestedWorkout(),
+        getTodayWorkoutStatus(),
+        getDietPlan(),
+        getUserSettings(),
+    ]);
+
     const currentWeight = latestStats.weight || "82.5";
-    const dietPlan = await getDietPlan();
-    const settings = await getUserSettings();
     const biometricEnabled = settings?.biometricEnabled ?? false;
 
-    const calorieGoal = dietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
-    const goalProtein = dietPlan.reduce((acc, p) => acc + (p.targetProtein || 0), 0);
-    const goalCarbs = dietPlan.reduce((acc, p) => acc + (p.targetCarbs || 0), 0);
-    const goalFat = dietPlan.reduce((acc, p) => acc + (p.targetFat || 0), 0);
+    const safesDietPlan = Array.isArray(dietPlan) ? dietPlan : [];
+    const calorieGoal = safesDietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
+    const goalProtein = safesDietPlan.reduce((acc, p) => acc + (p.targetProtein || 0), 0);
+    const goalCarbs = safesDietPlan.reduce((acc, p) => acc + (p.targetCarbs || 0), 0);
+    const goalFat = safesDietPlan.reduce((acc, p) => acc + (p.targetFat || 0), 0);
 
     const today = new Date();
     const formattedDate = today.toLocaleDateString('pt-BR', {
@@ -41,7 +57,7 @@ export default async function DashboardPage() {
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Header with Glass Card */}
+            {/* Header */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
@@ -59,7 +75,7 @@ export default async function DashboardPage() {
             </div>
 
             <BiometricInvite biometricEnabled={biometricEnabled} />
-            <MealNotificationManager dietPlan={dietPlan} />
+            <MealNotificationManager dietPlan={safesDietPlan} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
                 {/* Main Stats Column */}
@@ -82,23 +98,62 @@ export default async function DashboardPage() {
 
                 {/* Sidebar Column */}
                 <div className="lg:col-span-4 space-y-6">
-                    <Link
-                        href="/dashboard/workout"
-                        className="block group rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5 p-6 space-y-4 hover:bg-primary/5 transition-all"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-colors">
-                                <Dumbbell className="h-5 w-5" />
+                    {/* ── Workout Card — 2 estados ── */}
+                    {todayStatus.trainedToday ? (
+                        /* Estado 2: Treino concluído hoje */
+                        <Link
+                            href="/dashboard/workout"
+                            className="block group rounded-3xl border-none bg-green-500/10 backdrop-blur-xl ring-1 ring-green-500/20 p-6 space-y-4 hover:bg-green-500/15 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 group-hover:bg-green-500 group-hover:text-black transition-colors">
+                                    <CheckCircle2 className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-green-400/80 tracking-widest">
+                                        Treino Concluído
+                                    </p>
+                                    <p className="text-lg font-black italic text-green-300 group-hover:text-green-200 transition-colors">
+                                        Treino {todayStatus.splitTrained ?? "?"} — Ótimo trabalho! 💪
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Próximo Treino</p>
-                                <p className="text-lg font-black italic group-hover:text-primary transition-colors">{nextWorkout.name}</p>
+                            {/* Resumo rápido */}
+                            <div className="flex gap-4 text-xs font-bold text-green-400/70">
+                                <span>{todayStatus.totalSets} séries</span>
+                                <span>·</span>
+                                <span>{todayStatus.totalVolume} kg volume</span>
                             </div>
-                        </div>
-                        <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary w-1/3 group-hover:w-1/2 transition-all duration-500" />
-                        </div>
-                    </Link>
+                            {/* Barra 100% */}
+                            <div className="h-1 w-full bg-green-500/20 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 w-full transition-all duration-700" />
+                            </div>
+                        </Link>
+                    ) : (
+                        /* Estado 1: Não treinou hoje */
+                        <Link
+                            href="/dashboard/workout"
+                            className="block group rounded-3xl border-none bg-card/30 backdrop-blur-xl ring-1 ring-white/5 p-6 space-y-4 hover:bg-primary/5 transition-all"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-colors">
+                                    <Dumbbell className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Próximo Treino</p>
+                                    <p className="text-lg font-black italic group-hover:text-primary transition-colors">
+                                        {nextWorkout?.name ?? "Treino A — Empurre"}
+                                    </p>
+                                </div>
+                            </div>
+                            <p className="text-xs font-bold text-primary/60 uppercase tracking-wider">
+                                Iniciar Treino →
+                            </p>
+                            <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary w-1/3 group-hover:w-1/2 transition-all duration-500" />
+                            </div>
+                        </Link>
+                    )}
 
                     <WeightCard initialWeight={currentWeight} />
 

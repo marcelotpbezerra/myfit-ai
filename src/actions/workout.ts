@@ -285,6 +285,60 @@ export async function getNextSuggestedWorkout() {
     }
 }
 
+export async function getTodayWorkoutStatus(): Promise<{
+    trainedToday: boolean;
+    totalSets: number;
+    totalVolume: number;
+    splitTrained: string | null;
+}> {
+    const DEFAULT = { trainedToday: false, totalSets: 0, totalVolume: 0, splitTrained: null };
+    const { userId } = await auth();
+    if (!userId) return DEFAULT;
+
+    try {
+        const today = new Date().toISOString().split('T')[0];
+
+        const logs = await db
+            .select({
+                weight: workoutLogs.weight,
+                reps: workoutLogs.reps,
+                split: exercises.split,
+            })
+            .from(workoutLogs)
+            .innerJoin(exercises, eq(workoutLogs.exerciseId, exercises.id))
+            .where(
+                and(
+                    eq(workoutLogs.userId, userId),
+                    sql`DATE(${workoutLogs.createdAt}) = ${today}`
+                )
+            );
+
+        if (!logs || logs.length === 0) return DEFAULT;
+
+        const totalVolume = logs.reduce((acc, l) => {
+            return acc + (Number(l.weight ?? 0) * (l.reps ?? 0));
+        }, 0);
+
+        // Split mais frequente no log de hoje
+        const splitCount: Record<string, number> = {};
+        logs.forEach(l => {
+            const s = l.split ?? "A";
+            splitCount[s] = (splitCount[s] ?? 0) + 1;
+        });
+        const splitTrained = Object.entries(splitCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+        return {
+            trainedToday: true,
+            totalSets: logs.length,
+            totalVolume: Math.round(totalVolume),
+            splitTrained,
+        };
+    } catch (error) {
+        console.error("[getTodayWorkoutStatus] Erro:", error);
+        return DEFAULT;
+    }
+}
+
 export async function getWorkoutLogsByDate(dateStr: string) {
     const { userId } = await auth();
     if (!userId) return [];
