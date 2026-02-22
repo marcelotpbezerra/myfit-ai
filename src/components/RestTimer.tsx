@@ -15,11 +15,10 @@ interface RestTimerProps {
 
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { NotificationService } from "@/lib/notifications";
 
 const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
     try {
-        // High-pitch frequencies are more audible over music
-        // 2500Hz - 3000Hz range is very "piercing"
         const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
         if (!AudioContextClass) return;
 
@@ -30,11 +29,9 @@ const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
-        // Triangle wave is sharper and louder than sine
         oscillator.type = "triangle";
         oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
 
-        // Increased volume significantly (from 0.1 to 0.8)
         gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
 
@@ -49,26 +46,24 @@ const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
                     body: "Próxima série agora!",
                     id: 999,
                     schedule: { at: new Date(Date.now() + 10) },
-                    sound: 'beep.wav' // This triggers OS audio ducking
+                    sound: 'beep.wav',
+                    channelId: "workout" // Canal de alta prioridade para garantir o ducking
                 }]
             }).catch(err => console.error("Notification ducking failed", err));
         }
 
-        // Close context after playing to release resources
         setTimeout(() => audioCtx.close(), duration * 1000 + 100);
     } catch (e) {
         console.warn("Audio beep failed", e);
     }
 };
 
-import { scheduleRestNotification } from "@/lib/notifications";
-
 export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
     const [timeLeft, setTimeLeft] = useState(duration);
 
     useEffect(() => {
         // Disparar notificação acionável ao iniciar descanso (para WearOS/Mobile)
-        scheduleRestNotification(duration);
+        NotificationService.scheduleRestNotification(duration);
     }, [duration]);
 
     useEffect(() => {

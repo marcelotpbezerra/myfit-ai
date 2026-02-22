@@ -18,6 +18,9 @@ import {
     Check
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { NotificationService } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
 import { CustomFoodDialog } from "@/components/CustomFoodDialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -440,24 +443,35 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     async function simulateNotification() {
         setIsSimulating(true);
         try {
-            if (!("Notification" in window)) {
-                alert("Este navegador não suporta notificações.");
+            const granted = await NotificationService.requestPermissions();
+            if (!granted) {
+                alert("Permissão de notificação negada.");
                 return;
             }
 
-            let permission = Notification.permission;
-            if (permission !== "granted") {
-                permission = await Notification.requestPermission();
-            }
-
-            if (permission === "granted") {
+            if (Capacitor.isNativePlatform()) {
+                await LocalNotifications.schedule({
+                    notifications: [{
+                        title: "🍽️ Simulação: Hora do Almoço!",
+                        body: "Sua dieta está pronta. O que vai comer?",
+                        id: 998,
+                        schedule: { at: new Date(Date.now() + 2000) },
+                        sound: 'beep.wav',
+                        channelId: "workout",
+                        extra: {
+                            mealId: dietPlan[0]?.id || 1,
+                            url: "/dashboard/meals"
+                        }
+                    }]
+                });
+            } else {
+                // Web Simulation
                 const registration = await navigator.serviceWorker.ready;
                 registration.showNotification("🍽️ Simulação: Hora do Almoço!", {
                     body: "Sua dieta está pronta. O que vai comer?",
                     icon: "/icons/icon-192x192.png",
                     data: {
-                        mealId: dietPlan[0]?.id || 1, // Simula o primeiro item do plano
-                        mealName: dietPlan[0]?.mealName || "Refeição",
+                        mealId: dietPlan[0]?.id || 1,
                         url: "/dashboard/meals"
                     },
                     actions: [
