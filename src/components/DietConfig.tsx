@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Clock, Zap, Target } from "lucide-react";
+import { Trash2, Edit2, Plus, Clock, Zap, Target, Search, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { searchFoodNutrition } from "@/lib/nutrition-api";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DietPlanItem {
     id: number;
@@ -20,6 +22,7 @@ interface DietPlanItem {
     targetFat: number | null;
     targetCalories: number | null;
     suggestions: string | null;
+    items: any[] | null;
     order: number | null;
 }
 
@@ -33,23 +36,25 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
     const [formData, setFormData] = useState({
         mealName: "",
         scheduledTime: "",
-        targetProtein: 0,
-        targetCarbs: 0,
-        targetFat: 0,
+        items: [] as any[],
         suggestions: "",
         order: 0
     });
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     function resetForm() {
         setFormData({
             mealName: "",
             scheduledTime: "",
-            targetProtein: 0,
-            targetCarbs: 0,
-            targetFat: 0,
+            items: [],
             suggestions: "",
             order: currentPlan.length
         });
+        setSearchQuery("");
+        setSearchResults([]);
         setEditingMeal(null);
         setIsAddMode(false);
     }
@@ -59,9 +64,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
         setFormData({
             mealName: meal.mealName,
             scheduledTime: meal.scheduledTime || "",
-            targetProtein: meal.targetProtein || 0,
-            targetCarbs: meal.targetCarbs || 0,
-            targetFat: meal.targetFat || 0,
+            items: meal.items || [],
             suggestions: meal.suggestions || "",
             order: meal.order || 0
         });
@@ -115,10 +118,10 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                 {editingMeal ? "Editar Refeição" : "Nova Refeição no Plano"}
                             </DialogTitle>
                         </DialogHeader>
-                        <div className="grid gap-6 py-4">
+                        <div className="grid gap-6 py-4 px-1 max-h-[80vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Nome</Label>
+                                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Nome da Refeição</Label>
                                     <Input
                                         placeholder="Ex: Almoço"
                                         value={formData.mealName}
@@ -127,7 +130,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Horário</Label>
+                                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Horário Previsto</Label>
                                     <Input
                                         type="time"
                                         value={formData.scheduledTime}
@@ -137,50 +140,143 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-red-500 ml-1">Proteína (g)</Label>
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Composição da Refeição (Catálogo)</Label>
+
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        type="number"
-                                        value={formData.targetProtein}
-                                        onChange={e => setFormData({ ...formData, targetProtein: Number(e.target.value) })}
-                                        className="rounded-2xl bg-red-500/10 border-none h-12 font-bold text-red-500"
+                                        placeholder="Buscar alimento no banco..."
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setSearchQuery(val);
+                                            if (val.length > 2) {
+                                                setIsSearching(true);
+                                                searchFoodNutrition(val).then(res => {
+                                                    setSearchResults(res);
+                                                    setIsSearching(false);
+                                                });
+                                            } else {
+                                                setSearchResults([]);
+                                            }
+                                        }}
+                                        className="pl-10 h-11 rounded-xl bg-muted/50 border-none focus-visible:ring-primary shadow-inner"
                                     />
+                                    {isSearching && <Loader2 className="absolute right-3 top-3 h-5 w-5 animate-spin text-primary" />}
+
+                                    {searchResults.length > 0 && (
+                                        <div className="absolute top-12 left-0 right-0 z-50 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                            <ScrollArea className="h-64">
+                                                {searchResults.map((food, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            const newItem = {
+                                                                food: food.name,
+                                                                protein: food.protein,
+                                                                carbs: food.carbs,
+                                                                fat: food.fat,
+                                                                qty: 100
+                                                            };
+                                                            setFormData(f => ({ ...f, items: [...f.items, newItem] }));
+                                                            setSearchQuery("");
+                                                            setSearchResults([]);
+                                                        }}
+                                                        className="w-full text-left p-4 hover:bg-primary/10 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center"
+                                                    >
+                                                        <div>
+                                                            <p className="font-bold text-sm">{food.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground uppercase">{food.unit}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-xs font-black text-primary">{food.calories} kcal</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </ScrollArea>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-blue-500 ml-1">Carbo (g)</Label>
-                                    <Input
-                                        type="number"
-                                        value={formData.targetCarbs}
-                                        onChange={e => setFormData({ ...formData, targetCarbs: Number(e.target.value) })}
-                                        className="rounded-2xl bg-blue-500/10 border-none h-12 font-bold text-blue-500"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-yellow-500 ml-1">Gordura (g)</Label>
-                                    <Input
-                                        type="number"
-                                        value={formData.targetFat}
-                                        onChange={e => setFormData({ ...formData, targetFat: Number(e.target.value) })}
-                                        className="rounded-2xl bg-yellow-500/10 border-none h-12 font-bold text-yellow-500"
-                                    />
-                                </div>
+
+                                <ScrollArea className="h-48 rounded-2xl bg-muted/30 p-2 border border-white/5">
+                                    <div className="space-y-2">
+                                        {formData.items.map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-3 p-3 bg-card rounded-xl border border-white/5 shadow-sm">
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-bold truncate leading-none mb-1">{item.food}</p>
+                                                    <div className="flex gap-2 text-[8px] text-muted-foreground uppercase font-black">
+                                                        <span className="text-red-500">P: {item.protein}g</span>
+                                                        <span className="text-blue-500">C: {item.carbs}g</span>
+                                                        <span className="text-yellow-500">F: {item.fat}g</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        type="number"
+                                                        value={item.qty}
+                                                        onChange={(e) => {
+                                                            const newQty = Number(e.target.value);
+                                                            const factor = newQty / item.qty;
+                                                            const nextItems = [...formData.items];
+                                                            nextItems[idx] = {
+                                                                ...item,
+                                                                qty: newQty,
+                                                                protein: Number((item.protein * factor).toFixed(1)),
+                                                                carbs: Number((item.carbs * factor).toFixed(1)),
+                                                                fat: Number((item.fat * factor).toFixed(1))
+                                                            };
+                                                            setFormData({ ...formData, items: nextItems });
+                                                        }}
+                                                        className="w-16 h-8 text-xs text-center border-none bg-muted/50 rounded-lg px-1"
+                                                    />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => setFormData({ ...formData, items: formData.items.filter((_, i) => i !== idx) })}
+                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {formData.items.length === 0 && (
+                                            <div className="h-full flex items-center justify-center py-10 text-muted-foreground text-xs italic">
+                                                Nenhum alimento no plano
+                                            </div>
+                                        )}
+                                    </div>
+                                </ScrollArea>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Sugestões (Conteúdo do Plano)</Label>
-                                <Input
-                                    placeholder="Ex: 200g Frango + 150g Arroz"
-                                    value={formData.suggestions}
-                                    onChange={e => setFormData({ ...formData, suggestions: e.target.value })}
-                                    className="rounded-2xl bg-muted/50 border-none h-12 font-bold"
-                                />
+                            <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex justify-between items-center">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black uppercase text-muted-foreground">Macros Totais</p>
+                                    <p className="text-xl font-black text-primary">
+                                        {Math.round(formData.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0))} <span className="text-xs font-normal">kcal</span>
+                                    </p>
+                                </div>
+                                <div className="flex gap-4 text-center">
+                                    <div>
+                                        <p className="text-[9px] font-bold text-red-500">P</p>
+                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.protein, 0))}g</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-blue-500">C</p>
+                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.carbs, 0))}g</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-bold text-yellow-500">F</p>
+                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.fat, 0))}g</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <DialogFooter>
+                        <DialogFooter className="px-1 pb-1">
                             <Button
                                 onClick={handleSubmit}
-                                disabled={isPending}
+                                disabled={isPending || formData.items.length === 0 || !formData.mealName}
                                 className="w-full rounded-2xl h-14 font-black uppercase tracking-widest shadow-xl"
                             >
                                 {isPending ? "Salvando..." : editingMeal ? "Atualizar Plano" : "Salvar no Plano"}
@@ -215,7 +311,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground font-medium line-clamp-1 italic">
-                                            {meal.suggestions || "Sem sugestões cadastradas"}
+                                            {meal.items?.map((it: any) => `${it.qty}g ${it.food}`).join(" + ") || "Sem alimentos cadastrados"}
                                         </p>
 
                                         <div className="flex gap-4 mt-3">

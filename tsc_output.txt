@@ -1,0 +1,15 @@
+db/seed.ts(17,42): error TS2345: Argument of type 'NonSharedBuffer' is not assignable to parameter of type 'string'.
+db/seed.ts(18,50): error TS7006: Parameter 'ex' implicitly has an 'any' type.
+db/seed.ts(29,34): error TS18046: 'error' is of type 'unknown'.
+scripts/seed-300.ts(4,25): error TS2307: Cannot find module '../db/schema.js' or its corresponding type declarations.
+scripts/seed-300.ts(13,34): error TS2345: Argument of type 'NonSharedBuffer' is not assignable to parameter of type 'string'.
+scripts/seed-300.ts(17,28): error TS18046: 'error' is of type 'unknown'.
+src/components/CustomFoodDialog.tsx(47,9): error TS2322: Type 'Resolver<{ nome: string; kcal: unknown; prot: unknown; carb: unknown; gord: unknown; porcao?: string | undefined; }, any, { nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }>' is not assignable to type 'Resolver<{ nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }, any, { nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }>'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }>' is not assignable to type 'ResolverOptions<{ nome: string; kcal: unknown; prot: unknown; carb: unknown; gord: unknown; porcao?: string | undefined; }>'.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+src/components/CustomFoodDialog.tsx(96,46): error TS2345: Argument of type '(data: FoodFormValues) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }'.
+      Type 'FieldValues' is missing the following properties from type '{ nome: string; porcao: string; kcal: number; prot: number; carb: number; gord: number; }': nome, porcao, kcal, prot, and 2 more.

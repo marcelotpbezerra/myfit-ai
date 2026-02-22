@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
 import { Button } from "@/components/ui/button";
+import { CustomFoodDialog } from "@/components/CustomFoodDialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,7 @@ interface DietPlanItem {
     targetFat: number | null;
     targetCalories: number | null;
     suggestions: string | null;
+    items: any[] | null;
     substitutions: Substitution[] | null;
     order: number | null;
 }
@@ -82,6 +84,11 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
 
     const [isSimulating, setIsSimulating] = useState(false);
+    const [isPersistentCustomFoodOpen, setIsPersistentCustomFoodOpen] = useState(false);
+    const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({});
+
+    const [isSubstituting, setIsSubstituting] = useState<{ mealId: number | string, itemIndex: number } | null>(null);
+    const [isSubstituteSearchOpen, setIsSubstituteSearchOpen] = useState(false);
 
     const searchParams = useSearchParams();
 
@@ -107,20 +114,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                 if (plan) {
                     setEditingMeal(null);
                     setMealName(plan.mealName);
-                    // Adiciona sugestões por padrão
-                    const suggestionItems: MealItem[] = [];
-                    if (plan.suggestions) {
-                        const parts = plan.suggestions.split('+').map(p => p.trim());
-                        parts.forEach(p => {
-                            suggestionItems.push({
-                                food: p,
-                                protein: Math.round((plan.targetProtein || 0) / parts.length),
-                                carbs: Math.round((plan.targetCarbs || 0) / parts.length),
-                                fat: Math.round((plan.targetFat || 0) / parts.length),
-                                qty: 100
-                            });
-                        });
-                    }
+                    const suggestionItems: MealItem[] = (plan.items || []).map(it => ({
+                        food: it.food,
+                        protein: it.protein,
+                        carbs: it.carbs,
+                        fat: it.fat,
+                        qty: it.qty
+                    }));
                     setCurrentItems(suggestionItems);
                     setIsDialogOpen(true);
                 }
@@ -134,8 +134,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [isCustomFoodOpen, setIsCustomFoodOpen] = useState(false);
-    const [customFood, setCustomFood] = useState({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
     const [subDialogOpenId, setSubDialogOpenId] = useState<number | null>(null);
 
     // Busca de alimentos com debounce
@@ -159,20 +157,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    function addCustomFood() {
-        if (!customFood.name) return;
-        const newItem = {
-            food: customFood.name,
-            protein: Number(customFood.protein),
-            carbs: Number(customFood.carbs),
-            fat: Number(customFood.fat),
-            qty: Number(customFood.qty)
-        };
-        console.log("Adding custom food:", newItem);
-        setCurrentItems(prev => [...prev, newItem]);
-        setCustomFood({ name: "", protein: 0, carbs: 0, fat: 0, qty: 100 });
-        setIsCustomFoodOpen(false);
-    }
 
     async function applySubstitution(plan: DietPlanItem, sub: Substitution) {
         const existingMeal = meals.find(m => m.mealName === plan.mealName);
@@ -185,8 +169,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         };
 
         startTransition(async () => {
+            let result;
             if (existingMeal) {
-                // Tenta substituir ou apenas adiciona?
                 const currentItems = [...existingMeal.items];
                 const matchIndex = currentItems.findIndex(it =>
                     it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
@@ -207,9 +191,20 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     isCompleted: existingMeal.isCompleted
                 });
             } else {
-                // Seleção Inteligente: Se não tem refeição, carrega o plano base e substitui o item correto
                 let itemsToSave = [newItem];
-                if (plan.suggestions) {
+                if (plan.items && plan.items.length > 0) {
+                    const baseItems = [...plan.items];
+                    const matchIdx = baseItems.findIndex(it =>
+                        it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
+                        sub.canReplace.toLowerCase().includes(it.food.toLowerCase())
+                    );
+                    if (matchIdx > -1) {
+                        baseItems[matchIdx] = newItem;
+                        itemsToSave = baseItems;
+                    } else {
+                        itemsToSave = [...baseItems, newItem];
+                    }
+                } else if (plan.suggestions) {
                     const baseParts = plan.suggestions.split('+').map(p => p.trim());
                     const baseItems: MealItem[] = baseParts.map((p, idx) => ({
                         food: p,
@@ -219,7 +214,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                         qty: 100
                     }));
 
-                    // Tenta encontrar qual item do base substituir
                     const matchIdx = baseItems.findIndex(it =>
                         it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
                         sub.canReplace.toLowerCase().includes(it.food.toLowerCase())
@@ -325,50 +319,78 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     }
 
     async function toggleComplete(meal: Meal) {
-        if (!meal.id) return;
+        if (!meal.id) {
+            // Se não tem ID, é uma refeição do plano que não foi registrada ainda.
+            // Vamos registrar com os itens padrão do plano.
+            const plan = dietPlan.find(p => p.mealName === meal.mealName);
+            if (plan) {
+                handleQuickAdd(plan, true);
+                return;
+            }
+            return;
+        }
 
-        // Update otimista local
         const nextState = !meal.isCompleted;
         setMeals(prev => prev.map(m => m.id === meal.id ? { ...m, isCompleted: nextState } : m));
 
         startTransition(async () => {
             const result = await toggleMealCompletion(meal.id!, nextState);
             if (!result.success) {
-                // Reverter em caso de erro
                 setMeals(prev => prev.map(m => m.id === meal.id ? { ...m, isCompleted: !nextState } : m));
             }
             router.refresh();
         });
     }
 
-    async function handleQuickAdd(plan: DietPlanItem) {
-        // Mock items a partir das sugestões para o usuário não começar do zero
-        // Padrão: Sugestão costuma ser "Alimento (qtd) + outro (qtd)"
-        const suggestionItems: MealItem[] = [];
-        if (plan.suggestions) {
-            // Tentar extrair o primeiro item se for simples
-            const parts = plan.suggestions.split('+').map(p => p.trim());
-            parts.forEach(p => {
-                suggestionItems.push({
-                    food: p,
-                    protein: Math.round((plan.targetProtein || 0) / parts.length),
-                    carbs: Math.round((plan.targetCarbs || 0) / parts.length),
-                    fat: Math.round((plan.targetFat || 0) / parts.length),
-                    qty: 100
-                });
-            });
-        }
+    async function handleQuickAdd(plan: DietPlanItem, isCompleted = false) {
+        const suggestionItems: MealItem[] = (plan.items || []).map(it => ({
+            food: it.food,
+            protein: it.protein,
+            carbs: it.carbs,
+            fat: it.fat,
+            qty: it.qty
+        }));
 
         startTransition(async () => {
             const result = await saveMeal({
                 date,
                 mealName: plan.mealName,
                 items: suggestionItems,
-                isCompleted: false,
-                notes: `Plano: ${plan.suggestions}`
+                isCompleted,
+                notes: `Plano Base`
             });
 
             if (result.success) {
+                router.refresh();
+            }
+        });
+    }
+
+    async function handleSubstituteItem(food: any) {
+        if (!isSubstituting) return;
+
+        const { mealId, itemIndex } = isSubstituting;
+        const targetMeal = meals.find(m => m.id === mealId);
+
+        if (!targetMeal) return;
+
+        const newItems = [...targetMeal.items];
+        newItems[itemIndex] = {
+            food: food.name,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            qty: 100
+        };
+
+        startTransition(async () => {
+            const result = await saveMeal({
+                ...targetMeal,
+                items: newItems
+            });
+            if (result.success) {
+                setIsSubstituteSearchOpen(false);
+                setIsSubstituting(null);
                 router.refresh();
             }
         });
@@ -448,185 +470,150 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
             </div>
 
             <div className="grid gap-4">
+                {dietPlan.length === 0 && (
+                    <div className="text-center py-12 bg-card/10 rounded-[2.5rem] border border-dashed border-white/5 mx-2">
+                        <Utensils className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-sm text-muted-foreground font-medium italic">Protocolo não configurado para hoje.</p>
+                        <p className="text-[10px] text-muted-foreground/50 uppercase mt-2">Configure seu plano na aba de Protocolo</p>
+                    </div>
+                )}
+
                 {dietPlan.map((plan) => {
                     const existingMeal = meals.find(m => m.mealName === plan.mealName);
+                    const isExpanded = expandedMeals[plan.id];
 
                     return (
                         <Card key={plan.id} className={cn(
-                            "group transition-all overflow-hidden border-dashed bg-transparent",
-                            existingMeal?.isCompleted ? "opacity-40" : "hover:border-primary/50"
+                            "group transition-all overflow-hidden border-none bg-card/40 backdrop-blur-xl ring-1 ring-white/5",
+                            existingMeal?.isCompleted ? "opacity-60 grayscale-[0.5]" : "hover:ring-primary/30"
                         )}>
-                            <div className="flex items-center p-6 gap-4">
-                                {existingMeal ? (
-                                    <div className="flex flex-col items-center gap-1">
-                                        <button
-                                            onClick={() => toggleComplete(existingMeal)}
-                                            className="transition-transform hover:scale-110 active:scale-95 flex flex-col items-center"
-                                        >
-                                            {existingMeal.isCompleted ? (
-                                                <CheckCircle2 className="h-8 w-8 text-green-500 fill-green-500/10" />
-                                            ) : (
-                                                <Circle className="h-8 w-8 text-muted-foreground" />
-                                            )}
-                                        </button>
-                                        <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">
-                                            {existingMeal.isCompleted ? "Feito" : "Confirmar"}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-1">
-                                        <button
-                                            onClick={() => openEditDialog({ mealName: plan.mealName, items: [], isCompleted: false, date })}
-                                            className="h-12 w-12 rounded-2xl bg-card border border-dashed border-primary/30 text-primary flex items-center justify-center hover:bg-primary/5 transition-all active:scale-90 shadow-lg shadow-primary/5 group"
-                                        >
-                                            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform" />
-                                        </button>
-                                        <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">Extra</span>
-                                    </div>
-                                )}
+                            <div className="flex items-center p-4 gap-4 cursor-pointer" onClick={() => setExpandedMeals(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleComplete(existingMeal || { mealName: plan.mealName, items: [], isCompleted: false, date });
+                                    }}
+                                    className="transition-transform hover:scale-110 active:scale-95 shrink-0"
+                                >
+                                    {existingMeal?.isCompleted ? (
+                                        <CheckCircle2 className="h-8 w-8 text-green-500 fill-green-500/10" />
+                                    ) : (
+                                        <Circle className="h-8 w-8 text-muted-foreground/30" />
+                                    )}
+                                </button>
 
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs font-black text-primary/60 tracking-widest">
+                                        <span className="text-[10px] font-black text-primary/60 tracking-widest uppercase">
                                             {plan.scheduledTime}
                                         </span>
-                                        <h3 className={cn("font-bold text-lg", existingMeal?.isCompleted && "line-through text-muted-foreground")}>
+                                        <h3 className={cn("font-bold text-base truncate", existingMeal?.isCompleted && "text-muted-foreground")}>
                                             {plan.mealName}
                                         </h3>
-                                        {existingMeal && (
-                                            <span className="text-[9px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-tighter">
-                                                Registrado
-                                            </span>
-                                        )}
                                     </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                        <div className="space-y-1 p-2 rounded-xl bg-white/5 border border-white/5">
-                                            <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
-                                                <Utensils className="h-3 w-3" /> Refeição Planejada
-                                            </p>
-                                            <p className="text-[10px] text-primary/80 font-medium italic leading-tight">
-                                                {plan.suggestions}
-                                            </p>
-                                            <div className="flex gap-2 text-[8px] font-black uppercase tracking-tighter opacity-60">
-                                                <span className="text-red-500/80">P: {plan.targetProtein}g</span>
-                                                <span className="text-blue-500/80">C: {plan.targetCarbs}g</span>
-                                                <span className="text-yellow-500/80">F: {plan.targetFat}g</span>
-                                                <span>{plan.targetCalories} kcal</span>
-                                            </div>
-                                        </div>
-
-                                        {existingMeal && existingMeal.items.length > 0 && (
-                                            <div className="space-y-1 p-2 rounded-xl bg-primary/5 border border-primary/10">
-                                                <p className="text-[9px] font-black uppercase text-primary tracking-widest flex items-center gap-1">
-                                                    <CheckCircle2 className="h-3 w-3" /> O que você comeu
-                                                </p>
-                                                <div className="text-[10px] font-bold">
-                                                    {existingMeal.items.map(it => it.food).join(", ")}
-                                                </div>
-                                                <div className="flex gap-2 text-[8px] font-black uppercase tracking-tighter">
-                                                    <span className="text-red-500">P: {existingMeal.items.reduce((a, b) => a + b.protein, 0).toFixed(0)}g</span>
-                                                    <span className="text-blue-500">C: {existingMeal.items.reduce((a, b) => a + b.carbs, 0).toFixed(0)}g</span>
-                                                    <span className="text-yellow-500">F: {existingMeal.items.reduce((a, b) => a + b.fat, 0).toFixed(0)}g</span>
-                                                    <span className="text-primary">
-                                                        {Math.round(existingMeal.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0))} kcal
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="flex gap-3 mt-1">
+                                        <span className="text-[10px] font-bold text-red-500/80">P: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.protein, 0).toFixed(0) : plan.targetProtein}g</span>
+                                        <span className="text-[10px] font-bold text-blue-500/80">C: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.carbs, 0).toFixed(0) : plan.targetCarbs}g</span>
+                                        <span className="text-[10px] font-bold text-yellow-500/80">G: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.fat, 0).toFixed(0) : plan.targetFat}g</span>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {(plan.suggestions || (plan.substitutions && plan.substitutions.length > 0)) && (
-                                        <Dialog
-                                            open={subDialogOpenId === plan.id}
-                                            onOpenChange={(open) => setSubDialogOpenId(open ? plan.id : null)}
-                                        >
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg gap-2">
-                                                    <Utensils className="h-3 w-3" />
-                                                    Protocolo
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-md rounded-3xl">
-                                                <DialogHeader>
-                                                    <DialogTitle>{plan.mealName} - Opções do Protocolo</DialogTitle>
-                                                </DialogHeader>
-                                                <ScrollArea className="max-h-[70vh]">
-                                                    <div className="space-y-4 p-4">
-                                                        {/* Opção 1: Registrar todo o plano base */}
-                                                        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 flex flex-col gap-3">
-                                                            <div className="flex justify-between items-start">
-                                                                <div className="space-y-1">
-                                                                    <p className="font-bold text-sm">Plano Completo</p>
-                                                                    <p className="text-[10px] text-muted-foreground italic">{plan.suggestions}</p>
-                                                                </div>
-                                                                <div className="bg-primary/10 px-2 py-1 rounded text-[10px] font-black text-primary">
-                                                                    {plan.targetCalories} kcal
-                                                                </div>
-                                                            </div>
-                                                            <Button
-                                                                onClick={() => handleQuickAdd(plan)}
-                                                                disabled={isPending}
-                                                                className="w-full h-10 font-bold rounded-xl shadow-lg shadow-primary/10"
-                                                            >
-                                                                {isPending ? "Registrando..." : "Registrar Tudo conforme Plano"}
-                                                            </Button>
-                                                        </div>
-
-                                                        {/* Opção 2: Substituições Individuais */}
-                                                        {plan.substitutions && plan.substitutions.length > 0 && (
-                                                            <div className="space-y-3 pt-2">
-                                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Substituições Disponíveis</p>
-                                                                {plan.substitutions.map((sub, idx) => (
-                                                                    <div key={idx} className="p-4 rounded-xl bg-card border shadow-sm flex flex-col gap-3">
-                                                                        <div>
-                                                                            <div className="flex justify-between items-center mb-1">
-                                                                                <p className="font-bold text-sm">{sub.item}</p>
-                                                                                <div className="flex gap-2 text-[9px] font-black uppercase opacity-60">
-                                                                                    <span className="text-red-500">P:{sub.protein}</span>
-                                                                                    <span className="text-blue-500">C:{sub.carbs}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <p className="text-[10px] text-muted-foreground">Substituir <span className="font-bold text-primary">{sub.canReplace}</span> por esta opção.</p>
-                                                                        </div>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="sm"
-                                                                            disabled={isPending}
-                                                                            className="w-full h-9 text-[10px] font-bold uppercase rounded-xl border-primary/20 hover:bg-primary/5 transition-all"
-                                                                            onClick={() => applySubstitution(plan, sub)}
-                                                                        >
-                                                                            {isPending ? "Processando..." : "Aplicar esta Substituição"}
-                                                                        </Button>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </ScrollArea>
-                                            </DialogContent>
-                                        </Dialog>
-                                    )}
-                                    {existingMeal && (
-                                        <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl">
-                                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(existingMeal)} title="Editar/Adicionar Alimento" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors">
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleUndo(existingMeal.id!)} title="Desfazer Registro" className="h-8 w-8 text-muted-foreground hover:text-yellow-500 transition-colors">
-                                                <RotateCcw className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(editingMeal?.id || existingMeal.id!)} title="Excluir" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    )}
+                                    <div className="text-right shrink-0">
+                                        <p className="text-sm font-black text-primary">
+                                            {existingMeal ? Math.round(existingMeal.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0)) : plan.targetCalories}
+                                            <span className="text-[10px] ml-1 font-normal text-muted-foreground uppercase">kcal</span>
+                                        </p>
+                                    </div>
+                                    <ChevronRight className={cn("h-4 w-4 text-muted-foreground/30 transition-transform", isExpanded && "rotate-90")} />
                                 </div>
                             </div>
+
+                            {isExpanded && (
+                                <div className="px-4 pb-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                                    <div className="h-px bg-white/5 mx-2" />
+
+                                    <div className="space-y-2">
+                                        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-2 flex justify-between">
+                                            <span>Alimentos</span>
+                                            {existingMeal ? (
+                                                <span className="text-primary italic">Diário (Consumo Real)</span>
+                                            ) : (
+                                                <span className="text-muted-foreground/50 italic">Plano Base</span>
+                                            )}
+                                        </p>
+
+                                        {(existingMeal || plan).items?.map((it: any, idx: number) => (
+                                            <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-bold truncate">{it.qty}g {it.food}</p>
+                                                    <p className="text-[9px] text-muted-foreground uppercase font-black">
+                                                        P: {it.protein}g | C: {it.carbs}g | G: {it.fat}g
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {existingMeal && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
+                                                                setIsSubstituteSearchOpen(true);
+                                                            }}
+                                                            className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10"
+                                                        >
+                                                            Substituir
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
+                                        {existingMeal ? (
+                                            <>
+                                                <Button
+                                                    onClick={(e) => { e.stopPropagation(); openEditDialog(existingMeal); }}
+                                                    className="flex-1 h-10 rounded-xl gap-2 font-bold text-xs bg-primary/10 text-primary hover:bg-primary/20 border-none"
+                                                >
+                                                    <Plus className="h-3.5 w-3.5" /> Adicionar Alimento
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={(e) => { e.stopPropagation(); handleUndo(existingMeal.id!); }}
+                                                    className="h-10 w-10 rounded-xl bg-muted/20 text-muted-foreground"
+                                                >
+                                                    <RotateCcw className="h-4 w-4" />
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <Button
+                                                onClick={(e) => { e.stopPropagation(); handleQuickAdd(plan); }}
+                                                className="w-full h-10 rounded-xl gap-2 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                            >
+                                                <Plus className="h-4 w-4" /> Iniciar Refeição
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </Card>
                     );
                 })}
+
+                <div className="pt-4 px-2">
+                    <Button
+                        variant="ghost"
+                        onClick={openCreateDialog}
+                        className="w-full h-14 rounded-2xl border border-dashed border-primary/20 bg-primary/5 text-primary gap-2 font-black uppercase tracking-widest hover:bg-primary/10 transition-all group"
+                    >
+                        <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />
+                        Adicionar Alimento Avulso
+                    </Button>
+                </div>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -697,16 +684,32 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                             </div>
                                                         </button>
                                                     ))}
-                                                    {searchResults.length === 0 && searchQuery.length > 2 && (
-                                                        <div className="p-8 text-center">
-                                                            <p className="text-xs text-muted-foreground italic mb-4">Nenhum alimento encontrado</p>
+
+                                                    {searchResults.length > 0 && (
+                                                        <div className="p-4 text-center border-t bg-muted/10">
                                                             <Button
-                                                                variant="outline"
+                                                                variant="ghost"
                                                                 size="sm"
-                                                                onClick={() => setIsCustomFoodOpen(true)}
-                                                                className="rounded-xl"
+                                                                onClick={() => setIsPersistentCustomFoodOpen(true)}
+                                                                className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/80"
                                                             >
-                                                                <Plus className="h-3 w-3 mr-2" /> Criar Alimento
+                                                                <Plus className="h-3 w-3 mr-2" />
+                                                                Não achou? Criar Personalizado
+                                                            </Button>
+                                                        </div>
+                                                    )}
+
+                                                    {searchResults.length === 0 && !isSearching && searchQuery.length > 2 && (
+                                                        <div className="p-8 text-center bg-muted/20 border-t">
+                                                            <p className="text-xs text-muted-foreground italic mb-3">Não encontrou o que procurava?</p>
+                                                            <Button
+                                                                variant="default"
+                                                                size="sm"
+                                                                onClick={() => setIsPersistentCustomFoodOpen(true)}
+                                                                className="rounded-xl font-bold bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none"
+                                                            >
+                                                                <Plus className="h-3 w-3 mr-2" />
+                                                                Crie um Alimento Personalizado
                                                             </Button>
                                                         </div>
                                                     )}
@@ -717,61 +720,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                 )}
                             </div>
 
-                            {isCustomFoodOpen && (
-                                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-primary">Novo Alimento</p>
-                                        <Button variant="ghost" size="sm" onClick={() => setIsCustomFoodOpen(false)} className="h-6 text-[10px] uppercase font-bold">Cancelar</Button>
-                                    </div>
-                                    <Input
-                                        placeholder="Nome do alimento..."
-                                        value={customFood.name}
-                                        onChange={(e) => setCustomFood({ ...customFood, name: e.target.value })}
-                                        className="h-10 rounded-xl bg-background border-none shadow-inner text-sm"
-                                    />
-                                    <div className="grid grid-cols-4 gap-2">
-                                        <div className="space-y-1">
-                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Proteína</Label>
-                                            <Input
-                                                type="number"
-                                                value={customFood.protein}
-                                                onChange={(e) => setCustomFood({ ...customFood, protein: Number(e.target.value) })}
-                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Carbs</Label>
-                                            <Input
-                                                type="number"
-                                                value={customFood.carbs}
-                                                onChange={(e) => setCustomFood({ ...customFood, carbs: Number(e.target.value) })}
-                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Gordura</Label>
-                                            <Input
-                                                type="number"
-                                                value={customFood.fat}
-                                                onChange={(e) => setCustomFood({ ...customFood, fat: Number(e.target.value) })}
-                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-[9px] font-bold uppercase text-muted-foreground ml-1">Qtd (g)</Label>
-                                            <Input
-                                                type="number"
-                                                value={customFood.qty}
-                                                onChange={(e) => setCustomFood({ ...customFood, qty: Number(e.target.value) })}
-                                                className="h-10 rounded-xl bg-background border-none shadow-inner text-center"
-                                            />
-                                        </div>
-                                    </div>
-                                    <Button onClick={addCustomFood} className="w-full h-10 rounded-xl font-bold shadow-lg shadow-primary/10">
-                                        Adicionar à Refeição
-                                    </Button>
-                                </div>
-                            )}
 
                             <ScrollArea className="h-48 rounded-2xl bg-card/50 p-2">
                                 <div className="space-y-2">
@@ -837,6 +785,59 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+            <Dialog open={isSubstituteSearchOpen} onOpenChange={setIsSubstituteSearchOpen}>
+                <DialogContent className="max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                    <DialogHeader className="p-6 bg-card border-b">
+                        <DialogTitle className="text-xl font-bold">Substituir Alimento</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-6 space-y-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Buscar substituto..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10 h-11 rounded-xl bg-card border-none focus-visible:ring-primary shadow-inner"
+                            />
+                        </div>
+                        <ScrollArea className="h-64">
+                            {isSearching ? (
+                                <div className="p-8 flex flex-col items-center gap-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="space-y-1">
+                                    {searchResults.map((food, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleSubstituteItem(food)}
+                                            className="w-full text-left p-4 hover:bg-primary/5 transition-colors rounded-xl flex justify-between items-center"
+                                        >
+                                            <div>
+                                                <p className="font-bold text-sm">{food.name}</p>
+                                                <p className="text-[10px] text-muted-foreground uppercase">{food.unit}</p>
+                                            </div>
+                                            <p className="text-xs font-black text-primary">{food.calories} kcal</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </ScrollArea>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <CustomFoodDialog
+                open={isPersistentCustomFoodOpen}
+                onOpenChange={setIsPersistentCustomFoodOpen}
+                onSuccess={(newFood) => {
+                    if (isSubstituting) {
+                        handleSubstituteItem(newFood);
+                    } else {
+                        addItem(newFood);
+                    }
+                }}
+            />
+        </div >
     );
 }

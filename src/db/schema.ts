@@ -77,6 +77,7 @@ export const dietPlan = pgTable("diet_plan", {
   targetFat: integer("target_fat").default(0),
   targetCalories: integer("target_calories").default(0),
   suggestions: text("suggestions"), // Ex: "Pão Integral ou Cuscuz"
+  items: jsonb("items"), // [{food: 'Frango', protein: 30, carbs: 0, fat: 5, qty: 100}]
   substitutions: jsonb("substitutions"), // [{item: "Cuscuz", canReplace: "Pão integral", protein: 4, carbs: 23}]
   order: integer("order").default(0),
 });
