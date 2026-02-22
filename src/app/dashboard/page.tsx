@@ -27,6 +27,9 @@ export default async function DashboardPage() {
     const biometricEnabled = settings?.biometricEnabled ?? false;
 
     const calorieGoal = dietPlan.reduce((acc, p) => acc + (p.targetCalories || 0), 0) || 2500;
+    const goalProtein = dietPlan.reduce((acc, p) => acc + (p.targetProtein || 0), 0);
+    const goalCarbs = dietPlan.reduce((acc, p) => acc + (p.targetCarbs || 0), 0);
+    const goalFat = dietPlan.reduce((acc, p) => acc + (p.targetFat || 0), 0);
 
     const today = new Date();
     const formattedDate = today.toLocaleDateString('pt-BR', {
@@ -69,6 +72,9 @@ export default async function DashboardPage() {
                             fat={todayMacros.fat}
                             calories={todayMacros.calories}
                             goal={calorieGoal}
+                            goalProtein={goalProtein}
+                            goalCarbs={goalCarbs}
+                            goalFat={goalFat}
                         />
                     </div>
                     <AIInsights />
