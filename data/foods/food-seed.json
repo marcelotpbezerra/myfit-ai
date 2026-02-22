@@ -1,0 +1,4126 @@
+[
+  {
+    "nome": "Peito de frango sem pele grelhado",
+    "grupo": "Carnes",
+    "kcal": 165,
+    "prot": 31.5,
+    "carb": 0.0,
+    "gord": 3.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Patinho bovino grelhado",
+    "grupo": "Carnes",
+    "kcal": 219,
+    "prot": 35.9,
+    "carb": 0.0,
+    "gord": 7.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alcatra bovina grelhada",
+    "grupo": "Carnes",
+    "kcal": 241,
+    "prot": 31.9,
+    "carb": 0.0,
+    "gord": 11.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maminha grelhada",
+    "grupo": "Carnes",
+    "kcal": 153,
+    "prot": 28.5,
+    "carb": 0.0,
+    "gord": 3.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Coxa de frango sem pele assada",
+    "grupo": "Carnes",
+    "kcal": 167,
+    "prot": 25.4,
+    "carb": 0.0,
+    "gord": 6.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Sobrecoxa de frango sem pele assada",
+    "grupo": "Carnes",
+    "kcal": 178,
+    "prot": 24.1,
+    "carb": 0.0,
+    "gord": 8.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ovo de galinha cozido",
+    "grupo": "Ovos",
+    "kcal": 155,
+    "prot": 13.3,
+    "carb": 0.6,
+    "gord": 9.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Clara de ovo cozida",
+    "grupo": "Ovos",
+    "kcal": 52,
+    "prot": 11.0,
+    "carb": 0.7,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tilápia filete grelhado",
+    "grupo": "Peixes",
+    "kcal": 128,
+    "prot": 26.5,
+    "carb": 0.0,
+    "gord": 1.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Salmão filete grelhado",
+    "grupo": "Peixes",
+    "kcal": 229,
+    "prot": 24.3,
+    "carb": 0.0,
+    "gord": 13.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Atum em conserva em óleo escorrido",
+    "grupo": "Peixes",
+    "kcal": 198,
+    "prot": 26.2,
+    "carb": 0.0,
+    "gord": 9.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Atum em conserva em água",
+    "grupo": "Peixes",
+    "kcal": 116,
+    "prot": 25.5,
+    "carb": 0.0,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Sardinha em conserva com óleo escorrida",
+    "grupo": "Peixes",
+    "kcal": 208,
+    "prot": 24.6,
+    "carb": 0.0,
+    "gord": 11.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Proteína Isolada de Soja",
+    "grupo": "Leguminosas",
+    "kcal": 334,
+    "prot": 80.0,
+    "carb": 0.0,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão preto cozido",
+    "grupo": "Leguminosas",
+    "kcal": 77,
+    "prot": 4.5,
+    "carb": 14.0,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão carioca cozido",
+    "grupo": "Leguminosas",
+    "kcal": 76,
+    "prot": 4.8,
+    "carb": 13.6,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lentilha cozida",
+    "grupo": "Leguminosas",
+    "kcal": 93,
+    "prot": 6.3,
+    "carb": 16.3,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Grão-de-bico cozido",
+    "grupo": "Leguminosas",
+    "kcal": 164,
+    "prot": 8.9,
+    "carb": 27.4,
+    "gord": 2.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lombo de porco grelhado",
+    "grupo": "Carnes",
+    "kcal": 210,
+    "prot": 35.7,
+    "carb": 0.0,
+    "gord": 6.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "File mignon bovino grelhado",
+    "grupo": "Carnes",
+    "kcal": 220,
+    "prot": 32.8,
+    "carb": 0.0,
+    "gord": 8.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Contra-filé bovino grelhado",
+    "grupo": "Carnes",
+    "kcal": 278,
+    "prot": 29.8,
+    "carb": 0.0,
+    "gord": 16.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Acém bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 215,
+    "prot": 26.7,
+    "carb": 0.0,
+    "gord": 10.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Músculo bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 194,
+    "prot": 31.2,
+    "carb": 0.0,
+    "gord": 6.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Coração de frango grelhado",
+    "grupo": "Carnes",
+    "kcal": 207,
+    "prot": 20.1,
+    "carb": 0.9,
+    "gord": 13.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Língua bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 284,
+    "prot": 18.9,
+    "carb": 0.0,
+    "gord": 22.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pescada branca filete frito",
+    "grupo": "Peixes",
+    "kcal": 154,
+    "prot": 19.1,
+    "carb": 0.0,
+    "gord": 8.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Camarão cozido",
+    "grupo": "Peixes",
+    "kcal": 82,
+    "prot": 17.6,
+    "carb": 0.0,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo cottage",
+    "grupo": "Laticínios",
+    "kcal": 98,
+    "prot": 11.1,
+    "carb": 3.4,
+    "gord": 4.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo ricota",
+    "grupo": "Laticínios",
+    "kcal": 140,
+    "prot": 12.6,
+    "carb": 3.9,
+    "gord": 8.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo minas frescal",
+    "grupo": "Laticínios",
+    "kcal": 264,
+    "prot": 17.4,
+    "carb": 3.2,
+    "gord": 20.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo mussarela",
+    "grupo": "Laticínios",
+    "kcal": 280,
+    "prot": 22.6,
+    "carb": 3.0,
+    "gord": 19.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Iogurte natural desnatado",
+    "grupo": "Laticínios",
+    "kcal": 41,
+    "prot": 3.8,
+    "carb": 5.8,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Iogurte grego natural",
+    "grupo": "Laticínios",
+    "kcal": 113,
+    "prot": 7.0,
+    "carb": 5.0,
+    "gord": 7.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de vaca desnatado",
+    "grupo": "Laticínios",
+    "kcal": 35,
+    "prot": 3.3,
+    "carb": 4.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de vaca integral",
+    "grupo": "Laticínios",
+    "kcal": 61,
+    "prot": 3.2,
+    "carb": 4.7,
+    "gord": 3.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Whey Protein Concentrado 80%",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 80.0,
+    "carb": 8.0,
+    "gord": 6.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Whey Protein Isolado 90%",
+    "grupo": "Suplementos",
+    "kcal": 365,
+    "prot": 90.0,
+    "carb": 1.0,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Albumina em pó",
+    "grupo": "Suplementos",
+    "kcal": 350,
+    "prot": 81.0,
+    "carb": 5.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Caseína em pó",
+    "grupo": "Suplementos",
+    "kcal": 370,
+    "prot": 85.0,
+    "carb": 3.0,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne de soja texturizada",
+    "grupo": "Leguminosas",
+    "kcal": 285,
+    "prot": 50.0,
+    "carb": 30.0,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tofu (queijo de soja)",
+    "grupo": "Leguminosas",
+    "kcal": 76,
+    "prot": 8.1,
+    "carb": 1.9,
+    "gord": 4.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz branco cozido",
+    "grupo": "Cereais",
+    "kcal": 128,
+    "prot": 2.5,
+    "carb": 28.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz integral cozido",
+    "grupo": "Cereais",
+    "kcal": 124,
+    "prot": 2.6,
+    "carb": 25.8,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Batata doce cozida",
+    "grupo": "Tubérculos",
+    "kcal": 77,
+    "prot": 0.6,
+    "carb": 18.4,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Batata inglesa cozida",
+    "grupo": "Tubérculos",
+    "kcal": 52,
+    "prot": 1.2,
+    "carb": 11.9,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mandioca cozida",
+    "grupo": "Tubérculos",
+    "kcal": 125,
+    "prot": 0.6,
+    "carb": 30.1,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Inhame cozido",
+    "grupo": "Tubérculos",
+    "kcal": 97,
+    "prot": 2.1,
+    "carb": 23.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mandioquinha baroa cozida",
+    "grupo": "Tubérculos",
+    "kcal": 80,
+    "prot": 0.9,
+    "carb": 18.9,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Aveia em flocos",
+    "grupo": "Cereais",
+    "kcal": 394,
+    "prot": 13.9,
+    "carb": 66.6,
+    "gord": 8.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farelo de aveia",
+    "grupo": "Cereais",
+    "kcal": 340,
+    "prot": 15.3,
+    "carb": 50.1,
+    "gord": 8.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Macarrão de trigo cozido",
+    "grupo": "Cereais",
+    "kcal": 110,
+    "prot": 4.1,
+    "carb": 22.3,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Macarrão integral cozido",
+    "grupo": "Cereais",
+    "kcal": 124,
+    "prot": 5.3,
+    "carb": 26.5,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pão de forma integral",
+    "grupo": "Pães",
+    "kcal": 253,
+    "prot": 9.4,
+    "carb": 49.9,
+    "gord": 3.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pão francês",
+    "grupo": "Pães",
+    "kcal": 300,
+    "prot": 8.0,
+    "carb": 58.7,
+    "gord": 3.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tapioca goma hidratada",
+    "grupo": "Tubérculos",
+    "kcal": 240,
+    "prot": 0.0,
+    "carb": 60.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cuscuz de milho cozido",
+    "grupo": "Cereais",
+    "kcal": 113,
+    "prot": 2.3,
+    "carb": 25.5,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quinoa em grão cozida",
+    "grupo": "Cereais",
+    "kcal": 120,
+    "prot": 4.4,
+    "carb": 21.3,
+    "gord": 1.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Milho verde cozido",
+    "grupo": "Cereais",
+    "kcal": 98,
+    "prot": 3.2,
+    "carb": 17.1,
+    "gord": 2.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Azeite de oliva extra virgem",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de coco",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 862,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manteiga com sal",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 726,
+    "prot": 0.8,
+    "carb": 0.1,
+    "gord": 82.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pasta de amendoim integral",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 588,
+    "prot": 24.4,
+    "carb": 18.9,
+    "gord": 49.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Castanha-do-pará",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 662,
+    "prot": 14.3,
+    "carb": 15.1,
+    "gord": 63.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Castanha-de-caju torrada",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 574,
+    "prot": 15.3,
+    "carb": 32.7,
+    "gord": 46.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Amêndoa torrada",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 581,
+    "prot": 21.9,
+    "carb": 19.6,
+    "gord": 50.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Nozes",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 620,
+    "prot": 14.0,
+    "carb": 18.4,
+    "gord": 59.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abacate",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 96,
+    "prot": 1.2,
+    "carb": 6.0,
+    "gord": 8.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Semente de chia",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 486,
+    "prot": 16.5,
+    "carb": 42.1,
+    "gord": 30.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Semente de linhaça",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 495,
+    "prot": 14.1,
+    "carb": 33.3,
+    "gord": 32.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Banana prata",
+    "grupo": "Frutas",
+    "kcal": 89,
+    "prot": 1.3,
+    "carb": 22.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maçã Fuji com casca",
+    "grupo": "Frutas",
+    "kcal": 56,
+    "prot": 0.3,
+    "carb": 15.2,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mamão papaia",
+    "grupo": "Frutas",
+    "kcal": 40,
+    "prot": 0.5,
+    "carb": 10.4,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Brócolis cozido",
+    "grupo": "Hortaliças",
+    "kcal": 25,
+    "prot": 2.1,
+    "carb": 4.4,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Espinafre cozido",
+    "grupo": "Hortaliças",
+    "kcal": 38,
+    "prot": 2.7,
+    "carb": 4.2,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cenoura crua",
+    "grupo": "Hortaliças",
+    "kcal": 34,
+    "prot": 1.3,
+    "carb": 7.7,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alface americana",
+    "grupo": "Hortaliças",
+    "kcal": 9,
+    "prot": 0.6,
+    "carb": 1.7,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Couve manteiga refogada",
+    "grupo": "Hortaliças",
+    "kcal": 90,
+    "prot": 1.7,
+    "carb": 10.1,
+    "gord": 6.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tomate italiano cru",
+    "grupo": "Hortaliças",
+    "kcal": 15,
+    "prot": 1.1,
+    "carb": 3.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pernil de porco assado",
+    "grupo": "Carnes",
+    "kcal": 262,
+    "prot": 32.1,
+    "carb": 0.0,
+    "gord": 13.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Fígado bovino grelhado",
+    "grupo": "Carnes",
+    "kcal": 225,
+    "prot": 29.9,
+    "carb": 5.1,
+    "gord": 9.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Moela de frango cozida",
+    "grupo": "Carnes",
+    "kcal": 154,
+    "prot": 30.1,
+    "carb": 0.0,
+    "gord": 2.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Presunto cozido magro",
+    "grupo": "Carnes",
+    "kcal": 94,
+    "prot": 14.3,
+    "carb": 1.4,
+    "gord": 3.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Peito de peru defumado",
+    "grupo": "Carnes",
+    "kcal": 98,
+    "prot": 21.0,
+    "carb": 2.0,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cupim bovino assado",
+    "grupo": "Carnes",
+    "kcal": 330,
+    "prot": 19.5,
+    "carb": 0.0,
+    "gord": 27.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bacalhau cozido",
+    "grupo": "Peixes",
+    "kcal": 140,
+    "prot": 29.0,
+    "carb": 0.0,
+    "gord": 2.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lula cozida",
+    "grupo": "Peixes",
+    "kcal": 92,
+    "prot": 15.6,
+    "carb": 3.1,
+    "gord": 1.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo parmesão",
+    "grupo": "Laticínios",
+    "kcal": 453,
+    "prot": 35.6,
+    "carb": 1.8,
+    "gord": 33.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo provolone",
+    "grupo": "Laticínios",
+    "kcal": 351,
+    "prot": 25.6,
+    "carb": 2.1,
+    "gord": 26.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Requeijão cremoso light",
+    "grupo": "Laticínios",
+    "kcal": 174,
+    "prot": 12.0,
+    "carb": 3.0,
+    "gord": 12.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne moída de acém cozida",
+    "grupo": "Carnes",
+    "kcal": 212,
+    "prot": 26.7,
+    "carb": 0.0,
+    "gord": 10.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lagarto bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 222,
+    "prot": 32.9,
+    "carb": 0.0,
+    "gord": 9.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Paleta bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 194,
+    "prot": 29.7,
+    "carb": 0.0,
+    "gord": 7.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Costela de porco assada",
+    "grupo": "Carnes",
+    "kcal": 402,
+    "prot": 23.8,
+    "carb": 0.0,
+    "gord": 33.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Merluza filete assado",
+    "grupo": "Peixes",
+    "kcal": 122,
+    "prot": 26.3,
+    "carb": 0.0,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Corvina cozida",
+    "grupo": "Peixes",
+    "kcal": 100,
+    "prot": 18.8,
+    "carb": 0.0,
+    "gord": 2.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Omelete de ovos simples",
+    "grupo": "Ovos",
+    "kcal": 170,
+    "prot": 13.0,
+    "carb": 1.2,
+    "gord": 12.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ovo de codorna cozido",
+    "grupo": "Ovos",
+    "kcal": 158,
+    "prot": 13.1,
+    "carb": 0.4,
+    "gord": 11.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite em pó desnatado",
+    "grupo": "Laticínios",
+    "kcal": 362,
+    "prot": 34.7,
+    "carb": 52.0,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite em pó integral",
+    "grupo": "Laticínios",
+    "kcal": 497,
+    "prot": 26.3,
+    "carb": 38.4,
+    "gord": 26.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz sete grãos cozido",
+    "grupo": "Cereais",
+    "kcal": 125,
+    "prot": 4.0,
+    "carb": 24.0,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão branco cozido",
+    "grupo": "Leguminosas",
+    "kcal": 105,
+    "prot": 8.1,
+    "carb": 18.4,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão fradinho cozido",
+    "grupo": "Leguminosas",
+    "kcal": 115,
+    "prot": 7.8,
+    "carb": 20.2,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ervilha seca cozida",
+    "grupo": "Leguminosas",
+    "kcal": 118,
+    "prot": 8.3,
+    "carb": 21.1,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Soja em grão cozida",
+    "grupo": "Leguminosas",
+    "kcal": 173,
+    "prot": 16.6,
+    "carb": 9.9,
+    "gord": 9.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Amendoim torrado salgado",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 606,
+    "prot": 22.5,
+    "carb": 18.7,
+    "gord": 54.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Avelã",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 628,
+    "prot": 15.0,
+    "carb": 16.7,
+    "gord": 60.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pinhão cozido",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 174,
+    "prot": 3.0,
+    "carb": 43.9,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Banana nanica",
+    "grupo": "Frutas",
+    "kcal": 92,
+    "prot": 1.4,
+    "carb": 23.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Melancia",
+    "grupo": "Frutas",
+    "kcal": 33,
+    "prot": 0.9,
+    "carb": 8.1,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abacaxi",
+    "grupo": "Frutas",
+    "kcal": 48,
+    "prot": 0.9,
+    "carb": 12.3,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Uva tipo rubi",
+    "grupo": "Frutas",
+    "kcal": 68,
+    "prot": 0.6,
+    "carb": 17.1,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pera Willians com casca",
+    "grupo": "Frutas",
+    "kcal": 53,
+    "prot": 0.6,
+    "carb": 14.1,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Laranja pêra",
+    "grupo": "Frutas",
+    "kcal": 37,
+    "prot": 0.7,
+    "carb": 8.9,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Couve-flor cozida",
+    "grupo": "Hortaliças",
+    "kcal": 19,
+    "prot": 1.2,
+    "carb": 3.9,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abóbora menina cozida",
+    "grupo": "Hortaliças",
+    "kcal": 20,
+    "prot": 0.6,
+    "carb": 4.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abobrinha italiana cozida",
+    "grupo": "Hortaliças",
+    "kcal": 15,
+    "prot": 1.1,
+    "carb": 3.0,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beterraba cozida",
+    "grupo": "Hortaliças",
+    "kcal": 44,
+    "prot": 1.3,
+    "carb": 9.9,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Chuchu cozido",
+    "grupo": "Hortaliças",
+    "kcal": 19,
+    "prot": 0.4,
+    "carb": 4.8,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Vagem cozida",
+    "grupo": "Hortaliças",
+    "kcal": 35,
+    "prot": 1.8,
+    "carb": 7.9,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Berinjela cozida",
+    "grupo": "Hortaliças",
+    "kcal": 19,
+    "prot": 0.7,
+    "carb": 4.5,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beef Jerky (carne seca)",
+    "grupo": "Carnes",
+    "kcal": 410,
+    "prot": 45.0,
+    "carb": 0.0,
+    "gord": 25.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Frango desfiado cozido",
+    "grupo": "Carnes",
+    "kcal": 159,
+    "prot": 32.0,
+    "carb": 0.0,
+    "gord": 2.5,
+    "porcao": "100g"
+  }
+,
+  {
+    "nome": "Costela bovina assada",
+    "grupo": "Carnes",
+    "kcal": 310,
+    "prot": 23.5,
+    "carb": 0.0,
+    "gord": 24.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça calabresa frita",
+    "grupo": "Carnes",
+    "kcal": 332,
+    "prot": 18.2,
+    "carb": 2.1,
+    "gord": 28.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça calabresa cozida",
+    "grupo": "Carnes",
+    "kcal": 290,
+    "prot": 17.5,
+    "carb": 1.8,
+    "gord": 23.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Fígado de galinha cozido",
+    "grupo": "Carnes",
+    "kcal": 167,
+    "prot": 24.5,
+    "carb": 0.8,
+    "gord": 6.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pernil suíno assado",
+    "grupo": "Carnes",
+    "kcal": 262,
+    "prot": 32.1,
+    "carb": 0.0,
+    "gord": 13.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pernil suíno grelhado",
+    "grupo": "Carnes",
+    "kcal": 231,
+    "prot": 31.4,
+    "carb": 0.0,
+    "gord": 10.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne de sol bovina frita",
+    "grupo": "Carnes",
+    "kcal": 315,
+    "prot": 28.2,
+    "carb": 0.0,
+    "gord": 22.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne de sol bovina grelhada",
+    "grupo": "Carnes",
+    "kcal": 255,
+    "prot": 29.8,
+    "carb": 0.0,
+    "gord": 14.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Charque bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 263,
+    "prot": 32.5,
+    "carb": 0.0,
+    "gord": 13.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bacalhau salgado cru",
+    "grupo": "Peixes",
+    "kcal": 134,
+    "prot": 28.2,
+    "carb": 0.0,
+    "gord": 1.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bacalhau demolhado cozido",
+    "grupo": "Peixes",
+    "kcal": 140,
+    "prot": 29.1,
+    "carb": 0.0,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Salsicha de frango fervorada",
+    "grupo": "Carnes",
+    "kcal": 220,
+    "prot": 12.5,
+    "carb": 3.4,
+    "gord": 17.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Salsicha bovina fervorada",
+    "grupo": "Carnes",
+    "kcal": 245,
+    "prot": 11.8,
+    "carb": 4.1,
+    "gord": 20.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça de frango grelhada",
+    "grupo": "Carnes",
+    "kcal": 198,
+    "prot": 18.5,
+    "carb": 1.2,
+    "gord": 12.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça toscana assada",
+    "grupo": "Carnes",
+    "kcal": 255,
+    "prot": 16.4,
+    "carb": 1.5,
+    "gord": 20.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maminha bovina assada",
+    "grupo": "Carnes",
+    "kcal": 208,
+    "prot": 27.2,
+    "carb": 0.0,
+    "gord": 10.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Fraldinha bovina grelhada",
+    "grupo": "Carnes",
+    "kcal": 238,
+    "prot": 26.5,
+    "carb": 0.0,
+    "gord": 14.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Picanha bovina com gordura grelhada",
+    "grupo": "Carnes",
+    "kcal": 321,
+    "prot": 25.4,
+    "carb": 0.0,
+    "gord": 23.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Picanha bovina sem gordura grelhada",
+    "grupo": "Carnes",
+    "kcal": 238,
+    "prot": 28.7,
+    "carb": 0.0,
+    "gord": 12.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Acém bovino moído refogado",
+    "grupo": "Carnes",
+    "kcal": 215,
+    "prot": 26.1,
+    "carb": 0.0,
+    "gord": 11.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Coração de boi cozido",
+    "grupo": "Carnes",
+    "kcal": 165,
+    "prot": 28.4,
+    "carb": 0.0,
+    "gord": 4.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Língua de boi ensopada",
+    "grupo": "Carnes",
+    "kcal": 258,
+    "prot": 19.2,
+    "carb": 2.5,
+    "gord": 18.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Dobradinha bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 132,
+    "prot": 18.5,
+    "carb": 0.0,
+    "gord": 5.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lambari frito",
+    "grupo": "Peixes",
+    "kcal": 327,
+    "prot": 20.5,
+    "carb": 0.0,
+    "gord": 26.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Piramutaba filete grelhado",
+    "grupo": "Peixes",
+    "kcal": 155,
+    "prot": 19.8,
+    "carb": 0.0,
+    "gord": 7.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Surubim cozido",
+    "grupo": "Peixes",
+    "kcal": 128,
+    "prot": 20.2,
+    "carb": 0.0,
+    "gord": 4.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tambaqui assado",
+    "grupo": "Peixes",
+    "kcal": 185,
+    "prot": 21.4,
+    "carb": 0.0,
+    "gord": 10.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ostras cruas",
+    "grupo": "Peixes",
+    "kcal": 59,
+    "prot": 7.1,
+    "carb": 3.9,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mexilhão cozido",
+    "grupo": "Peixes",
+    "kcal": 82,
+    "prot": 12.5,
+    "carb": 3.5,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Hambúrguer de carne bovina grelhado",
+    "grupo": "Carnes",
+    "kcal": 245,
+    "prot": 22.1,
+    "carb": 1.5,
+    "gord": 16.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Hambúrguer de frango grelhado",
+    "grupo": "Carnes",
+    "kcal": 195,
+    "prot": 18.2,
+    "carb": 2.8,
+    "gord": 12.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Nuggets de frango assados",
+    "grupo": "Carnes",
+    "kcal": 285,
+    "prot": 14.5,
+    "carb": 18.2,
+    "gord": 16.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quibe assado",
+    "grupo": "Carnes",
+    "kcal": 210,
+    "prot": 16.5,
+    "carb": 15.2,
+    "gord": 8.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quibe frito",
+    "grupo": "Carnes",
+    "kcal": 315,
+    "prot": 14.2,
+    "carb": 18.5,
+    "gord": 20.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Iogurte grego morango",
+    "grupo": "Laticínios",
+    "kcal": 135,
+    "prot": 5.8,
+    "carb": 16.5,
+    "gord": 5.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Kefir de leite",
+    "grupo": "Laticínios",
+    "kcal": 65,
+    "prot": 3.4,
+    "carb": 4.8,
+    "gord": 3.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo gorgonzola",
+    "grupo": "Laticínios",
+    "kcal": 353,
+    "prot": 21.4,
+    "carb": 2.3,
+    "gord": 28.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo coalho grelhado",
+    "grupo": "Laticínios",
+    "kcal": 345,
+    "prot": 22.5,
+    "carb": 1.5,
+    "gord": 27.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo cheddar",
+    "grupo": "Laticínios",
+    "kcal": 403,
+    "prot": 24.9,
+    "carb": 1.3,
+    "gord": 33.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo prato",
+    "grupo": "Laticínios",
+    "kcal": 355,
+    "prot": 23.2,
+    "carb": 1.8,
+    "gord": 28.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo brie",
+    "grupo": "Laticínios",
+    "kcal": 334,
+    "prot": 20.7,
+    "carb": 0.5,
+    "gord": 27.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Petit Suisse morango",
+    "grupo": "Laticínios",
+    "kcal": 122,
+    "prot": 6.1,
+    "carb": 14.8,
+    "gord": 4.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ervilha torta cozida",
+    "grupo": "Leguminosas",
+    "kcal": 42,
+    "prot": 2.8,
+    "carb": 7.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ervilha em lata escorrida",
+    "grupo": "Leguminosas",
+    "kcal": 74,
+    "prot": 4.8,
+    "carb": 13.2,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Fava cozida",
+    "grupo": "Leguminosas",
+    "kcal": 110,
+    "prot": 7.6,
+    "carb": 19.7,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tremoço em conserva",
+    "grupo": "Leguminosas",
+    "kcal": 116,
+    "prot": 12.5,
+    "carb": 7.2,
+    "gord": 3.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pasta de homus (grão-de-bico)",
+    "grupo": "Leguminosas",
+    "kcal": 166,
+    "prot": 7.9,
+    "carb": 14.3,
+    "gord": 9.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Missô (pasta de soja)",
+    "grupo": "Leguminosas",
+    "kcal": 198,
+    "prot": 11.7,
+    "carb": 25.4,
+    "gord": 6.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Natto (soja fermentada)",
+    "grupo": "Leguminosas",
+    "kcal": 212,
+    "prot": 17.7,
+    "carb": 14.4,
+    "gord": 11.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tempeh",
+    "grupo": "Leguminosas",
+    "kcal": 192,
+    "prot": 18.5,
+    "carb": 9.4,
+    "gord": 10.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farinha de mandioca torrada",
+    "grupo": "Cereais",
+    "kcal": 361,
+    "prot": 1.2,
+    "carb": 87.5,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farinha de mandioca crua",
+    "grupo": "Cereais",
+    "kcal": 355,
+    "prot": 1.1,
+    "carb": 86.4,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farinha de milho amarela",
+    "grupo": "Cereais",
+    "kcal": 363,
+    "prot": 7.2,
+    "carb": 78.5,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farofa pronta de mandioca",
+    "grupo": "Cereais",
+    "kcal": 405,
+    "prot": 1.5,
+    "carb": 75.2,
+    "gord": 10.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pão de queijo assado",
+    "grupo": "Pães",
+    "kcal": 352,
+    "prot": 7.5,
+    "carb": 34.2,
+    "gord": 20.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pão de queijo multigrãos",
+    "grupo": "Pães",
+    "kcal": 330,
+    "prot": 8.2,
+    "carb": 31.5,
+    "gord": 18.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Polvilho azedo",
+    "grupo": "Cereais",
+    "kcal": 348,
+    "prot": 0.4,
+    "carb": 86.5,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Polvilho doce",
+    "grupo": "Cereais",
+    "kcal": 351,
+    "prot": 0.4,
+    "carb": 87.2,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beiju de tapioca simples",
+    "grupo": "Tubérculos",
+    "kcal": 240,
+    "prot": 0.0,
+    "carb": 60.1,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pipoca de micro-ondas salgada",
+    "grupo": "Cereais",
+    "kcal": 450,
+    "prot": 7.5,
+    "carb": 52.4,
+    "gord": 23.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pipoca feita na panela com óleo",
+    "grupo": "Cereais",
+    "kcal": 445,
+    "prot": 8.2,
+    "carb": 56.5,
+    "gord": 20.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pipoca feita na pipoqueira elétrica",
+    "grupo": "Cereais",
+    "kcal": 382,
+    "prot": 12.1,
+    "carb": 75.8,
+    "gord": 4.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Biscoito de polvilho",
+    "grupo": "Cereais",
+    "kcal": 442,
+    "prot": 1.2,
+    "carb": 75.4,
+    "gord": 15.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Aveia em farelo",
+    "grupo": "Cereais",
+    "kcal": 358,
+    "prot": 15.6,
+    "carb": 51.2,
+    "gord": 8.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Granola tradicional com passas",
+    "grupo": "Cereais",
+    "kcal": 420,
+    "prot": 9.5,
+    "carb": 65.2,
+    "gord": 13.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Granola zero açúcar",
+    "grupo": "Cereais",
+    "kcal": 385,
+    "prot": 11.2,
+    "carb": 50.1,
+    "gord": 15.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz parboilizado cozido",
+    "grupo": "Cereais",
+    "kcal": 123,
+    "prot": 2.6,
+    "carb": 26.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz negro cozido",
+    "grupo": "Cereais",
+    "kcal": 135,
+    "prot": 3.5,
+    "carb": 28.5,
+    "gord": 1.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz vermelho cozido",
+    "grupo": "Cereais",
+    "kcal": 130,
+    "prot": 3.0,
+    "carb": 27.2,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Canjica de milho cozida",
+    "grupo": "Cereais",
+    "kcal": 105,
+    "prot": 2.1,
+    "carb": 22.8,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Macarrão de arroz cozido",
+    "grupo": "Cereais",
+    "kcal": 109,
+    "prot": 1.8,
+    "carb": 24.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quiabo refogado",
+    "grupo": "Hortaliças",
+    "kcal": 75,
+    "prot": 1.8,
+    "carb": 6.8,
+    "gord": 5.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quiabo cozido",
+    "grupo": "Hortaliças",
+    "kcal": 33,
+    "prot": 1.9,
+    "carb": 7.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Jiló cozido",
+    "grupo": "Hortaliças",
+    "kcal": 28,
+    "prot": 1.2,
+    "carb": 6.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Jiló frito",
+    "grupo": "Hortaliças",
+    "kcal": 145,
+    "prot": 1.5,
+    "carb": 9.5,
+    "gord": 12.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maxixe cozido",
+    "grupo": "Hortaliças",
+    "kcal": 18,
+    "prot": 1.1,
+    "carb": 3.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Taioba refogada",
+    "grupo": "Hortaliças",
+    "kcal": 65,
+    "prot": 2.8,
+    "carb": 6.1,
+    "gord": 4.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ora-pro-nóbis crua",
+    "grupo": "Hortaliças",
+    "kcal": 26,
+    "prot": 2.7,
+    "carb": 3.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ora-pro-nóbis refogada",
+    "grupo": "Hortaliças",
+    "kcal": 82,
+    "prot": 3.5,
+    "carb": 5.2,
+    "gord": 6.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Serralha refogada",
+    "grupo": "Hortaliças",
+    "kcal": 72,
+    "prot": 2.4,
+    "carb": 5.8,
+    "gord": 5.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beldroega cozida",
+    "grupo": "Hortaliças",
+    "kcal": 16,
+    "prot": 1.3,
+    "carb": 3.4,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Vinagreira cozida",
+    "grupo": "Hortaliças",
+    "kcal": 35,
+    "prot": 1.8,
+    "carb": 7.2,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abóbora cabotiá cozida",
+    "grupo": "Hortaliças",
+    "kcal": 48,
+    "prot": 1.5,
+    "carb": 10.8,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abóbora cabotiá assada",
+    "grupo": "Hortaliças",
+    "kcal": 75,
+    "prot": 1.8,
+    "carb": 16.5,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Palmito em conserva",
+    "grupo": "Hortaliças",
+    "kcal": 22,
+    "prot": 1.8,
+    "carb": 4.3,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Aspargos cozidos",
+    "grupo": "Hortaliças",
+    "kcal": 20,
+    "prot": 2.2,
+    "carb": 3.7,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alcaparra em conserva",
+    "grupo": "Hortaliças",
+    "kcal": 23,
+    "prot": 2.4,
+    "carb": 4.9,
+    "gord": 0.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alcachofra cozida",
+    "grupo": "Hortaliças",
+    "kcal": 47,
+    "prot": 3.3,
+    "carb": 10.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Creatina monohidratada",
+    "grupo": "Suplementos",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "BCAA em pó 2:1:1",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 100.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Glutamina em pó",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 100.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maltodextrina",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 0.0,
+    "carb": 95.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Palatinose",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 0.0,
+    "carb": 95.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Waxy Maize",
+    "grupo": "Suplementos",
+    "kcal": 360,
+    "prot": 0.0,
+    "carb": 90.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Hipercalórico (média mercado)",
+    "grupo": "Suplementos",
+    "kcal": 390,
+    "prot": 20.0,
+    "carb": 70.0,
+    "gord": 3.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Colágeno hidrolisado em pó",
+    "grupo": "Suplementos",
+    "kcal": 360,
+    "prot": 90.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beef Protein (proteína isolada de carne)",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 90.0,
+    "carb": 2.0,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manteiga Ghee",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Azeite de dendê",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de coco babaçu",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Banha de porco",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 895,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 99.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de abacate",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de gergelim",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de linhaça",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Semente de abóbora torrada",
+    "grupo": "Nozes e Sementes",
+    "kcal": 559,
+    "prot": 30.2,
+    "carb": 10.7,
+    "gord": 49.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Semente de girassol torrada",
+    "grupo": "Nozes e Sementes",
+    "kcal": 584,
+    "prot": 20.8,
+    "carb": 20.0,
+    "gord": 51.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pistache torrado salgado",
+    "grupo": "Nozes e Sementes",
+    "kcal": 562,
+    "prot": 20.2,
+    "carb": 27.5,
+    "gord": 45.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Macadâmia crua",
+    "grupo": "Nozes e Sementes",
+    "kcal": 718,
+    "prot": 7.9,
+    "carb": 13.8,
+    "gord": 75.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pecan",
+    "grupo": "Nozes e Sementes",
+    "kcal": 691,
+    "prot": 9.2,
+    "carb": 13.9,
+    "gord": 72.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de coco caseiro",
+    "grupo": "Laticínios",
+    "kcal": 230,
+    "prot": 2.3,
+    "carb": 5.5,
+    "gord": 23.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de amêndoas sem açúcar",
+    "grupo": "Laticínios",
+    "kcal": 15,
+    "prot": 0.5,
+    "carb": 0.3,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de aveia industrializado",
+    "grupo": "Laticínios",
+    "kcal": 45,
+    "prot": 1.0,
+    "carb": 7.5,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Leite de soja original",
+    "grupo": "Laticínios",
+    "kcal": 45,
+    "prot": 3.0,
+    "carb": 3.5,
+    "gord": 2.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tofu defumado",
+    "grupo": "Leguminosas",
+    "kcal": 125,
+    "prot": 14.5,
+    "carb": 2.1,
+    "gord": 7.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Shoyu (molho de soja)",
+    "grupo": "Leguminosas",
+    "kcal": 53,
+    "prot": 8.1,
+    "carb": 4.9,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Caju fruta",
+    "grupo": "Frutas",
+    "kcal": 43,
+    "prot": 1.0,
+    "carb": 10.3,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Goiaba vermelha",
+    "grupo": "Frutas",
+    "kcal": 54,
+    "prot": 1.1,
+    "carb": 13.0,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Goiaba branca",
+    "grupo": "Frutas",
+    "kcal": 52,
+    "prot": 0.9,
+    "carb": 12.4,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Jabuticaba",
+    "grupo": "Frutas",
+    "kcal": 58,
+    "prot": 0.6,
+    "carb": 15.3,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pitaya branca",
+    "grupo": "Frutas",
+    "kcal": 50,
+    "prot": 1.2,
+    "carb": 11.5,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Açaí polpa pura",
+    "grupo": "Frutas",
+    "kcal": 60,
+    "prot": 0.8,
+    "carb": 6.2,
+    "gord": 3.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Açaí com xarope e guaraná",
+    "grupo": "Frutas",
+    "kcal": 110,
+    "prot": 0.6,
+    "carb": 21.5,
+    "gord": 2.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cupuaçu polpa",
+    "grupo": "Frutas",
+    "kcal": 49,
+    "prot": 0.8,
+    "carb": 11.4,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Graviola polpa",
+    "grupo": "Frutas",
+    "kcal": 62,
+    "prot": 0.8,
+    "carb": 15.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Siriguela",
+    "grupo": "Frutas",
+    "kcal": 76,
+    "prot": 1.4,
+    "carb": 18.9,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Umbu polpa",
+    "grupo": "Frutas",
+    "kcal": 37,
+    "prot": 0.8,
+    "carb": 9.4,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Buriti polpa",
+    "grupo": "Frutas",
+    "kcal": 145,
+    "prot": 2.1,
+    "carb": 12.5,
+    "gord": 10.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pequi cozido",
+    "grupo": "Frutas",
+    "kcal": 205,
+    "prot": 2.3,
+    "carb": 13.0,
+    "gord": 18.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manga Palmer",
+    "grupo": "Frutas",
+    "kcal": 72,
+    "prot": 0.4,
+    "carb": 19.4,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manga Espada",
+    "grupo": "Frutas",
+    "kcal": 60,
+    "prot": 0.5,
+    "carb": 15.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Caqui chocolate",
+    "grupo": "Frutas",
+    "kcal": 71,
+    "prot": 0.4,
+    "carb": 19.3,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carambola",
+    "grupo": "Frutas",
+    "kcal": 31,
+    "prot": 1.0,
+    "carb": 6.7,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Acerola",
+    "grupo": "Frutas",
+    "kcal": 33,
+    "prot": 0.9,
+    "carb": 8.0,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ameixa fresca",
+    "grupo": "Frutas",
+    "kcal": 46,
+    "prot": 0.7,
+    "carb": 11.4,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ameixa seca",
+    "grupo": "Frutas",
+    "kcal": 240,
+    "prot": 2.2,
+    "carb": 63.9,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tâmara seca",
+    "grupo": "Frutas",
+    "kcal": 282,
+    "prot": 2.5,
+    "carb": 75.0,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Damasco seco",
+    "grupo": "Frutas",
+    "kcal": 241,
+    "prot": 3.4,
+    "carb": 62.6,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Uva passa preta",
+    "grupo": "Frutas",
+    "kcal": 299,
+    "prot": 3.1,
+    "carb": 79.2,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Uva passa branca",
+    "grupo": "Frutas",
+    "kcal": 302,
+    "prot": 3.4,
+    "carb": 79.5,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Figo fresco",
+    "grupo": "Frutas",
+    "kcal": 74,
+    "prot": 0.8,
+    "carb": 19.2,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Laranja Bahia",
+    "grupo": "Frutas",
+    "kcal": 45,
+    "prot": 1.0,
+    "carb": 11.5,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Laranja Lima",
+    "grupo": "Frutas",
+    "kcal": 43,
+    "prot": 0.8,
+    "carb": 10.9,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Limão Tahiti",
+    "grupo": "Frutas",
+    "kcal": 30,
+    "prot": 0.7,
+    "carb": 10.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Limão Siciliano",
+    "grupo": "Frutas",
+    "kcal": 29,
+    "prot": 1.1,
+    "carb": 9.3,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Melão Amarelo",
+    "grupo": "Frutas",
+    "kcal": 34,
+    "prot": 0.8,
+    "carb": 8.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Melão Cantaloupe",
+    "grupo": "Frutas",
+    "kcal": 36,
+    "prot": 0.9,
+    "carb": 9.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maracujá polpa",
+    "grupo": "Frutas",
+    "kcal": 97,
+    "prot": 2.2,
+    "carb": 23.4,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Morango",
+    "grupo": "Frutas",
+    "kcal": 32,
+    "prot": 0.7,
+    "carb": 7.7,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mirtilo (Blueberry)",
+    "grupo": "Frutas",
+    "kcal": 57,
+    "prot": 0.7,
+    "carb": 14.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Framboesa",
+    "grupo": "Frutas",
+    "kcal": 52,
+    "prot": 1.2,
+    "carb": 11.9,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Amora",
+    "grupo": "Frutas",
+    "kcal": 43,
+    "prot": 1.4,
+    "carb": 9.6,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Nectarina",
+    "grupo": "Frutas",
+    "kcal": 44,
+    "prot": 1.1,
+    "carb": 10.6,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pêssego",
+    "grupo": "Frutas",
+    "kcal": 39,
+    "prot": 0.9,
+    "carb": 9.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tangerina Ponkã",
+    "grupo": "Frutas",
+    "kcal": 38,
+    "prot": 0.8,
+    "carb": 9.6,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tangerina Murcott",
+    "grupo": "Frutas",
+    "kcal": 45,
+    "prot": 1.1,
+    "carb": 11.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Uva Itália",
+    "grupo": "Frutas",
+    "kcal": 68,
+    "prot": 0.7,
+    "carb": 18.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Uva Thompson (sem semente)",
+    "grupo": "Frutas",
+    "kcal": 70,
+    "prot": 0.7,
+    "carb": 18.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arroz de couve-flor cozido",
+    "grupo": "Hortaliças",
+    "kcal": 25,
+    "prot": 1.9,
+    "carb": 4.9,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Espaguete de abobrinha cozido",
+    "grupo": "Hortaliças",
+    "kcal": 17,
+    "prot": 1.2,
+    "carb": 3.1,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alcachofra em conserva",
+    "grupo": "Hortaliças",
+    "kcal": 45,
+    "prot": 2.5,
+    "carb": 9.5,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tomate cereja",
+    "grupo": "Hortaliças",
+    "kcal": 18,
+    "prot": 0.9,
+    "carb": 3.9,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tomate seco no óleo escorrido",
+    "grupo": "Hortaliças",
+    "kcal": 250,
+    "prot": 14.1,
+    "carb": 43.5,
+    "gord": 14.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Molho de tomate caseiro",
+    "grupo": "Hortaliças",
+    "kcal": 45,
+    "prot": 1.5,
+    "carb": 6.2,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Extrato de tomate",
+    "grupo": "Hortaliças",
+    "kcal": 82,
+    "prot": 3.6,
+    "carb": 18.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Azeitona verde em conserva",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 145,
+    "prot": 1.0,
+    "carb": 3.8,
+    "gord": 15.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Azeitona preta em conserva",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 185,
+    "prot": 1.2,
+    "carb": 4.5,
+    "gord": 19.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Palmito pupunha assado",
+    "grupo": "Hortaliças",
+    "kcal": 40,
+    "prot": 2.5,
+    "carb": 8.5,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alho cru",
+    "grupo": "Hortaliças",
+    "kcal": 149,
+    "prot": 6.4,
+    "carb": 33.1,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Alho-poró cozido",
+    "grupo": "Hortaliças",
+    "kcal": 31,
+    "prot": 0.8,
+    "carb": 7.6,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cebola roxa crua",
+    "grupo": "Hortaliças",
+    "kcal": 40,
+    "prot": 1.1,
+    "carb": 9.3,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cebola branca cozida",
+    "grupo": "Hortaliças",
+    "kcal": 44,
+    "prot": 1.4,
+    "carb": 10.1,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cebolinha crua",
+    "grupo": "Hortaliças",
+    "kcal": 30,
+    "prot": 3.3,
+    "carb": 4.4,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Salsa crua",
+    "grupo": "Hortaliças",
+    "kcal": 36,
+    "prot": 3.0,
+    "carb": 6.3,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Coentro cru",
+    "grupo": "Hortaliças",
+    "kcal": 23,
+    "prot": 2.1,
+    "carb": 3.7,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manjericão fresco",
+    "grupo": "Hortaliças",
+    "kcal": 23,
+    "prot": 3.2,
+    "carb": 2.7,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Hortelã fresca",
+    "grupo": "Hortaliças",
+    "kcal": 70,
+    "prot": 3.8,
+    "carb": 14.9,
+    "gord": 0.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Gengibre fresco",
+    "grupo": "Hortaliças",
+    "kcal": 80,
+    "prot": 1.8,
+    "carb": 17.8,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pimenta malagueta",
+    "grupo": "Hortaliças",
+    "kcal": 40,
+    "prot": 1.9,
+    "carb": 8.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pimenta biquinho em conserva",
+    "grupo": "Hortaliças",
+    "kcal": 35,
+    "prot": 1.2,
+    "carb": 7.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pimentão vermelho cru",
+    "grupo": "Hortaliças",
+    "kcal": 31,
+    "prot": 1.0,
+    "carb": 6.0,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pimentão amarelo cru",
+    "grupo": "Hortaliças",
+    "kcal": 27,
+    "prot": 1.0,
+    "carb": 6.3,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pimentão verde cru",
+    "grupo": "Hortaliças",
+    "kcal": 20,
+    "prot": 0.9,
+    "carb": 4.6,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cogumelo Paris fresco",
+    "grupo": "Hortaliças",
+    "kcal": 22,
+    "prot": 3.1,
+    "carb": 3.3,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cogumelo Shimeji refogado",
+    "grupo": "Hortaliças",
+    "kcal": 95,
+    "prot": 4.5,
+    "carb": 6.2,
+    "gord": 7.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cogumelo Shiitake cozido",
+    "grupo": "Hortaliças",
+    "kcal": 34,
+    "prot": 2.2,
+    "carb": 6.8,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Champignon em conserva",
+    "grupo": "Hortaliças",
+    "kcal": 25,
+    "prot": 2.3,
+    "carb": 4.1,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Proteína de ervilha em pó",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 80.0,
+    "carb": 5.0,
+    "gord": 6.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Proteína de arroz em pó",
+    "grupo": "Suplementos",
+    "kcal": 370,
+    "prot": 78.0,
+    "carb": 8.0,
+    "gord": 3.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pasta de avelã com cacau zero",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 540,
+    "prot": 12.0,
+    "carb": 15.0,
+    "gord": 48.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tahine (pasta de gergelim)",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 595,
+    "prot": 17.8,
+    "carb": 18.5,
+    "gord": 53.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maionese tradicional",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 680,
+    "prot": 1.0,
+    "carb": 1.0,
+    "gord": 75.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maionese light",
+    "grupo": "Óleos e Gorduras",
+    "kcal": 230,
+    "prot": 0.5,
+    "carb": 8.5,
+    "gord": 22.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mel de abelha",
+    "grupo": "Açúcares",
+    "kcal": 304,
+    "prot": 0.3,
+    "carb": 82.4,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Melaço de cana",
+    "grupo": "Açúcares",
+    "kcal": 290,
+    "prot": 0.0,
+    "carb": 75.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Açúcar mascavo",
+    "grupo": "Açúcares",
+    "kcal": 380,
+    "prot": 0.0,
+    "carb": 98.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Açúcar de coco",
+    "grupo": "Açúcares",
+    "kcal": 375,
+    "prot": 1.0,
+    "carb": 92.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Xilitol",
+    "grupo": "Açúcares",
+    "kcal": 240,
+    "prot": 0.0,
+    "carb": 100.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Eritritol",
+    "grupo": "Açúcares",
+    "kcal": 20,
+    "prot": 0.0,
+    "carb": 100.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Stevia pura pó",
+    "grupo": "Suplementos",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Gelatina sem sabor em pó",
+    "grupo": "Suplementos",
+    "kcal": 340,
+    "prot": 85.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Levreadura nutricional (Nutritional Yeast)",
+    "grupo": "Suplementos",
+    "kcal": 330,
+    "prot": 45.0,
+    "carb": 35.0,
+    "gord": 4.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Chocolate 70% cacau",
+    "grupo": "Doces",
+    "kcal": 560,
+    "prot": 7.5,
+    "carb": 35.0,
+    "gord": 42.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Chocolate 85% cacau",
+    "grupo": "Doces",
+    "kcal": 590,
+    "prot": 9.2,
+    "carb": 22.0,
+    "gord": 51.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Chocolate 100% cacau",
+    "grupo": "Doces",
+    "kcal": 610,
+    "prot": 12.0,
+    "carb": 10.0,
+    "gord": 58.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cacau em pó alcalino",
+    "grupo": "Suplementos",
+    "kcal": 230,
+    "prot": 20.0,
+    "carb": 55.0,
+    "gord": 12.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Nibs de cacau",
+    "grupo": "Nozes e Sementes",
+    "kcal": 600,
+    "prot": 13.0,
+    "carb": 28.0,
+    "gord": 50.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Vinho tinto seco",
+    "grupo": "Bebidas",
+    "kcal": 85,
+    "prot": 0.1,
+    "carb": 2.6,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Vinho branco seco",
+    "grupo": "Bebidas",
+    "kcal": 82,
+    "prot": 0.1,
+    "carb": 2.4,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cerveja Pilsen",
+    "grupo": "Bebidas",
+    "kcal": 43,
+    "prot": 0.5,
+    "carb": 3.6,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cerveja Puro Malte",
+    "grupo": "Bebidas",
+    "kcal": 48,
+    "prot": 0.6,
+    "carb": 4.2,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Kombucha tradicional",
+    "grupo": "Bebidas",
+    "kcal": 20,
+    "prot": 0.0,
+    "carb": 5.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Café expresso sem açúcar",
+    "grupo": "Bebidas",
+    "kcal": 1,
+    "prot": 0.1,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Chá verde infusão",
+    "grupo": "Bebidas",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Água de coco natural",
+    "grupo": "Bebidas",
+    "kcal": 19,
+    "prot": 0.7,
+    "carb": 3.7,
+    "gord": 0.2,
+    "porcao": "100g"
+  }
+,
+  {
+    "nome": "Costela bovina assada",
+    "grupo": "Carnes",
+    "kcal": 310,
+    "prot": 23.5,
+    "carb": 0.0,
+    "gord": 24.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Costela suína assada",
+    "grupo": "Carnes",
+    "kcal": 330,
+    "prot": 24.0,
+    "carb": 0.0,
+    "gord": 26.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça toscana frita",
+    "grupo": "Carnes",
+    "kcal": 332,
+    "prot": 18.2,
+    "carb": 2.1,
+    "gord": 28.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Linguiça de frango grelhada",
+    "grupo": "Carnes",
+    "kcal": 198,
+    "prot": 18.5,
+    "carb": 1.2,
+    "gord": 12.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne de sol bovina frita",
+    "grupo": "Carnes",
+    "kcal": 315,
+    "prot": 28.2,
+    "carb": 0.0,
+    "gord": 22.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Charque bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 263,
+    "prot": 32.5,
+    "carb": 0.0,
+    "gord": 13.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Moela de galinha cozida",
+    "grupo": "Carnes",
+    "kcal": 154,
+    "prot": 30.1,
+    "carb": 0.0,
+    "gord": 2.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Fígado de galinha cozido",
+    "grupo": "Carnes",
+    "kcal": 167,
+    "prot": 24.5,
+    "carb": 0.8,
+    "gord": 6.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Dobradinha bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 132,
+    "prot": 18.5,
+    "carb": 0.0,
+    "gord": 5.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bucho bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 135,
+    "prot": 19.2,
+    "carb": 0.0,
+    "gord": 6.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Coração de boi cozido",
+    "grupo": "Carnes",
+    "kcal": 165,
+    "prot": 28.4,
+    "carb": 0.0,
+    "gord": 4.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pé de porco cozido",
+    "grupo": "Carnes",
+    "kcal": 210,
+    "prot": 19.5,
+    "carb": 0.0,
+    "gord": 14.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Orelha de porco cozida",
+    "grupo": "Carnes",
+    "kcal": 190,
+    "prot": 18.2,
+    "carb": 0.0,
+    "gord": 12.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Rabada bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 320,
+    "prot": 20.4,
+    "carb": 0.0,
+    "gord": 26.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pernil suíno assado",
+    "grupo": "Carnes",
+    "kcal": 262,
+    "prot": 32.1,
+    "carb": 0.0,
+    "gord": 13.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lombo suíno assado",
+    "grupo": "Carnes",
+    "kcal": 210,
+    "prot": 35.7,
+    "carb": 0.0,
+    "gord": 6.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cupim bovino assado",
+    "grupo": "Carnes",
+    "kcal": 330,
+    "prot": 19.5,
+    "carb": 0.0,
+    "gord": 27.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Carne moída de acém cozida",
+    "grupo": "Carnes",
+    "kcal": 212,
+    "prot": 26.7,
+    "carb": 0.0,
+    "gord": 10.9,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tambaqui assado",
+    "grupo": "Peixes",
+    "kcal": 185,
+    "prot": 21.4,
+    "carb": 0.0,
+    "gord": 10.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pintado grelhado",
+    "grupo": "Peixes",
+    "kcal": 125,
+    "prot": 20.8,
+    "carb": 0.0,
+    "gord": 4.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pirarucu grelhado",
+    "grupo": "Peixes",
+    "kcal": 138,
+    "prot": 22.5,
+    "carb": 0.0,
+    "gord": 5.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tucunaré cozido",
+    "grupo": "Peixes",
+    "kcal": 95,
+    "prot": 19.1,
+    "carb": 0.0,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Dourado assado",
+    "grupo": "Peixes",
+    "kcal": 142,
+    "prot": 24.3,
+    "carb": 0.0,
+    "gord": 4.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Agulhão grelhado",
+    "grupo": "Peixes",
+    "kcal": 110,
+    "prot": 23.2,
+    "carb": 0.0,
+    "gord": 1.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arraia cozida",
+    "grupo": "Peixes",
+    "kcal": 88,
+    "prot": 18.5,
+    "carb": 0.0,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mapará frito",
+    "grupo": "Peixes",
+    "kcal": 240,
+    "prot": 17.5,
+    "carb": 0.0,
+    "gord": 18.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pescada amarela cozida",
+    "grupo": "Peixes",
+    "kcal": 97,
+    "prot": 19.8,
+    "carb": 0.0,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Namorado grelhado",
+    "grupo": "Peixes",
+    "kcal": 105,
+    "prot": 21.4,
+    "carb": 0.0,
+    "gord": 1.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Caranguejo cozido",
+    "grupo": "Peixes",
+    "kcal": 83,
+    "prot": 17.1,
+    "carb": 0.0,
+    "gord": 1.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Siri cozido",
+    "grupo": "Peixes",
+    "kcal": 95,
+    "prot": 18.2,
+    "carb": 0.0,
+    "gord": 1.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Polvo cozido",
+    "grupo": "Peixes",
+    "kcal": 164,
+    "prot": 29.8,
+    "carb": 4.4,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lagosta grelhada",
+    "grupo": "Peixes",
+    "kcal": 98,
+    "prot": 20.5,
+    "carb": 0.0,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ostra crua",
+    "grupo": "Peixes",
+    "kcal": 59,
+    "prot": 7.1,
+    "carb": 3.9,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bacalhau demolhado cozido",
+    "grupo": "Peixes",
+    "kcal": 140,
+    "prot": 29.1,
+    "carb": 0.0,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Camarão sete barbas cozido",
+    "grupo": "Peixes",
+    "kcal": 82,
+    "prot": 17.6,
+    "carb": 0.0,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lula cozida",
+    "grupo": "Peixes",
+    "kcal": 92,
+    "prot": 15.6,
+    "carb": 3.1,
+    "gord": 1.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão azuki cozido",
+    "grupo": "Leguminosas",
+    "kcal": 128,
+    "prot": 7.5,
+    "carb": 24.8,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão andu cozido",
+    "grupo": "Leguminosas",
+    "kcal": 118,
+    "prot": 7.1,
+    "carb": 21.5,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão de corda cozido",
+    "grupo": "Leguminosas",
+    "kcal": 115,
+    "prot": 7.8,
+    "carb": 20.2,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão fradinho cozido",
+    "grupo": "Leguminosas",
+    "kcal": 115,
+    "prot": 7.8,
+    "carb": 20.2,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão jalo cozido",
+    "grupo": "Leguminosas",
+    "kcal": 85,
+    "prot": 5.2,
+    "carb": 15.4,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão rajado cozido",
+    "grupo": "Leguminosas",
+    "kcal": 82,
+    "prot": 5.1,
+    "carb": 14.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão rosinha cozido",
+    "grupo": "Leguminosas",
+    "kcal": 78,
+    "prot": 4.9,
+    "carb": 14.1,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijão branco cozido",
+    "grupo": "Leguminosas",
+    "kcal": 105,
+    "prot": 8.1,
+    "carb": 18.4,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tremoço em conserva",
+    "grupo": "Leguminosas",
+    "kcal": 116,
+    "prot": 12.5,
+    "carb": 7.2,
+    "gord": 3.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Taioba refogada",
+    "grupo": "Verduras",
+    "kcal": 65,
+    "prot": 2.8,
+    "carb": 6.1,
+    "gord": 4.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ora-pro-nóbis crua",
+    "grupo": "Verduras",
+    "kcal": 26,
+    "prot": 2.7,
+    "carb": 3.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ora-pro-nóbis refogada",
+    "grupo": "Verduras",
+    "kcal": 82,
+    "prot": 3.5,
+    "carb": 5.2,
+    "gord": 6.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Peixinho da horta frito",
+    "grupo": "Verduras",
+    "kcal": 185,
+    "prot": 3.2,
+    "carb": 12.5,
+    "gord": 14.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cariru cozido",
+    "grupo": "Verduras",
+    "kcal": 22,
+    "prot": 1.5,
+    "carb": 3.4,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bertalha refogada",
+    "grupo": "Verduras",
+    "kcal": 45,
+    "prot": 1.8,
+    "carb": 4.2,
+    "gord": 3.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maxixe cozido",
+    "grupo": "Verduras",
+    "kcal": 18,
+    "prot": 1.1,
+    "carb": 3.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Jiló cozido",
+    "grupo": "Verduras",
+    "kcal": 28,
+    "prot": 1.2,
+    "carb": 6.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Quiabo refogado",
+    "grupo": "Verduras",
+    "kcal": 75,
+    "prot": 1.8,
+    "carb": 6.8,
+    "gord": 5.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Serralha crua",
+    "grupo": "Verduras",
+    "kcal": 25,
+    "prot": 2.1,
+    "carb": 3.5,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abóbora cabotiá cozida",
+    "grupo": "Verduras",
+    "kcal": 48,
+    "prot": 1.5,
+    "carb": 10.8,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cará cozido",
+    "grupo": "Verduras",
+    "kcal": 95,
+    "prot": 1.8,
+    "carb": 21.5,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mandioca frita",
+    "grupo": "Cereais",
+    "kcal": 300,
+    "prot": 0.7,
+    "carb": 42.5,
+    "gord": 14.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Inhame cozido",
+    "grupo": "Verduras",
+    "kcal": 97,
+    "prot": 2.1,
+    "carb": 23.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cupuaçu polpa",
+    "grupo": "Frutas",
+    "kcal": 49,
+    "prot": 0.8,
+    "carb": 11.4,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Graviola polpa",
+    "grupo": "Frutas",
+    "kcal": 62,
+    "prot": 0.8,
+    "carb": 15.8,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cajá polpa",
+    "grupo": "Frutas",
+    "kcal": 46,
+    "prot": 0.6,
+    "carb": 11.2,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Umbu polpa",
+    "grupo": "Frutas",
+    "kcal": 37,
+    "prot": 0.8,
+    "carb": 9.4,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Caju fruta",
+    "grupo": "Frutas",
+    "kcal": 43,
+    "prot": 1.0,
+    "carb": 10.3,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pitanga fruta",
+    "grupo": "Frutas",
+    "kcal": 41,
+    "prot": 0.9,
+    "carb": 10.2,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Seriguela fruta",
+    "grupo": "Frutas",
+    "kcal": 76,
+    "prot": 1.4,
+    "carb": 18.9,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mangaba fruta",
+    "grupo": "Frutas",
+    "kcal": 43,
+    "prot": 0.7,
+    "carb": 10.1,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Murici fruta",
+    "grupo": "Frutas",
+    "kcal": 70,
+    "prot": 1.1,
+    "carb": 11.5,
+    "gord": 3.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Bacuri fruta",
+    "grupo": "Frutas",
+    "kcal": 105,
+    "prot": 1.9,
+    "carb": 17.5,
+    "gord": 3.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pequi polpa",
+    "grupo": "Frutas",
+    "kcal": 205,
+    "prot": 2.3,
+    "carb": 13.0,
+    "gord": 18.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Buriti polpa",
+    "grupo": "Frutas",
+    "kcal": 145,
+    "prot": 2.1,
+    "carb": 12.5,
+    "gord": 10.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Sapoti fruta",
+    "grupo": "Frutas",
+    "kcal": 83,
+    "prot": 0.4,
+    "carb": 20.0,
+    "gord": 1.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Tamarindo fruta",
+    "grupo": "Frutas",
+    "kcal": 239,
+    "prot": 2.8,
+    "carb": 62.5,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Jaca fruta",
+    "grupo": "Frutas",
+    "kcal": 88,
+    "prot": 1.4,
+    "carb": 22.5,
+    "gord": 0.3,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Creatina monohidratada",
+    "grupo": "Suplementos",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beta-alanina",
+    "grupo": "Suplementos",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Hipercalórico industrializado",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 20.0,
+    "carb": 70.0,
+    "gord": 2.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Maltodextrina",
+    "grupo": "Suplementos",
+    "kcal": 380,
+    "prot": 0.0,
+    "carb": 95.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farinha de mandioca torrada",
+    "grupo": "Cereais",
+    "kcal": 361,
+    "prot": 1.2,
+    "carb": 87.5,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Farinha de milho amarela",
+    "grupo": "Cereais",
+    "kcal": 363,
+    "prot": 7.2,
+    "carb": 78.5,
+    "gord": 1.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cuscuz de milho cozido",
+    "grupo": "Cereais",
+    "kcal": 113,
+    "prot": 2.3,
+    "carb": 25.5,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pão de queijo assado",
+    "grupo": "Cereais",
+    "kcal": 352,
+    "prot": 7.5,
+    "carb": 34.2,
+    "gord": 20.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo Canastra",
+    "grupo": "Laticínios",
+    "kcal": 360,
+    "prot": 24.5,
+    "carb": 1.5,
+    "gord": 28.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo de Coalho grelhado",
+    "grupo": "Laticínios",
+    "kcal": 345,
+    "prot": 22.5,
+    "carb": 1.5,
+    "gord": 27.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo Meia Cura",
+    "grupo": "Laticínios",
+    "kcal": 350,
+    "prot": 23.8,
+    "carb": 1.8,
+    "gord": 27.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Queijo do Marajó",
+    "grupo": "Laticínios",
+    "kcal": 320,
+    "prot": 21.0,
+    "carb": 2.5,
+    "gord": 25.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Azeite de dendê",
+    "grupo": "Suplementos",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Óleo de babaçu",
+    "grupo": "Suplementos",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Manteiga ghee",
+    "grupo": "Suplementos",
+    "kcal": 884,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 100.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Canjica de milho cozida",
+    "grupo": "Cereais",
+    "kcal": 105,
+    "prot": 2.1,
+    "carb": 22.8,
+    "gord": 0.8,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Polvilho azedo",
+    "grupo": "Cereais",
+    "kcal": 348,
+    "prot": 0.4,
+    "carb": 86.5,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Polvilho doce",
+    "grupo": "Cereais",
+    "kcal": 351,
+    "prot": 0.4,
+    "carb": 87.2,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Beiju de mandioca",
+    "grupo": "Cereais",
+    "kcal": 230,
+    "prot": 1.0,
+    "carb": 56.0,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Paio cozido",
+    "grupo": "Carnes",
+    "kcal": 315,
+    "prot": 17.5,
+    "carb": 1.5,
+    "gord": 26.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Toucinho frito",
+    "grupo": "Carnes",
+    "kcal": 540,
+    "prot": 15.0,
+    "carb": 0.0,
+    "gord": 53.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Língua bovina cozida",
+    "grupo": "Carnes",
+    "kcal": 284,
+    "prot": 18.9,
+    "carb": 0.0,
+    "gord": 22.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Rim bovino cozido",
+    "grupo": "Carnes",
+    "kcal": 158,
+    "prot": 25.5,
+    "carb": 0.0,
+    "gord": 5.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Sarapatel",
+    "grupo": "Carnes",
+    "kcal": 150,
+    "prot": 18.0,
+    "carb": 2.0,
+    "gord": 8.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Feijoada completa",
+    "grupo": "Carnes",
+    "kcal": 140,
+    "prot": 10.0,
+    "carb": 8.0,
+    "gord": 8.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Peixe-espada grelhado",
+    "grupo": "Peixes",
+    "kcal": 155,
+    "prot": 25.0,
+    "carb": 0.0,
+    "gord": 6.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pacu assado",
+    "grupo": "Peixes",
+    "kcal": 190,
+    "prot": 21.0,
+    "carb": 0.0,
+    "gord": 11.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Curimbatá assado",
+    "grupo": "Peixes",
+    "kcal": 160,
+    "prot": 19.0,
+    "carb": 0.0,
+    "gord": 9.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Lagostim cozido",
+    "grupo": "Peixes",
+    "kcal": 90,
+    "prot": 18.0,
+    "carb": 0.0,
+    "gord": 1.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Vieira cozida",
+    "grupo": "Peixes",
+    "kcal": 111,
+    "prot": 20.0,
+    "carb": 4.0,
+    "gord": 1.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abóbora moranga cozida",
+    "grupo": "Verduras",
+    "kcal": 20,
+    "prot": 0.7,
+    "carb": 4.8,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Batata-doce roxa cozida",
+    "grupo": "Verduras",
+    "kcal": 86,
+    "prot": 1.5,
+    "carb": 20.0,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Batata-doce laranja cozida",
+    "grupo": "Verduras",
+    "kcal": 90,
+    "prot": 2.0,
+    "carb": 21.0,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Gergelim semente",
+    "grupo": "Cereais",
+    "kcal": 573,
+    "prot": 17.7,
+    "carb": 23.4,
+    "gord": 49.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Mostarda folha refogada",
+    "grupo": "Verduras",
+    "kcal": 42,
+    "prot": 2.5,
+    "carb": 4.8,
+    "gord": 2.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Rúcula crua",
+    "grupo": "Verduras",
+    "kcal": 25,
+    "prot": 2.6,
+    "carb": 3.7,
+    "gord": 0.7,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Rabanete cru",
+    "grupo": "Verduras",
+    "kcal": 16,
+    "prot": 0.7,
+    "carb": 3.4,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Abio fruta",
+    "grupo": "Frutas",
+    "kcal": 62,
+    "prot": 0.8,
+    "carb": 14.9,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Araticum fruta",
+    "grupo": "Frutas",
+    "kcal": 78,
+    "prot": 1.2,
+    "carb": 18.5,
+    "gord": 0.6,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cagaita fruta",
+    "grupo": "Frutas",
+    "kcal": 35,
+    "prot": 0.6,
+    "carb": 8.4,
+    "gord": 0.2,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Cambuci fruta",
+    "grupo": "Frutas",
+    "kcal": 45,
+    "prot": 0.8,
+    "carb": 10.5,
+    "gord": 0.4,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Genipapo fruta",
+    "grupo": "Frutas",
+    "kcal": 113,
+    "prot": 5.2,
+    "carb": 25.7,
+    "gord": 0.5,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Ingá fruta",
+    "grupo": "Frutas",
+    "kcal": 46,
+    "prot": 1.0,
+    "carb": 11.5,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Pitomba fruta",
+    "grupo": "Frutas",
+    "kcal": 55,
+    "prot": 0.5,
+    "carb": 14.2,
+    "gord": 0.1,
+    "porcao": "100g"
+  },
+  {
+    "nome": "BCAA em pó",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 100.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Glutamina em pó",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 100.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Citrulina Malato",
+    "grupo": "Suplementos",
+    "kcal": 0,
+    "prot": 0.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  },
+  {
+    "nome": "Arginina em pó",
+    "grupo": "Suplementos",
+    "kcal": 400,
+    "prot": 100.0,
+    "carb": 0.0,
+    "gord": 0.0,
+    "porcao": "100g"
+  }
+]

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, boolean, integer, numeric, timestamp, date, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, boolean, integer, numeric, timestamp, date, jsonb, unique, varchar, decimal } from "drizzle-orm/pg-core";
 
 // 1. Tabela de Configurações do Usuário
 export const userSettings = pgTable("user_settings", {
@@ -80,3 +80,18 @@ export const dietPlan = pgTable("diet_plan", {
   substitutions: jsonb("substitutions"), // [{item: "Cuscuz", canReplace: "Pão integral", protein: 4, carbs: 23}]
   order: integer("order").default(0),
 });
+
+// 7. Tabela de Alimentos (Carga Local / TACO)
+export const foods = pgTable("foods", {
+  id: serial("id").primaryKey(),
+  nome: varchar("nome", { length: 256 }).notNull(),
+  grupo: varchar("grupo", { length: 128 }),
+  kcal: integer("kcal").notNull(),
+  prot: decimal("prot", { precision: 6, scale: 2 }).notNull(),
+  carb: decimal("carb", { precision: 6, scale: 2 }).notNull(),
+  gord: decimal("gord", { precision: 6, scale: 2 }).notNull(),
+  porcao: varchar("porcao", { length: 32 }).default("100g"),
+  userId: varchar("user_id").notNull(),
+}, (t) => ({
+  unq: unique().on(t.userId, t.nome),
+}));
