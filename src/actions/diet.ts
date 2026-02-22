@@ -23,16 +23,17 @@ export async function getTodayMacros() {
     let totals = { protein: 0, carbs: 0, fat: 0, calories: 0 };
 
     todayMeals.forEach(meal => {
-        const items = meal.items as any[];
-        if (items && Array.isArray(items)) {
-            items.forEach(item => {
-                totals.protein += Number(item.protein || 0);
-                totals.carbs += Number(item.carbs || 0);
-                totals.fat += Number(item.fat || 0);
-                const itemCals = (Number(item.protein || 0) * 4) + (Number(item.carbs || 0) * 4) + (Number(item.fat || 0) * 9);
-                totals.calories += itemCals;
-            });
-        }
+        const items = Array.isArray(meal.items) ? (meal.items as any[]) : [];
+        items.forEach(item => {
+            const p = Number(item.protein || 0);
+            const c = Number(item.carbs || 0);
+            const f = Number(item.fat || 0);
+            totals.protein += isNaN(p) ? 0 : p;
+            totals.carbs += isNaN(c) ? 0 : c;
+            totals.fat += isNaN(f) ? 0 : f;
+            const itemCals = (isNaN(p) ? 0 : p * 4) + (isNaN(c) ? 0 : c * 4) + (isNaN(f) ? 0 : f * 9);
+            totals.calories += itemCals;
+        });
     });
 
     return totals;
@@ -79,7 +80,7 @@ export async function saveMeal(mealData: {
             userId,
             date: mealData.date,
             mealName: mealData.mealName,
-            items: mealData.items,
+            items: Array.isArray(mealData.items) ? mealData.items : [],
             isCompleted: mealData.isCompleted || false,
             notes: mealData.notes || "",
         });
@@ -134,10 +135,10 @@ export async function addDietMeal(data: {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
 
-    const items = data.items || [];
-    const targetProtein = items.reduce((acc: number, it: any) => acc + Number(it.protein || 0), 0);
-    const targetCarbs = items.reduce((acc: number, it: any) => acc + Number(it.carbs || 0), 0);
-    const targetFat = items.reduce((acc: number, it: any) => acc + Number(it.fat || 0), 0);
+    const items = Array.isArray(data.items) ? data.items : [];
+    const targetProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
+    const targetCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
+    const targetFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
     const targetCalories = (targetProtein * 4) + (targetCarbs * 4) + (targetFat * 9);
 
     await db.insert(dietPlan).values({
@@ -174,11 +175,12 @@ export async function updateDietMeal(id: number, data: Partial<{
     const updateData: any = { ...data };
 
     if (data.items) {
-        const items = data.items;
-        updateData.targetProtein = items.reduce((acc: number, it: any) => acc + Number(it.protein || 0), 0);
-        updateData.targetCarbs = items.reduce((acc: number, it: any) => acc + Number(it.carbs || 0), 0);
-        updateData.targetFat = items.reduce((acc: number, it: any) => acc + Number(it.fat || 0), 0);
-        updateData.targetCalories = (updateData.targetProtein * 4) + (updateData.targetCarbs * 4) + (updateData.targetFat * 9);
+        const items = Array.isArray(data.items) ? data.items : [];
+        updateData.targetProtein = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.protein)) ? 0 : Number(it.protein)), 0);
+        updateData.targetCarbs = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.carbs)) ? 0 : Number(it.carbs)), 0);
+        updateData.targetFat = items.reduce((acc: number, it: any) => acc + (isNaN(Number(it.fat)) ? 0 : Number(it.fat)), 0);
+        updateData.targetCalories = (Number(updateData.targetProtein || 0) * 4) + (Number(updateData.targetCarbs || 0) * 4) + (Number(updateData.targetFat || 0) * 9);
+        updateData.items = items;
     } else if (data.targetProtein !== undefined || data.targetCarbs !== undefined || data.targetFat !== undefined) {
         // Fallback for manual macro updates if items not provided (backward compatibility/edge cases)
         const current = await db.query.dietPlan.findFirst({ where: eq(dietPlan.id, id) });

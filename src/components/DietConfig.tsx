@@ -64,7 +64,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
         setFormData({
             mealName: meal.mealName,
             scheduledTime: meal.scheduledTime || "",
-            items: meal.items || [],
+            items: Array.isArray(meal.items) ? meal.items : [],
             suggestions: meal.suggestions || "",
             order: meal.order || 0
         });
@@ -201,47 +201,50 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
 
                                 <ScrollArea className="h-48 rounded-2xl bg-muted/30 p-2 border border-white/5">
                                     <div className="space-y-2">
-                                        {formData.items.map((item, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 p-3 bg-card rounded-xl border border-white/5 shadow-sm">
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-bold truncate leading-none mb-1">{item.food}</p>
-                                                    <div className="flex gap-2 text-[8px] text-muted-foreground uppercase font-black">
-                                                        <span className="text-red-500">P: {item.protein}g</span>
-                                                        <span className="text-blue-500">C: {item.carbs}g</span>
-                                                        <span className="text-yellow-500">F: {item.fat}g</span>
+                                        {(() => {
+                                            const items = Array.isArray(formData.items) ? formData.items : [];
+                                            return items.map((item, idx) => (
+                                                <div key={idx} className="flex items-center gap-3 p-3 bg-card rounded-xl border border-white/5 shadow-sm">
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-bold truncate leading-none mb-1">{item.food}</p>
+                                                        <div className="flex gap-2 text-[8px] text-muted-foreground uppercase font-black">
+                                                            <span className="text-red-500">P: {Number(item.protein || 0).toFixed(1)}g</span>
+                                                            <span className="text-blue-500">C: {Number(item.carbs || 0).toFixed(1)}g</span>
+                                                            <span className="text-yellow-500">F: {Number(item.fat || 0).toFixed(1)}g</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input
+                                                            type="number"
+                                                            value={item.qty}
+                                                            onChange={(e) => {
+                                                                const newQty = Number(e.target.value);
+                                                                const factor = newQty / (item.qty || 100);
+                                                                const nextItems = [...items];
+                                                                nextItems[idx] = {
+                                                                    ...item,
+                                                                    qty: newQty,
+                                                                    protein: Number((Number(item.protein || 0) * factor).toFixed(1)),
+                                                                    carbs: Number((Number(item.carbs || 0) * factor).toFixed(1)),
+                                                                    fat: Number((Number(item.fat || 0) * factor).toFixed(1))
+                                                                };
+                                                                setFormData({ ...formData, items: nextItems });
+                                                            }}
+                                                            className="w-16 h-8 text-xs text-center border-none bg-muted/50 rounded-lg px-1"
+                                                        />
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setFormData({ ...formData, items: items.filter((_, i) => i !== idx) })}
+                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Input
-                                                        type="number"
-                                                        value={item.qty}
-                                                        onChange={(e) => {
-                                                            const newQty = Number(e.target.value);
-                                                            const factor = newQty / item.qty;
-                                                            const nextItems = [...formData.items];
-                                                            nextItems[idx] = {
-                                                                ...item,
-                                                                qty: newQty,
-                                                                protein: Number((item.protein * factor).toFixed(1)),
-                                                                carbs: Number((item.carbs * factor).toFixed(1)),
-                                                                fat: Number((item.fat * factor).toFixed(1))
-                                                            };
-                                                            setFormData({ ...formData, items: nextItems });
-                                                        }}
-                                                        className="w-16 h-8 text-xs text-center border-none bg-muted/50 rounded-lg px-1"
-                                                    />
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => setFormData({ ...formData, items: formData.items.filter((_, i) => i !== idx) })}
-                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {formData.items.length === 0 && (
+                                            ));
+                                        })()}
+                                        {(Array.isArray(formData.items) ? formData.items : []).length === 0 && (
                                             <div className="h-full flex items-center justify-center py-10 text-muted-foreground text-xs italic">
                                                 Nenhum alimento no plano
                                             </div>
@@ -254,21 +257,21 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase text-muted-foreground">Macros Totais</p>
                                     <p className="text-xl font-black text-primary">
-                                        {Math.round(formData.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0))} <span className="text-xs font-normal">kcal</span>
+                                        {Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + (Number(b.protein || 0) * 4 + Number(b.carbs || 0) * 4 + Number(b.fat || 0) * 9), 0))} <span className="text-xs font-normal">kcal</span>
                                     </p>
                                 </div>
                                 <div className="flex gap-4 text-center">
                                     <div>
                                         <p className="text-[9px] font-bold text-red-500">P</p>
-                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.protein, 0))}g</p>
+                                        <p className="text-xs font-black">{Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + Number(b.protein || 0), 0))}g</p>
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-bold text-blue-500">C</p>
-                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.carbs, 0))}g</p>
+                                        <p className="text-xs font-black">{Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + Number(b.carbs || 0), 0))}g</p>
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-bold text-yellow-500">F</p>
-                                        <p className="text-xs font-black">{Math.round(formData.items.reduce((a, b) => a + b.fat, 0))}g</p>
+                                        <p className="text-xs font-black">{Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + Number(b.fat || 0), 0))}g</p>
                                     </div>
                                 </div>
                             </div>
@@ -311,7 +314,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground font-medium line-clamp-1 italic">
-                                            {meal.items?.map((it: any) => `${it.qty}g ${it.food}`).join(" + ") || "Sem alimentos cadastrados"}
+                                            {(Array.isArray(meal.items) ? meal.items : []).map((it: any) => `${it.qty || 100}g ${it.food || "Alimento"}`).join(" + ") || "Sem alimentos cadastrados"}
                                         </p>
 
                                         <div className="flex gap-4 mt-3">

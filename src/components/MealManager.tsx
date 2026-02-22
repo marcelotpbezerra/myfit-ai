@@ -114,12 +114,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                 if (plan) {
                     setEditingMeal(null);
                     setMealName(plan.mealName);
-                    const suggestionItems: MealItem[] = (plan.items || []).map(it => ({
-                        food: it.food,
-                        protein: it.protein,
-                        carbs: it.carbs,
-                        fat: it.fat,
-                        qty: it.qty
+                    const planItems = Array.isArray(plan.items) ? plan.items : [];
+                    const suggestionItems: MealItem[] = planItems.map(it => ({
+                        food: it.food || "Alimento",
+                        protein: Number(it.protein || 0),
+                        carbs: Number(it.carbs || 0),
+                        fat: Number(it.fat || 0),
+                        qty: Number(it.qty || 100)
                     }));
                     setCurrentItems(suggestionItems);
                     setIsDialogOpen(true);
@@ -171,7 +172,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         startTransition(async () => {
             let result;
             if (existingMeal) {
-                const currentItems = [...existingMeal.items];
+                const currentItems = Array.isArray(existingMeal.items) ? [...existingMeal.items] : [];
                 const matchIndex = currentItems.findIndex(it =>
                     it.food.toLowerCase().includes(sub.canReplace.toLowerCase()) ||
                     sub.canReplace.toLowerCase().includes(it.food.toLowerCase())
@@ -343,12 +344,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     }
 
     async function handleQuickAdd(plan: DietPlanItem, isCompleted = false) {
-        const suggestionItems: MealItem[] = (plan.items || []).map(it => ({
-            food: it.food,
-            protein: it.protein,
-            carbs: it.carbs,
-            fat: it.fat,
-            qty: it.qty
+        const planItems = Array.isArray(plan.items) ? plan.items : [];
+        const suggestionItems: MealItem[] = planItems.map(it => ({
+            food: it.food || "Alimento",
+            protein: Number(it.protein || 0),
+            carbs: Number(it.carbs || 0),
+            fat: Number(it.fat || 0),
+            qty: Number(it.qty || 100)
         }));
 
         startTransition(async () => {
@@ -432,12 +434,18 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         }
     }
 
-    const totals = currentItems.reduce((acc, item) => ({
-        p: acc.p + item.protein,
-        c: acc.c + item.carbs,
-        f: acc.f + item.fat,
-        cal: acc.cal + (item.protein * 4 + item.carbs * 4 + item.fat * 9)
-    }), { p: 0, c: 0, f: 0, cal: 0 });
+    const safeCurrentItems = Array.isArray(currentItems) ? currentItems : [];
+    const totals = safeCurrentItems.reduce((acc, item) => {
+        const p = Number(item.protein || 0);
+        const c = Number(item.carbs || 0);
+        const f = Number(item.fat || 0);
+        return {
+            p: acc.p + p,
+            c: acc.c + c,
+            f: acc.f + f,
+            cal: acc.cal + (p * 4 + c * 4 + f * 9)
+        }
+    }, { p: 0, c: 0, f: 0, cal: 0 });
 
     return (
         <div className="space-y-6">
@@ -512,16 +520,16 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                         </h3>
                                     </div>
                                     <div className="flex gap-3 mt-1">
-                                        <span className="text-[10px] font-bold text-red-500/80">P: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.protein, 0).toFixed(0) : plan.targetProtein}g</span>
-                                        <span className="text-[10px] font-bold text-blue-500/80">C: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.carbs, 0).toFixed(0) : plan.targetCarbs}g</span>
-                                        <span className="text-[10px] font-bold text-yellow-500/80">G: {existingMeal ? existingMeal.items.reduce((a, b) => a + b.fat, 0).toFixed(0) : plan.targetFat}g</span>
+                                        <span className="text-[10px] font-bold text-red-500/80">P: {existingMeal ? (Array.isArray(existingMeal.items) ? existingMeal.items : []).reduce((a, b) => a + Number(b.protein || 0), 0).toFixed(0) : (plan.targetProtein ?? 0)}g</span>
+                                        <span className="text-[10px] font-bold text-blue-500/80">C: {existingMeal ? (Array.isArray(existingMeal.items) ? existingMeal.items : []).reduce((a, b) => a + Number(b.carbs || 0), 0).toFixed(0) : (plan.targetCarbs ?? 0)}g</span>
+                                        <span className="text-[10px] font-bold text-yellow-500/80">G: {existingMeal ? (Array.isArray(existingMeal.items) ? existingMeal.items : []).reduce((a, b) => a + Number(b.fat || 0), 0).toFixed(0) : (plan.targetFat ?? 0)}g</span>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <div className="text-right shrink-0">
                                         <p className="text-sm font-black text-primary">
-                                            {existingMeal ? Math.round(existingMeal.items.reduce((a, b) => a + (b.protein * 4 + b.carbs * 4 + b.fat * 9), 0)) : plan.targetCalories}
+                                            {existingMeal ? Math.round((Array.isArray(existingMeal.items) ? existingMeal.items : []).reduce((a, b) => a + (Number(b.protein || 0) * 4 + Number(b.carbs || 0) * 4 + Number(b.fat || 0) * 9), 0)) : (plan.targetCalories ?? 0)}
                                             <span className="text-[10px] ml-1 font-normal text-muted-foreground uppercase">kcal</span>
                                         </p>
                                     </div>
@@ -543,32 +551,36 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                             )}
                                         </p>
 
-                                        {(existingMeal || plan).items?.map((it: any, idx: number) => (
-                                            <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-bold truncate">{it.qty}g {it.food}</p>
-                                                    <p className="text-[9px] text-muted-foreground uppercase font-black">
-                                                        P: {it.protein}g | C: {it.carbs}g | G: {it.fat}g
-                                                    </p>
+                                        {(() => {
+                                            const rawItems = existingMeal ? existingMeal.items : plan.items;
+                                            const displayItems = Array.isArray(rawItems) ? rawItems : [];
+                                            return displayItems.map((it: any, idx: number) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-bold truncate">{it.qty ?? 100}g {it.food ?? "Alimento"}</p>
+                                                        <p className="text-[9px] text-muted-foreground uppercase font-black">
+                                                            P: {Number(it.protein ?? 0).toFixed(1)}g | C: {Number(it.carbs ?? 0).toFixed(1)}g | G: {Number(it.fat ?? 0).toFixed(1)}g
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {existingMeal && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
+                                                                    setIsSubstituteSearchOpen(true);
+                                                                }}
+                                                                className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10"
+                                                            >
+                                                                Substituir
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    {existingMeal && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
-                                                                setIsSubstituteSearchOpen(true);
-                                                            }}
-                                                            className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10"
-                                                        >
-                                                            Substituir
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ));
+                                        })()}
                                     </div>
 
                                     <div className="flex gap-2 pt-2">
