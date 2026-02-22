@@ -60,7 +60,7 @@ export async function uploadBioimpedance(formData: FormData) {
         };
 
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash", // Use a stable version name
+            model: "gemini-2.0-flash", // Use a stable version name
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: schema,
@@ -187,7 +187,7 @@ export async function generateConsultantReport() {
     }
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: reportSchema,
@@ -240,8 +240,8 @@ export async function analyzeProgressWithGemini() {
     const { userId } = await auth();
     if (!userId) throw new Error("Não autorizado");
 
-    const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-    if (!apiKey) return "Configuração da IA pendente. Adicione GOOGLE_GEMINI_API_KEY ao .env";
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return "Configuração da IA pendente. Adicione GEMINI_API_KEY ao .env";
 
     // 1. Buscar Contexto do Usuário
     const settings = await db.query.userSettings.findFirst({
@@ -301,7 +301,7 @@ export async function analyzeProgressWithGemini() {
   `;
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
