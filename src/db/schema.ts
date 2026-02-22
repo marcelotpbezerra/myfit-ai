@@ -69,6 +69,18 @@ export const healthStats = pgTable("health_stats", {
   recordedAt: timestamp("recorded_at").defaultNow(),
 });
 
+// 5b. Tabela Dedicada para Bioimpedância (Métricas Avançadas)
+export const biometrics = pgTable("biometrics", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  weight: decimal("weight", { precision: 5, scale: 2 }),
+  bodyFat: decimal("body_fat", { precision: 5, scale: 2 }),
+  muscleMass: decimal("muscle_mass", { precision: 5, scale: 2 }),
+  visceralFat: integer("visceral_fat"),
+  waterPercentage: decimal("water_percentage", { precision: 5, scale: 2 }),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
 // 6. Tabela de Plano de Dieta (Metas por refeição)
 export const dietPlan = pgTable("diet_plan", {
   id: serial("id").primaryKey(),
