@@ -189,3 +189,62 @@ export async function getLatestBiometrics() {
         orderBy: [desc(biometrics.recordedAt)],
     });
 }
+
+export async function saveHealthSyncData(data: { type: 'sleep_hours' | 'steps'; value: string; date: string }[]) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    for (const item of data) {
+        const itemDate = new Date(item.date);
+        const startOfDay = new Date(itemDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(itemDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Verifica se já existe um registro desse tipo para esse dia
+        const existing = await db.query.healthStats.findFirst({
+            where: and(
+                eq(healthStats.userId, userId),
+                eq(healthStats.type, item.type),
+                gte(healthStats.recordedAt, startOfDay),
+                sql`${healthStats.recordedAt} <= ${endOfDay}`
+            )
+        });
+
+        if (existing) {
+            await db.update(healthStats)
+                .set({ value: item.value })
+                .where(eq(healthStats.id, existing.id));
+        } else {
+            await db.insert(healthStats).values({
+                userId,
+                type: item.type,
+                value: item.value,
+                recordedAt: itemDate,
+            });
+        }
+    }
+
+    revalidatePath("/dashboard/health");
+    return { success: true };
+}
+
+export async function getSyncHistory(days = 7) {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+
+    const stats = await db.query.healthStats.findMany({
+        where: and(
+            eq(healthStats.userId, userId),
+            sql`${healthStats.type} IN ('sleep_hours', 'steps')`,
+            gte(healthStats.recordedAt, startDate)
+        ),
+        orderBy: [desc(healthStats.recordedAt)],
+    });
+
+    return stats;
+}

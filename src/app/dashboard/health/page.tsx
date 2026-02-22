@@ -1,7 +1,8 @@
-import { getLatestStats, getAIContext, getBiometricsHistory, getWaterHistory, getWaterGoal } from "@/actions/health";
+import { getLatestStats, getAIContext, getBiometricsHistory, getWaterHistory, getWaterGoal, getSyncHistory } from "@/actions/health";
 import { BiometricsManager, HabitTracker, ProgressPhotos } from "@/components/HealthManager";
 import { BioimpedanceManager } from "@/components/BioimpedanceManager";
 import { AISettings } from "@/components/AISettings";
+import { HealthConnectSync } from "@/components/HealthConnectSync";
 import { Activity, Heart, AlertTriangle, Droplets, Scale, Microscope } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -11,6 +12,7 @@ export default async function HealthPage() {
     const bioHistory = await getBiometricsHistory();
     const waterHistory = await getWaterHistory();
     const waterGoal = await getWaterGoal();
+    const syncHistory = await getSyncHistory();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -56,7 +58,8 @@ export default async function HealthPage() {
                         </TabsList>
 
                         <div className="mt-6">
-                            <TabsContent value="habitos" className="space-y-6 outline-none">
+                            <TabsContent value="habitos" className="space-y-8 outline-none mt-6">
+                                <HealthConnectSync history={syncHistory} />
                                 <HabitTracker waterHistory={waterHistory} waterGoal={waterGoal} />
                                 <ProgressPhotos />
                             </TabsContent>
