@@ -1,4 +1,4 @@
-import { getLatestStats, getAIContext, getBiometricsHistory } from "@/actions/health";
+import { getLatestStats, getAIContext, getBiometricsHistory, getWaterHistory, getWaterGoal } from "@/actions/health";
 import { BiometricsManager, HabitTracker, ProgressPhotos } from "@/components/HealthManager";
 import { BioimpedanceManager } from "@/components/BioimpedanceManager";
 import { AISettings } from "@/components/AISettings";
@@ -9,6 +9,8 @@ export default async function HealthPage() {
     const latestStats = await getLatestStats();
     const initialContext = await getAIContext();
     const bioHistory = await getBiometricsHistory();
+    const waterHistory = await getWaterHistory();
+    const waterGoal = await getWaterGoal();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -55,7 +57,7 @@ export default async function HealthPage() {
 
                         <div className="mt-6">
                             <TabsContent value="habitos" className="space-y-6 outline-none">
-                                <HabitTracker />
+                                <HabitTracker waterHistory={waterHistory} waterGoal={waterGoal} />
                                 <ProgressPhotos />
                             </TabsContent>
 

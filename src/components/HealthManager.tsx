@@ -75,7 +75,15 @@ export function BiometricsManager({ latestStats }: { latestStats: any }) {
     );
 }
 
-export function HabitTracker() {
+import { WaterHistoryChart } from "./WaterHistoryChart";
+
+export function HabitTracker({
+    waterHistory = [],
+    waterGoal = 3000
+}: {
+    waterHistory?: any[],
+    waterGoal?: number
+}) {
     const [isPending, startTransition] = useTransition();
     const [sleep, setSleep] = useState("");
 
@@ -89,8 +97,8 @@ export function HabitTracker() {
     };
 
     return (
-        <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="border-none bg-blue-500/5 backdrop-blur-xl ring-1 ring-blue-500/10">
+        <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="border-none bg-blue-500/5 backdrop-blur-xl ring-1 ring-blue-500/10 h-full">
                 <CardContent className="p-5 space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
@@ -108,21 +116,11 @@ export function HabitTracker() {
                         />
                         <Button onClick={handleSleepSave} disabled={isPending} className="h-12 px-6 rounded-xl bg-blue-500 hover:bg-blue-600">Salvar</Button>
                     </div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black">Normalização via Health Connect em breve.</p>
                 </CardContent>
             </Card>
 
-            <Card className="border-none bg-cyan-500/5 backdrop-blur-xl ring-1 ring-cyan-500/10">
-                <CardContent className="p-5 flex flex-col justify-center gap-2">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                            <Droplets className="h-5 w-5" />
-                        </div>
-                        <h4 className="font-bold text-sm">Registro de Água</h4>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-black">Use o tracker do dashboard para logs rápidos.</p>
-                    <Button variant="secondary" className="h-12 w-full rounded-xl bg-cyan-500/10 text-cyan-400 border-none">Ver Histórico 7D</Button>
-                </CardContent>
-            </Card>
+            <WaterHistoryChart data={waterHistory} goal={waterGoal} />
         </div>
     );
 }

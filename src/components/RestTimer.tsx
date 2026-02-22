@@ -61,8 +61,15 @@ const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
     }
 };
 
+import { scheduleRestNotification } from "@/lib/notifications";
+
 export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
     const [timeLeft, setTimeLeft] = useState(duration);
+
+    useEffect(() => {
+        // Disparar notificação acionável ao iniciar descanso (para WearOS/Mobile)
+        scheduleRestNotification(duration);
+    }, [duration]);
 
     useEffect(() => {
         if (timeLeft <= 0) {

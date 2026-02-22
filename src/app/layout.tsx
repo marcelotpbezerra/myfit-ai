@@ -37,6 +37,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+import { NotificationInit } from "@/components/NotificationInit";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,6 +53,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
         >
+          <NotificationInit />
           {children}
           <Toaster position="top-right" richColors closeButton />
         </body>

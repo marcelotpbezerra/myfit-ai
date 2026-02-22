@@ -188,6 +188,16 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         }));
     };
 
+    // Listener para o botão "Pular Descanso" da notificação (WearOS)
+    useEffect(() => {
+        const handleNotificationSkip = () => {
+            setShowTimer(false);
+            // Opcional: tocar um som ou vibrar para confirmar
+        };
+        window.addEventListener('notification:skip_rest', handleNotificationSkip);
+        return () => window.removeEventListener('notification:skip_rest', handleNotificationSkip);
+    }, []);
+
     const handleLogSet = async (exercise: Exercise) => {
         const input = inputs[exercise.id] || {
             weight: exercise.targetWeight || '',
