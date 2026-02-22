@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, LogOut, Menu, X, History as HistoryIcon } from "lucide-react";
+import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, LogOut, Menu, X, History as HistoryIcon, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -13,8 +13,7 @@ const NAV_ITEMS = [
     { name: "Refeições", href: "/dashboard/meals", icon: Utensils },
     { name: "Histórico", href: "/dashboard/history", icon: HistoryIcon },
     { name: "Saúde", href: "/dashboard/health", icon: Activity },
-    { name: "Bioimpedância", href: "/dashboard/health/bioimpedancia", icon: Activity },
-    { name: "Consultor IA", href: "/dashboard/consultor", icon: Settings },
+    { name: "Consultor IA", href: "/dashboard/consultor", icon: BrainCircuit },
     { name: "Ajustes", href: "/dashboard/settings", icon: Settings },
 ];
 

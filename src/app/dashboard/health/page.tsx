@@ -1,25 +1,28 @@
-import { getLatestStats, getAIContext } from "@/actions/health";
+import { getLatestStats, getAIContext, getBiometricsHistory } from "@/actions/health";
 import { BiometricsManager, HabitTracker, ProgressPhotos } from "@/components/HealthManager";
+import { BioimpedanceManager } from "@/components/BioimpedanceManager";
 import { AISettings } from "@/components/AISettings";
-import { Activity, Heart, AlertTriangle } from "lucide-react";
+import { Activity, Heart, AlertTriangle, Droplets, Scale, Microscope } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function HealthPage() {
     const latestStats = await getLatestStats();
     const initialContext = await getAIContext();
+    const bioHistory = await getBiometricsHistory();
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header Section */}
             <div className="flex flex-col gap-2">
                 <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent flex items-center gap-3">
-                    Saúde & Biometria <Activity className="h-8 w-8 text-primary" />
+                    Central de Saúde <Activity className="h-8 w-8 text-primary" />
                 </h1>
                 <p className="text-muted-foreground font-medium">
-                    Acompanhe sua evolução física e hábitos diários.
+                    Gestão integrada de biometria, hábitos e análise de composição corporal.
                 </p>
             </div>
 
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-6 flex items-start gap-4 animate-pulse shadow-lg shadow-destructive/5">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-2xl p-6 flex items-start gap-4 shadow-lg shadow-destructive/5">
                 <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
                     <AlertTriangle className="h-6 w-6 text-destructive" />
                 </div>
@@ -34,21 +37,42 @@ export default async function HealthPage() {
             <div className="grid gap-8 lg:grid-cols-3">
                 {/* Main Column */}
                 <div className="lg:col-span-2 space-y-8">
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                            <h2 className="text-xl font-black tracking-tight">Biometria Atual</h2>
+                    <Tabs defaultValue="biometria" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3 bg-muted/20 p-1 rounded-2xl h-14 ring-1 ring-white/5">
+                            <TabsTrigger value="habitos" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest gap-2">
+                                <Droplets className="h-4 w-4" />
+                                <span className="hidden sm:inline">Hábitos</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="biometria" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest gap-2">
+                                <Scale className="h-4 w-4" />
+                                <span className="hidden sm:inline">Peso & Medidas</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="bioimpedancia" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold text-xs uppercase tracking-widest gap-2">
+                                <Microscope className="h-4 w-4" />
+                                <span className="hidden sm:inline">Bioimpedância</span>
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <div className="mt-6">
+                            <TabsContent value="habitos" className="space-y-6 outline-none">
+                                <HabitTracker />
+                                <ProgressPhotos />
+                            </TabsContent>
+
+                            <TabsContent value="biometria" className="space-y-6 outline-none">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+                                    <h2 className="text-xl font-black tracking-tight">Biometria Atual</h2>
+                                </div>
+                                <BiometricsManager latestStats={latestStats} />
+                                <ProgressPhotos />
+                            </TabsContent>
+
+                            <TabsContent value="bioimpedancia" className="space-y-6 outline-none">
+                                <BioimpedanceManager history={bioHistory} />
+                            </TabsContent>
                         </div>
-                        <BiometricsManager latestStats={latestStats} />
-                    </section>
-
-                    <section className="space-y-4">
-                        <HabitTracker />
-                    </section>
-
-                    <section className="space-y-4">
-                        <ProgressPhotos />
-                    </section>
+                    </Tabs>
                 </div>
 
                 {/* Sidebar Column */}

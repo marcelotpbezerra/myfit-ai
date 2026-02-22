@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
-import { healthStats, userSettings } from "@/db/schema";
+import { healthStats, userSettings, biometrics } from "@/db/schema";
 import { eq, and, sql, desc, gte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -168,4 +168,24 @@ export async function getUserSettings() {
     });
 
     return settings;
+}
+
+export async function getBiometricsHistory() {
+    const { userId } = await auth();
+    if (!userId) return [];
+
+    return await db.query.biometrics.findMany({
+        where: eq(biometrics.userId, userId),
+        orderBy: [desc(biometrics.recordedAt)],
+    });
+}
+
+export async function getLatestBiometrics() {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    return await db.query.biometrics.findFirst({
+        where: eq(biometrics.userId, userId),
+        orderBy: [desc(biometrics.recordedAt)],
+    });
 }

@@ -194,19 +194,28 @@ export async function generateConsultantReport() {
         },
     });
 
-    const systemPrompt = `Você é um Nutricionista e Fisiologista de alta performance. Analise os treinos, os macros batidos e a composição corporal atual do usuário. Seja direto, técnico e aponte falhas e acertos. Se houver falta de dados, mencione o que falta para uma análise melhor. Tone: Profissional, assertivo (estilo Redesoft B2Click).`;
+    const systemPrompt = `Você é um Especialista em Nutrição e Fisiologia Esportiva de elite. 
+    Sua missão é analisar se a dieta e os treinos da última semana estão alinhados com a composição corporal do usuário.
+    Analise especificamente a bioimpedância: se o percentual de gordura está alto, foque em déficit e qualidade; se a massa muscular está estagnada, critique o volume de treino ou aporte proteico.
+    Seja direto, técnico e use o tom assertivo da Redesoft B2Click.`;
 
     const userPrompt = `
     DADOS DO USUÁRIO (ÚLTIMOS 7 DIAS):
     
-    DIETA:
-    ${recentMeals.length > 0 ? recentMeals.map(m => `- ${m.mealName}: ${JSON.stringify(m.items)}`).join('\n') : "Nenhuma refeição registrada."}
+    COMPOSIÇÃO CORPORAL (ÚLTIMA BIOIMPEDÂNCIA):
+    ${latestBiometrics
+            ? `- Peso: ${latestBiometrics.weight}kg
+           - Gordura Corporal: ${latestBiometrics.bodyFat}%
+           - Massa Muscular: ${latestBiometrics.muscleMass}kg
+           - Gordura Visceral: Nível ${latestBiometrics.visceralFat}
+           - Data da Avaliação: ${new Date(latestBiometrics.recordedAt!).toLocaleDateString('pt-BR')}`
+            : "Nenhuma avaliação de bioimpedância recente encontrada. Recomende que o usuário faça o upload de um exame para uma análise mais precisa."}
+
+    DIETA (REFREIÇÕES REGISTRADAS):
+    ${recentMeals.length > 0 ? recentMeals.map(m => `- ${m.mealName}: ${JSON.stringify(m.items)}`).join('\n') : "Nenhum log de dieta na última semana."}
     
-    TREINOS:
-    ${recentWorkoutLogs.length > 0 ? recentWorkoutLogs.map(l => `- ${l.exerciseName}: ${l.weight}kg x ${l.reps} ${l.notes || ""}`).join('\n') : "Nenhum treino registrado."}
-    
-    ÚLTIMA BIOIMPEDÂNCIA:
-    ${latestBiometrics ? JSON.stringify(latestBiometrics) : "Nenhuma avaliação recente."}
+    TREINOS (HISTÓRICO):
+    ${recentWorkoutLogs.length > 0 ? recentWorkoutLogs.map(l => `- ${l.exerciseName}: ${l.weight}kg x ${l.reps} reps ${l.notes ? `(${l.notes})` : ""}`).join('\n') : "Nenhum treino registrado nos últimos 7 dias."}
     `;
 
     try {
