@@ -29,9 +29,13 @@ export default function ConsultantPage() {
     const handleGenerateReport = async () => {
         setLoading(true);
         try {
-            const data = await generateConsultantReport();
-            setReport(data);
-            toast.success("Relatório gerado com sucesso!");
+            const res = await generateConsultantReport();
+            if (res && !res.error) {
+                setReport(res);
+                toast.success("Relatório gerado com sucesso!");
+            } else {
+                toast.error(res?.error || "Ocorreu uma falha ao gerar o relatório.");
+            }
         } catch (error) {
             toast.error("O cérebro da IA está sobrecarregado. Tente novamente.");
             console.error(error);
@@ -89,7 +93,7 @@ export default function ConsultantPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="leading-relaxed text-lg">{report.overview}</p>
+                                    <p className="leading-relaxed text-lg">{report?.overview ?? 'Sem resumo disponível.'}</p>
                                 </CardContent>
                             </Card>
 
@@ -101,7 +105,7 @@ export default function ConsultantPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="leading-relaxed whitespace-pre-line">{report.critique}</p>
+                                    <p className="leading-relaxed whitespace-pre-line">{report?.critique ?? 'Sem crítica disponível no momento.'}</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -116,7 +120,7 @@ export default function ConsultantPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {report.actionable_tips.map((tip, idx) => (
+                                    {Array.isArray(report?.actionable_tips) ? report.actionable_tips.map((tip, idx) => (
                                         <motion.div
                                             key={idx}
                                             initial={{ opacity: 0, x: 20 }}
@@ -129,7 +133,9 @@ export default function ConsultantPage() {
                                             </div>
                                             <p className="text-sm font-medium">{tip}</p>
                                         </motion.div>
-                                    ))}
+                                    )) : (
+                                        <p className="text-sm text-muted-foreground">Nenhuma dica prática disponível.</p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>

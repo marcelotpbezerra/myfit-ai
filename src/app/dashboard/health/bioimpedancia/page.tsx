@@ -27,12 +27,14 @@ export default function BioimpedancePage() {
             const formData = new FormData();
             formData.append("file", file);
             const res = await uploadBioimpedance(formData);
-            if (res.success) {
+            if (res.success && res.data) {
                 setResult(res.data);
                 toast.success("Exame processado e salvo com sucesso!");
+            } else {
+                toast.error(res.error || "Falha ao processar o exame.");
             }
         } catch (error) {
-            toast.error("Falha ao processar o exame. Verifique a imagem/PDF.");
+            toast.error("Ocorreu um erro inesperado no upload.");
             console.error(error);
         } finally {
             setLoading(false);
@@ -107,10 +109,10 @@ export default function BioimpedancePage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 gap-4">
-                                    <MetricBox icon={<Weight className="w-4 h-4" />} label="Peso" value={`${result.weight} kg`} color="text-blue-500" />
-                                    <MetricBox icon={<Activity className="w-4 h-4" />} label="Gordura" value={`${result.bodyFat}%`} color="text-red-500" />
-                                    <MetricBox icon={<Gauge className="w-4 h-4" />} label="Massa Muscular" value={`${result.muscleMass} kg`} color="text-green-500" />
-                                    <MetricBox icon={<AlertCircle className="w-4 h-4" />} label="G. Visceral" value={result.visceralFat} color="text-orange-500" />
+                                    <MetricBox icon={<Weight className="w-4 h-4" />} label="Peso" value={`${result?.weight ?? '---'} kg`} color="text-blue-500" />
+                                    <MetricBox icon={<Activity className="w-4 h-4" />} label="Gordura" value={`${result?.bodyFat ?? '---'}%`} color="text-red-500" />
+                                    <MetricBox icon={<Gauge className="w-4 h-4" />} label="Massa Muscular" value={`${result?.muscleMass ?? '---'} kg`} color="text-green-500" />
+                                    <MetricBox icon={<AlertCircle className="w-4 h-4" />} label="G. Visceral" value={result?.visceralFat ?? '---'} color="text-orange-500" />
                                 </CardContent>
                             </Card>
                         </motion.div>
@@ -128,14 +130,14 @@ export default function BioimpedancePage() {
     );
 }
 
-function MetricBox({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: string | number, color: string }) {
+function MetricBox({ icon, label, value, color }: { icon: React.ReactNode, label: string, value: string | number | null | undefined, color: string }) {
     return (
         <div className="flex flex-col bg-background/50 p-3 rounded-lg border shadow-sm">
             <div className="flex items-center gap-2 mb-1">
                 <span className={color}>{icon}</span>
                 <span className="text-xs uppercase tracking-wider font-semibold opacity-70">{label}</span>
             </div>
-            <span className="text-2xl font-bold">{value}</span>
+            <span className="text-2xl font-bold">{value ?? '---'}</span>
         </div>
     );
 }

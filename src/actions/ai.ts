@@ -180,8 +180,14 @@ export async function generateConsultantReport() {
         required: ["overview", "critique", "actionable_tips"],
     };
 
+    const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("[generateConsultantReport] Erro: GOOGLE_GEMINI_API_KEY não configurada");
+        return { error: "IA não configurada" };
+    }
+
     const model = genAI.getGenerativeModel({
-        model: "gemini-3-flash",
+        model: "gemini-1.5-flash",
         generationConfig: {
             responseMimeType: "application/json",
             responseSchema: reportSchema,
@@ -204,16 +210,19 @@ export async function generateConsultantReport() {
     `;
 
     try {
-        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
-        if (!apiKey) {
-            console.error("[generateConsultantReport] Erro: GOOGLE_GEMINI_API_KEY não configurada");
-            return { error: "IA não configurada" };
-        }
 
+        console.log("[generateConsultantReport] Enviando prompt para consultoria...");
         const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
         const text = result.response.text();
-        console.log("[generateConsultantReport] Relatório gerado com sucesso.");
-        return JSON.parse(text);
+        console.log("[generateConsultantReport] Resposta bruta Gemini:", text);
+
+        try {
+            const parsed = JSON.parse(text);
+            return parsed;
+        } catch (parseError) {
+            console.error("[generateConsultantReport] Erro de Parsing JSON:", text);
+            return { error: "Erro no formato da resposta da IA. Gemini retornou: " + text.substring(0, 50) + "..." };
+        }
     } catch (error: any) {
         console.error("###################################################");
         console.error("ERROR IN generateConsultantReport:");
