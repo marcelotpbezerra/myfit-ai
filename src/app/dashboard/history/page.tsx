@@ -1,14 +1,18 @@
 import { getWorkoutLogsByDate } from "@/actions/workout";
 import { getMealsByDate } from "@/actions/diet";
-import { History as HistoryIcon, Dumbbell, Utensils } from "lucide-react";
+import { History as HistoryIcon, Dumbbell, Utensils, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { HistoryDatePicker } from "@/components/HistoryDatePicker";
 import { WorkoutLogEditor } from "@/components/WorkoutLogEditor";
+import Link from "next/link";
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
     const params = await searchParams;
-    const dateStr = params.date || new Date().toISOString().split('T')[0];
+    // Data em BRT (UTC-3) para evitar off-by-one à meia-noite
+    const nowBRT = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const todayBRT = nowBRT.toISOString().split('T')[0];
+    const dateStr = params.date || todayBRT;
 
     let workoutLogs: Awaited<ReturnType<typeof getWorkoutLogsByDate>> = [];
     let mealLogs: Awaited<ReturnType<typeof getMealsByDate>> = [];
@@ -25,9 +29,14 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         console.error("[History] Falha ao buscar refeições:", err);
     }
 
-    // Safety: garantir que são arrays antes de iterar
     const safeWorkoutLogs = Array.isArray(workoutLogs) ? workoutLogs : [];
-    const safeMealLogs = Array.isArray(mealLogs) ? mealLogs : [];
+
+    // ── Fix 2: histórico mostra APENAS refeições com consumo real (items.length > 0)
+    // Refeições sem items são rascunhos do MealManager, não consumo registrado.
+    const safeMealLogs = (Array.isArray(mealLogs) ? mealLogs : []).filter((m) => {
+        const items = Array.isArray(m.items) ? m.items : [];
+        return items.length > 0;
+    });
 
     const totalVolume = safeWorkoutLogs.reduce((acc, l) => {
         if (!l?.log) return acc;
@@ -81,7 +90,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     </CardContent>
                 </Card>
 
-                {/* Diet Summary */}
+                {/* Diet Summary — Fix 2 + Fix 3 */}
                 <Card className="rounded-[2.5rem] bg-card/30 backdrop-blur-xl border-none ring-1 ring-white/5 overflow-hidden">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                         <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Dieta</CardTitle>
@@ -89,13 +98,24 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-black text-primary mb-1">{Math.round(totalCals)} kcal</div>
-                        <p className="text-xs text-muted-foreground font-medium">
-                            {safeMealLogs.filter(m => m.isCompleted).length} de {safeMealLogs.length} refeições concluídas
+                        <p className="text-xs text-muted-foreground font-medium mb-4">
+                            {safeMealLogs.length} refeição{safeMealLogs.length !== 1 ? "s" : ""} registrada{safeMealLogs.length !== 1 ? "s" : ""}
                         </p>
 
-                        <div className="mt-6 space-y-4">
+                        {/* Fix 3: Botão de edição direciona para meals?date= */}
+                        <Link
+                            href={`/dashboard/meals?date=${dateStr}`}
+                            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary/70 hover:text-primary border border-primary/20 hover:border-primary/40 rounded-2xl px-4 py-2 transition-all duration-200 hover:bg-primary/5 mb-4"
+                        >
+                            <Pencil className="h-3 w-3" />
+                            Editar Refeições deste Dia
+                        </Link>
+
+                        <div className="space-y-3">
                             {safeMealLogs.map((m, i) => {
                                 const items = Array.isArray(m.items) ? (m.items as any[]) : [];
+                                const mealCals = items.reduce((sum, item: any) =>
+                                    sum + (Number(item?.protein ?? 0) * 4 + Number(item?.carbs ?? 0) * 4 + Number(item?.fat ?? 0) * 9), 0);
                                 return (
                                     <div key={i} className={cn(
                                         "flex items-center justify-between p-3 rounded-2xl border transition-all",
@@ -107,10 +127,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                                                 {items.slice(0, 2).map((it: any, idx: number) => (
                                                     <span key={idx}>{it?.food ?? ""}</span>
                                                 ))}
-                                                {items.length > 2 && <span>...</span>}
+                                                {items.length > 2 && <span>+{items.length - 2}</span>}
                                             </div>
                                         </div>
-                                        {m.isCompleted && <div className="h-2 w-2 rounded-full bg-green-500" />}
+                                        <div className="text-right shrink-0">
+                                            <p className="text-xs font-black text-primary">{Math.round(mealCals)} kcal</p>
+                                            {m.isCompleted && <div className="h-2 w-2 rounded-full bg-green-500 ml-auto mt-1" />}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -122,7 +145,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                 </Card>
             </div>
 
-            {/* Date Selector — Client Component */}
+            {/* Date Selector */}
             <div className="flex items-center justify-center gap-4 py-4">
                 <HistoryDatePicker defaultValue={dateStr} />
             </div>

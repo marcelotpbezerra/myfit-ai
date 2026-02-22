@@ -296,7 +296,9 @@ export async function getTodayWorkoutStatus(): Promise<{
     if (!userId) return DEFAULT;
 
     try {
-        const today = new Date().toISOString().split('T')[0];
+        // Data local BRT (UTC-3) — evita off-by-one com toISOString() que retorna UTC
+        const nowBRT = new Date(Date.now() - 3 * 60 * 60 * 1000);
+        const today = nowBRT.toISOString().split('T')[0];
 
         const logs = await db
             .select({
