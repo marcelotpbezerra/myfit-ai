@@ -94,7 +94,7 @@ export async function saveMeal(mealData: {
                 })
                 .where(and(eq(meals.id, mealData.id), eq(meals.userId, userId)));
         } else {
-            // Create
+            // UPSERT: cria ou atualiza se já existe (userId, date, mealName) — evita duplicatas
             await db.insert(meals).values({
                 userId,
                 date: mealData.date,
@@ -102,6 +102,13 @@ export async function saveMeal(mealData: {
                 items: sanitizedItems,
                 isCompleted: mealData.isCompleted || false,
                 notes: mealData.notes || "",
+            }).onConflictDoUpdate({
+                target: [meals.userId, meals.date, meals.mealName],
+                set: {
+                    items: sanitizedItems,
+                    isCompleted: mealData.isCompleted || false,
+                    notes: mealData.notes || "",
+                },
             });
         }
 

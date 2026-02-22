@@ -55,7 +55,10 @@ export const meals = pgTable("meals", {
   items: jsonb("items").default([]), // [{food: 'Frango', protein: 30, carbs: 0, fat: 5, qty: 100}]
   isCompleted: boolean("is_completed").default(false),
   notes: text("notes"),
-});
+}, (t) => ({
+  // Garante que um usuário só pode ter UMA entrada por refeição por dia
+  unqUserDateMeal: unique().on(t.userId, t.date, t.mealName),
+}));
 
 // 5. Biometria e Saúde
 export const healthStats = pgTable("health_stats", {
