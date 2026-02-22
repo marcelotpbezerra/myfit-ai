@@ -252,7 +252,21 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     function openEditDialog(meal: Meal) {
         setEditingMeal(meal);
         setMealName(meal.mealName);
-        setCurrentItems(Array.isArray(meal.items) ? [...meal.items] : []);
+        // Se os itens do diário estão vazios, pre-preenche do protocolo
+        const diaryItems = Array.isArray(meal.items) ? meal.items : [];
+        if (diaryItems.length === 0) {
+            const plan = dietPlan.find(p => p.mealName === meal.mealName);
+            const planItems: MealItem[] = Array.isArray(plan?.items) ? plan!.items.map((it: any) => ({
+                food: it.food || "Alimento",
+                protein: Number(it.protein || 0),
+                carbs: Number(it.carbs || 0),
+                fat: Number(it.fat || 0),
+                qty: Number(it.qty || 100)
+            })) : [];
+            setCurrentItems(planItems);
+        } else {
+            setCurrentItems(diaryItems);
+        }
         setIsDialogOpen(true);
     }
 
@@ -383,7 +397,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
         if (!targetMeal) return;
 
-        const newItems = [...targetMeal.items];
+        // Se o diário existe mas está vazio, usa o protocolo como base
+        const plan = dietPlan.find(p => p.mealName === targetMeal.mealName);
+        const baseItems = (Array.isArray(targetMeal.items) && targetMeal.items.length > 0)
+            ? [...targetMeal.items]
+            : (plan && Array.isArray(plan.items) ? [...plan.items] : []);
+
+        const newItems = [...baseItems];
         newItems[itemIndex] = {
             food: String(food.name || "Alimento"),
             protein: Number(food.protein) || 0,
@@ -559,9 +579,13 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                         </p>
 
                                         {(() => {
-                                            const rawItems = existingMeal ? existingMeal.items : plan.items;
-                                            const displayItems = Array.isArray(rawItems) ? rawItems : [];
-                                            return displayItems.map((it: any, idx: number) => (
+                                            // #1 Sincronização inteligente: diário existe mas vazio → exibe protocolo como base
+                                            const diaryItems = existingMeal ? (Array.isArray(existingMeal.items) ? existingMeal.items : []) : [];
+                                            const protocolItems = Array.isArray(plan.items) ? plan.items : [];
+                                            const displayItems = diaryItems.length > 0 ? diaryItems : protocolItems;
+                                            const isShowingProtocol = diaryItems.length === 0 && protocolItems.length > 0;
+
+                                            return displayItems.length > 0 ? displayItems.map((it: any, idx: number) => (
                                                 <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-xs font-bold truncate">{it.qty ?? 100}g {it.food ?? "Alimento"}</p>
@@ -569,24 +593,42 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                             P: {Number(it.protein ?? 0).toFixed(1)}g | C: {Number(it.carbs ?? 0).toFixed(1)}g | G: {Number(it.fat ?? 0).toFixed(1)}g
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        {existingMeal && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
+                                                    {/* #2 Botão Substituir: disponível quando há registro no diário OU ao ver protocolo */}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (existingMeal) {
+                                                                // Diário existe: substitui direto no item do diário
+                                                                // Se exibindo protocolo, primeiro salva o protocolo como base
+                                                                if (isShowingProtocol) {
+                                                                    // Copia protocolo para diário antes de substituir
+                                                                    const mealWithProto = { ...existingMeal, items: protocolItems };
                                                                     setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
-                                                                    setIsSubstituteSearchOpen(true);
-                                                                }}
-                                                                className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10"
-                                                            >
-                                                                Substituir
-                                                            </Button>
-                                                        )}
-                                                    </div>
+                                                                } else {
+                                                                    setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
+                                                                }
+                                                                setSearchQuery("");
+                                                                setSearchResults([]);
+                                                                setIsSubstituteSearchOpen(true);
+                                                            } else {
+                                                                // Sem diário: primeiro "Iniciar Refeição" com protocolo, depois subst.
+                                                                handleQuickAdd(plan).then?.(() => {
+                                                                    router.refresh();
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10 shrink-0"
+                                                    >
+                                                        Substituir
+                                                    </Button>
                                                 </div>
-                                            ));
+                                            )) : (
+                                                <p className="text-xs text-muted-foreground/50 italic text-center py-2">
+                                                    Nenhum alimento no protocolo
+                                                </p>
+                                            );
                                         })()}
                                     </div>
 
@@ -603,7 +645,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={(e) => { e.stopPropagation(); handleUndo(existingMeal.id!); }}
-                                                    className="h-10 w-10 rounded-xl bg-muted/20 text-muted-foreground"
+                                                    title="Retornar ao Protocolo"
+                                                    className="h-10 w-10 rounded-xl bg-muted/20 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                                                 >
                                                     <RotateCcw className="h-4 w-4" />
                                                 </Button>
