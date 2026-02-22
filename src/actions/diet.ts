@@ -178,6 +178,7 @@ export async function addDietMeal(data: {
     mealName: string;
     scheduledTime: string;
     items?: any[];
+    substitutions?: any[];
     suggestions?: string;
     order: number;
 }) {
@@ -200,6 +201,7 @@ export async function addDietMeal(data: {
             scheduledTime: data.scheduledTime,
             suggestions: data.suggestions || "",
             items,
+            substitutions: Array.isArray(data.substitutions) ? data.substitutions : [],
             targetProtein,
             targetCarbs,
             targetFat,

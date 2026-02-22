@@ -5,13 +5,19 @@ import { addDietMeal, updateDietMeal, deleteDietMeal } from "@/actions/diet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Trash2, Edit2, Plus, Clock, Zap, Target, Search, Loader2 } from "lucide-react";
+import { Trash2, Edit2, Plus, Clock, Target, Search, Loader2, ArrowLeftRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface Substitution {
+    item: string;
+    protein: number;
+    carbs: number;
+    fat: number;
+}
 
 interface DietPlanItem {
     id: number;
@@ -23,6 +29,7 @@ interface DietPlanItem {
     targetCalories: number | null;
     suggestions: string | null;
     items: any[] | null;
+    substitutions: Substitution[] | null;
     order: number | null;
 }
 
@@ -37,24 +44,34 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
         mealName: "",
         scheduledTime: "",
         items: [] as any[],
+        substitutions: [] as Substitution[],
         suggestions: "",
         order: 0
     });
 
+    // Search para itens principais
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+
+    // Search para substitutos
+    const [subSearchQuery, setSubSearchQuery] = useState("");
+    const [subSearchResults, setSubSearchResults] = useState<any[]>([]);
+    const [isSubSearching, setIsSubSearching] = useState(false);
 
     function resetForm() {
         setFormData({
             mealName: "",
             scheduledTime: "",
             items: [],
+            substitutions: [],
             suggestions: "",
             order: currentPlan.length
         });
         setSearchQuery("");
         setSearchResults([]);
+        setSubSearchQuery("");
+        setSubSearchResults([]);
         setEditingMeal(null);
         setIsAddMode(false);
     }
@@ -65,6 +82,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
             mealName: meal.mealName,
             scheduledTime: meal.scheduledTime || "",
             items: Array.isArray(meal.items) ? meal.items : [],
+            substitutions: Array.isArray(meal.substitutions) ? meal.substitutions : [],
             suggestions: meal.suggestions || "",
             order: meal.order || 0
         });
@@ -105,6 +123,10 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
         });
     }
 
+    // helpers para busca com debounce inline
+    let itemSearchTimer: ReturnType<typeof setTimeout>;
+    let subSearchTimer: ReturnType<typeof setTimeout>;
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -126,6 +148,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                             </DialogTitle>
                         </DialogHeader>
                         <div className="grid gap-6 py-4 px-1 max-h-[80vh] overflow-y-auto">
+                            {/* Nome + Horário */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Nome da Refeição</Label>
@@ -147,8 +170,11 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                 </div>
                             </div>
 
+                            {/* ======================================= */}
+                            {/* SEÇÃO 1 – Itens do Protocolo */}
+                            {/* ======================================= */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Composição da Refeição (Catálogo)</Label>
+                                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Composição da Refeição</Label>
 
                                 <div className="relative">
                                     <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
@@ -158,14 +184,18 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             setSearchQuery(val);
+                                            clearTimeout(itemSearchTimer);
                                             if (val.length > 2) {
                                                 setIsSearching(true);
-                                                searchFoodNutrition(val).then(res => {
-                                                    setSearchResults(res);
-                                                    setIsSearching(false);
-                                                });
+                                                itemSearchTimer = setTimeout(() => {
+                                                    searchFoodNutrition(val).then(res => {
+                                                        setSearchResults(res);
+                                                        setIsSearching(false);
+                                                    });
+                                                }, 400);
                                             } else {
                                                 setSearchResults([]);
+                                                setIsSearching(false);
                                             }
                                         }}
                                         className="pl-10 h-11 rounded-xl bg-muted/50 border-none focus-visible:ring-primary shadow-inner"
@@ -174,18 +204,12 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
 
                                     {searchResults.length > 0 && (
                                         <div className="absolute top-12 left-0 right-0 z-50 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                            <ScrollArea className="h-64">
+                                            <ScrollArea className="h-48">
                                                 {searchResults.map((food, idx) => (
                                                     <button
                                                         key={idx}
                                                         onClick={() => {
-                                                            const newItem = {
-                                                                food: food.name,
-                                                                protein: food.protein,
-                                                                carbs: food.carbs,
-                                                                fat: food.fat,
-                                                                qty: 100
-                                                            };
+                                                            const newItem = { food: food.name, protein: food.protein, carbs: food.carbs, fat: food.fat, qty: 100 };
                                                             setFormData(f => ({ ...f, items: [...f.items, newItem] }));
                                                             setSearchQuery("");
                                                             setSearchResults([]);
@@ -196,9 +220,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                                             <p className="font-bold text-sm">{food.name}</p>
                                                             <p className="text-[10px] text-muted-foreground uppercase">{food.unit}</p>
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="text-xs font-black text-primary">{food.calories} kcal</p>
-                                                        </div>
+                                                        <p className="text-xs font-black text-primary">{food.calories} kcal/100g</p>
                                                     </button>
                                                 ))}
                                             </ScrollArea>
@@ -206,7 +228,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                     )}
                                 </div>
 
-                                <ScrollArea className="h-48 rounded-2xl bg-muted/30 p-2 border border-white/5">
+                                <ScrollArea className="h-40 rounded-2xl bg-muted/30 p-2 border border-white/5">
                                     <div className="space-y-2">
                                         {(() => {
                                             const items = Array.isArray(formData.items) ? formData.items : [];
@@ -229,8 +251,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                                                 const factor = newQty / (item.qty || 100);
                                                                 const nextItems = [...items];
                                                                 nextItems[idx] = {
-                                                                    ...item,
-                                                                    qty: newQty,
+                                                                    ...item, qty: newQty,
                                                                     protein: Number((Number(item.protein || 0) * factor).toFixed(1)),
                                                                     carbs: Number((Number(item.carbs || 0) * factor).toFixed(1)),
                                                                     fat: Number((Number(item.fat || 0) * factor).toFixed(1))
@@ -239,12 +260,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                                             }}
                                                             className="w-16 h-8 text-xs text-center border-none bg-muted/50 rounded-lg px-1"
                                                         />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => setFormData({ ...formData, items: items.filter((_, i) => i !== idx) })}
-                                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                                        >
+                                                        <Button variant="ghost" size="icon" onClick={() => setFormData({ ...formData, items: items.filter((_, i) => i !== idx) })} className="h-8 w-8 text-muted-foreground hover:text-destructive">
                                                             <Trash2 className="h-3 w-3" />
                                                         </Button>
                                                     </div>
@@ -252,7 +268,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                             ));
                                         })()}
                                         {(Array.isArray(formData.items) ? formData.items : []).length === 0 && (
-                                            <div className="h-full flex items-center justify-center py-10 text-muted-foreground text-xs italic">
+                                            <div className="h-full flex items-center justify-center py-8 text-muted-foreground text-xs italic">
                                                 Nenhum alimento no plano
                                             </div>
                                         )}
@@ -260,6 +276,105 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                 </ScrollArea>
                             </div>
 
+                            {/* ======================================= */}
+                            {/* SEÇÃO 2 – Substitutos Pré-definidos */}
+                            {/* ======================================= */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <ArrowLeftRight className="h-3.5 w-3.5 text-primary/70" />
+                                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Substitutos Pré-definidos</Label>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground/60 -mt-1 pl-5">
+                                    Estes alimentos aparecerão como sugestão rápida no diário ao substituir.
+                                </p>
+
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar alimento substituto..."
+                                        value={subSearchQuery}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setSubSearchQuery(val);
+                                            clearTimeout(subSearchTimer);
+                                            if (val.length > 2) {
+                                                setIsSubSearching(true);
+                                                subSearchTimer = setTimeout(() => {
+                                                    searchFoodNutrition(val).then(res => {
+                                                        setSubSearchResults(res);
+                                                        setIsSubSearching(false);
+                                                    });
+                                                }, 400);
+                                            } else {
+                                                setSubSearchResults([]);
+                                                setIsSubSearching(false);
+                                            }
+                                        }}
+                                        className="pl-10 h-10 rounded-xl bg-muted/50 border-none focus-visible:ring-primary shadow-inner text-sm"
+                                    />
+                                    {isSubSearching && <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-primary" />}
+
+                                    {subSearchResults.length > 0 && (
+                                        <div className="absolute top-11 left-0 right-0 z-50 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                            <ScrollArea className="h-40">
+                                                {subSearchResults.map((food, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            const newSub: Substitution = {
+                                                                item: food.name,
+                                                                protein: food.protein,
+                                                                carbs: food.carbs,
+                                                                fat: food.fat ?? 0
+                                                            };
+                                                            const existing = Array.isArray(formData.substitutions) ? formData.substitutions : [];
+                                                            // Evita duplicata
+                                                            if (!existing.find(s => s.item === newSub.item)) {
+                                                                setFormData(f => ({ ...f, substitutions: [...existing, newSub] }));
+                                                            }
+                                                            setSubSearchQuery("");
+                                                            setSubSearchResults([]);
+                                                        }}
+                                                        className="w-full text-left p-3 hover:bg-primary/10 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center"
+                                                    >
+                                                        <div>
+                                                            <p className="font-bold text-sm">{food.name}</p>
+                                                            <p className="text-[10px] text-primary font-black">
+                                                                P: {food.protein}g | C: {food.carbs}g | G: {food.fat ?? 0}g
+                                                            </p>
+                                                        </div>
+                                                        <Plus className="h-4 w-4 text-primary shrink-0" />
+                                                    </button>
+                                                ))}
+                                            </ScrollArea>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Lista de substitutos adicionados */}
+                                {(Array.isArray(formData.substitutions) ? formData.substitutions : []).length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.substitutions) ? formData.substitutions : []).map((sub, idx) => (
+                                            <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-[11px] font-black text-primary">
+                                                <span>{sub.item}</span>
+                                                <button
+                                                    onClick={() => {
+                                                        const subs = Array.isArray(formData.substitutions) ? formData.substitutions : [];
+                                                        setFormData(f => ({ ...f, substitutions: subs.filter((_, i) => i !== idx) }));
+                                                    }}
+                                                    className="text-primary/50 hover:text-red-400 transition-colors ml-1"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ======================================= */}
+                            {/* Totais */}
+                            {/* ======================================= */}
                             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex justify-between items-center">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black uppercase text-muted-foreground">Macros Totais</p>
@@ -277,7 +392,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                         <p className="text-xs font-black">{Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + Number(b.carbs || 0), 0))}g</p>
                                     </div>
                                     <div>
-                                        <p className="text-[9px] font-bold text-yellow-500">F</p>
+                                        <p className="text-[9px] font-bold text-yellow-500">G</p>
                                         <p className="text-xs font-black">{Math.round((Array.isArray(formData.items) ? formData.items : []).reduce((a, b) => a + Number(b.fat || 0), 0))}g</p>
                                     </div>
                                 </div>
@@ -324,7 +439,19 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                             {(Array.isArray(meal.items) ? meal.items : []).map((it: any) => `${it.qty || 100}g ${it.food || "Alimento"}`).join(" + ") || "Sem alimentos cadastrados"}
                                         </p>
 
-                                        <div className="flex gap-4 mt-3">
+                                        {/* Chips de substitutos pré-definidos */}
+                                        {(Array.isArray(meal.substitutions) ? meal.substitutions : []).length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                                {(meal.substitutions as Substitution[]).map((sub, idx) => (
+                                                    <span key={idx} className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[9px] font-black border border-primary/20 flex items-center gap-1">
+                                                        <ArrowLeftRight className="h-2.5 w-2.5" />
+                                                        {sub.item}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-4 mt-2">
                                             <div className="flex items-center gap-1.5">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
                                                 <span className="text-[10px] font-black opacity-60">P: {meal.targetProtein}G</span>
