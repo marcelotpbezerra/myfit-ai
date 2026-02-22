@@ -8,7 +8,7 @@ import { eq, and, desc, gte, sql } from "drizzle-orm";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 /**
  * Passo 2: A Action de Importação de Bioimpedância (Multimodal + Structured Output)
@@ -40,9 +40,9 @@ export async function uploadBioimpedance(formData: FormData) {
             return { success: false, error: "Falha ao ler o arquivo físico" };
         }
 
-        const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error("[uploadBioimpedance] Erro: GOOGLE_GEMINI_API_KEY não configurada");
+            console.error("[uploadBioimpedance] Erro: GEMINI_API_KEY não configurada");
             return { success: false, error: "Configuração da IA pendente" };
         }
 
@@ -180,9 +180,9 @@ export async function generateConsultantReport() {
         required: ["overview", "critique", "actionable_tips"],
     };
 
-    const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        console.error("[generateConsultantReport] Erro: GOOGLE_GEMINI_API_KEY não configurada");
+        console.error("[generateConsultantReport] Erro: GEMINI_API_KEY não configurada");
         return { error: "IA não configurada" };
     }
 
