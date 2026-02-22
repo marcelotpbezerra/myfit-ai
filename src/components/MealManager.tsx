@@ -58,6 +58,7 @@ interface Substitution {
     protein: number;
     carbs: number;
     fat?: number;
+    qty?: number; // quantidade configurada no protocolo
 }
 
 interface DietPlanItem {
@@ -955,7 +956,8 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                             fat: sub.fat ?? 0,
                                                             calories: Math.round((sub.protein || 0) * 4 + (sub.carbs || 0) * 4 + (sub.fat || 0) * 9)
                                                         });
-                                                        setSubstituteQty(100);
+                                                        // Pré-preencher com a quantidade configurada no protocolo
+                                                        setSubstituteQty(sub.qty ?? 100);
                                                     }}
                                                     className="px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-[11px] font-black hover:bg-primary/20 transition-colors border border-primary/20"
                                                 >

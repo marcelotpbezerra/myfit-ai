@@ -17,6 +17,7 @@ interface Substitution {
     protein: number;
     carbs: number;
     fat: number;
+    qty: number; // quantidade em gramas — macros já escalados
 }
 
 interface DietPlanItem {
@@ -323,12 +324,13 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                                         onClick={() => {
                                                             const newSub: Substitution = {
                                                                 item: food.name,
-                                                                protein: food.protein,
-                                                                carbs: food.carbs,
-                                                                fat: food.fat ?? 0
+                                                                // macros por 100g (padrão da API)
+                                                                protein: Number(food.protein || 0),
+                                                                carbs: Number(food.carbs || 0),
+                                                                fat: Number(food.fat || 0),
+                                                                qty: 100
                                                             };
                                                             const existing = Array.isArray(formData.substitutions) ? formData.substitutions : [];
-                                                            // Evita duplicata
                                                             if (!existing.find(s => s.item === newSub.item)) {
                                                                 setFormData(f => ({ ...f, substitutions: [...existing, newSub] }));
                                                             }
@@ -353,21 +355,42 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
 
                                 {/* Lista de substitutos adicionados */}
                                 {(Array.isArray(formData.substitutions) ? formData.substitutions : []).length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.substitutions) ? formData.substitutions : []).map((sub, idx) => (
-                                            <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-[11px] font-black text-primary">
-                                                <span>{sub.item}</span>
-                                                <button
-                                                    onClick={() => {
-                                                        const subs = Array.isArray(formData.substitutions) ? formData.substitutions : [];
-                                                        setFormData(f => ({ ...f, substitutions: subs.filter((_, i) => i !== idx) }));
-                                                    }}
-                                                    className="text-primary/50 hover:text-red-400 transition-colors ml-1"
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ))}
+                                    <div className="space-y-2">
+                                        {(Array.isArray(formData.substitutions) ? formData.substitutions : []).map((sub, idx) => {
+                                            const subs = Array.isArray(formData.substitutions) ? formData.substitutions : [];
+                                            return (
+                                                <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-primary/10 border border-primary/20">
+                                                    <div className="flex-1">
+                                                        <p className="text-[11px] font-black text-primary">{sub.item}</p>
+                                                        <p className="text-[9px] text-muted-foreground font-bold">
+                                                            P: {Number((sub.protein / 100) * sub.qty).toFixed(1)}g · C: {Number((sub.carbs / 100) * sub.qty).toFixed(1)}g · G: {Number((sub.fat / 100) * sub.qty).toFixed(1)}g
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            max={2000}
+                                                            value={sub.qty}
+                                                            onChange={(e) => {
+                                                                const newQty = Math.max(1, Number(e.target.value));
+                                                                const next = [...subs];
+                                                                next[idx] = { ...sub, qty: newQty };
+                                                                setFormData(f => ({ ...f, substitutions: next }));
+                                                            }}
+                                                            className="w-16 h-8 text-xs text-center border-none bg-muted/50 rounded-lg px-1"
+                                                        />
+                                                        <span className="text-[9px] text-muted-foreground">g</span>
+                                                        <button
+                                                            onClick={() => setFormData(f => ({ ...f, substitutions: subs.filter((_, i) => i !== idx) }))}
+                                                            className="text-primary/50 hover:text-red-400 transition-colors ml-1 text-base leading-none"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -445,7 +468,7 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
                                                 {(meal.substitutions as Substitution[]).map((sub, idx) => (
                                                     <span key={idx} className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[9px] font-black border border-primary/20 flex items-center gap-1">
                                                         <ArrowLeftRight className="h-2.5 w-2.5" />
-                                                        {sub.item}
+                                                        {sub.item} · {sub.qty ?? 100}g
                                                     </span>
                                                 ))}
                                             </div>
