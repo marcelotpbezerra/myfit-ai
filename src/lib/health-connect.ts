@@ -5,41 +5,33 @@ import { toast } from "sonner";
 import { saveHealthSyncData } from "@/actions/health";
 
 /**
- * Biblioteca para integração com Google Health Connect.
- * Requer o plugin: @capacitor-community/health-connect
+ * Biblioteca para integração com Saúde (HealthKit/Health Connect).
+ * Requer o plugin: @capgo/capacitor-health
  */
 
 export async function syncHealthData() {
     if (!Capacitor.isNativePlatform()) {
-        toast.error("Health Connect está disponível apenas no aplicativo Android.");
+        toast.error("Integração de saúde disponível apenas em dispositivos móveis.");
         return;
     }
 
     try {
-        // @ts-ignore - Plugin será instalado no ambiente nativo do usuário
-        const { HealthConnect } = await import("@capacitor-community/health-connect");
+        // @ts-ignore
+        const { Health } = await import("@capgo/capacitor-health");
 
         // 1. Verificar disponibilidade
-        const { isAvailable } = await HealthConnect.checkAvailability();
+        const { value: isAvailable } = await Health.isAvailable();
         if (!isAvailable) {
-            toast.error("Google Health Connect não está disponível neste dispositivo.");
+            toast.error("Serviços de saúde não estão disponíveis neste dispositivo.");
             return;
         }
 
         // 2. Solicitar Permissões
-        const permissions = {
-            read: ["SleepSession", "Steps"],
+        // @capgo usa readonly e write arrays com strings simplificadas
+        await Health.requestPermissions({
+            readonly: ["steps", "sleep"],
             write: []
-        };
-
-        const { grantedPermissions } = await HealthConnect.requestPermission({
-            permissions
-        } as any);
-
-        if (grantedPermissions.length === 0) {
-            toast.warning("Permissões do Health Connect negadas.");
-            return;
-        }
+        });
 
         // 3. Buscar Dados (Últimos 7 dias)
         const endTime = new Date();
@@ -49,39 +41,35 @@ export async function syncHealthData() {
         const syncPayload: { type: 'sleep_hours' | 'steps'; value: string; date: string }[] = [];
 
         // Fetch Steps
-        const stepsResponse = await HealthConnect.readRecords({
-            type: "Steps",
-            timeRangeFilter: {
-                startTime: startTime.toISOString(),
-                endTime: endTime.toISOString()
-            }
-        } as any);
+        const stepsResponse = await Health.query({
+            sampleName: "steps",
+            startDate: startTime.toISOString(),
+            endDate: endTime.toISOString()
+        });
 
         // Agrupar passos por dia
         const stepsByDay: Record<string, number> = {};
-        stepsResponse.records.forEach((r: any) => {
-            const date = r.startTime.split('T')[0];
-            stepsByDay[date] = (stepsByDay[date] || 0) + (r.count || 0);
+        stepsResponse.values.forEach((r: any) => {
+            const date = (r.startDate || r.endDate).split('T')[0];
+            stepsByDay[date] = (stepsByDay[date] || 0) + (Number(r.value) || 0);
         });
 
         Object.entries(stepsByDay).forEach(([date, count]) => {
-            syncPayload.push({ type: 'steps', value: count.toString(), date });
+            syncPayload.push({ type: 'steps', value: Math.round(count).toString(), date });
         });
 
         // Fetch Sleep
-        const sleepResponse = await HealthConnect.readRecords({
-            type: "SleepSession",
-            timeRangeFilter: {
-                startTime: startTime.toISOString(),
-                endTime: endTime.toISOString()
-            }
-        } as any);
+        const sleepResponse = await Health.query({
+            sampleName: "sleep",
+            startDate: startTime.toISOString(),
+            endDate: endTime.toISOString()
+        });
 
         // Agrupar sono por dia (horas)
         const sleepByDay: Record<string, number> = {};
-        sleepResponse.records.forEach((r: any) => {
-            const date = r.startTime.split('T')[0];
-            const durationMs = new Date(r.endTime).getTime() - new Date(r.startTime).getTime();
+        sleepResponse.values.forEach((r: any) => {
+            const date = r.startDate.split('T')[0];
+            const durationMs = new Date(r.endDate).getTime() - new Date(r.startDate).getTime();
             const durationHours = durationMs / (1000 * 60 * 60);
             sleepByDay[date] = (sleepByDay[date] || 0) + durationHours;
         });
@@ -93,13 +81,13 @@ export async function syncHealthData() {
         // 4. Salvar no Backend
         if (syncPayload.length > 0) {
             await saveHealthSyncData(syncPayload);
-            toast.success("Sincronização com Health Connect concluída!");
+            toast.success("Dados de saúde sincronizados com sucesso!");
         } else {
-            toast.info("Nenhum dado novo para sincronizar.");
+            toast.info("Tudo atualizado! Nenhum dado novo encontrado.");
         }
 
     } catch (error) {
         console.error("Health Sync Error:", error);
-        toast.error("Erro ao sincronizar com Health Connect.");
+        toast.error("Erro na sincronização de saúde. Verifique as permissões.");
     }
 }
