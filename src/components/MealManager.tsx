@@ -605,40 +605,65 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                                                             P: {Number(it.protein ?? 0).toFixed(1)}g | C: {Number(it.carbs ?? 0).toFixed(1)}g | G: {Number(it.fat ?? 0).toFixed(1)}g
                                                         </p>
                                                     </div>
-                                                    {/* #2 Botão Substituir: disponível quando há registro no diário OU ao ver protocolo */}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            if (existingMeal) {
-                                                                if (isShowingProtocol) {
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        {/* Botão Substituir */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (existingMeal) {
                                                                     setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
+                                                                    setSubstitutePlan(plan);
+                                                                    setSubstituteFood(null);
+                                                                    setSubstituteQty(100);
+                                                                    setSearchQuery("");
+                                                                    setSearchResults([]);
+                                                                    setIsSubstituteSearchOpen(true);
                                                                 } else {
-                                                                    setIsSubstituting({ mealId: existingMeal.id!, itemIndex: idx });
+                                                                    handleQuickAdd(plan).then?.(() => {
+                                                                        router.refresh();
+                                                                    });
                                                                 }
-                                                                setSubstitutePlan(plan);
-                                                                setSubstituteFood(null);
-                                                                setSubstituteQty(100);
-                                                                setSearchQuery("");
-                                                                setSearchResults([]);
-                                                                setIsSubstituteSearchOpen(true);
-                                                            } else {
-                                                                handleQuickAdd(plan).then?.(() => {
-                                                                    router.refresh();
-                                                                });
-                                                            }
-                                                        }}
-                                                        className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10 shrink-0"
-                                                    >
-                                                        Substituir
-                                                    </Button>
+                                                            }}
+                                                            className="h-8 text-[10px] font-black uppercase tracking-tighter text-blue-400 hover:bg-blue-400/10"
+                                                        >
+                                                            Substituir
+                                                        </Button>
+                                                        {/* Botão Deletar – só aparece quando há registro no diário */}
+                                                        {existingMeal && !isShowingProtocol && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                disabled={isPending}
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    const newItems = (Array.isArray(existingMeal.items) ? existingMeal.items : []).filter((_: any, i: number) => i !== idx);
+                                                                    startTransition(async () => {
+                                                                        await saveMeal({
+                                                                            id: existingMeal.id,
+                                                                            date: existingMeal.date,
+                                                                            mealName: existingMeal.mealName,
+                                                                            items: newItems,
+                                                                            isCompleted: existingMeal.isCompleted,
+                                                                        });
+                                                                        router.refresh();
+                                                                    });
+                                                                }}
+                                                                className="h-8 w-8 rounded-xl text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10"
+                                                                title="Remover alimento"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )) : (
                                                 <p className="text-xs text-muted-foreground/50 italic text-center py-2">
                                                     Nenhum alimento no protocolo
                                                 </p>
                                             );
+
                                         })()}
                                     </div>
 
