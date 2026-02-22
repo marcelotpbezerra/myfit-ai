@@ -115,7 +115,7 @@ export async function searchFoodNutrition(query: string) {
         const structuringResult = await structuringModel.generateContent(structuringPrompt);
         const structuredData = JSON.parse(structuringResult.response.text());
 
-        return structuredData.foods;
+        return Array.isArray(structuredData.foods) ? structuredData.foods : [];
 
     } catch (error) {
         console.error("Nutrition Search Error with Gemini Middleware:", error);

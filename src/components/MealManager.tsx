@@ -252,7 +252,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     function openEditDialog(meal: Meal) {
         setEditingMeal(meal);
         setMealName(meal.mealName);
-        setCurrentItems(meal.items);
+        setCurrentItems(Array.isArray(meal.items) ? [...meal.items] : []);
         setIsDialogOpen(true);
     }
 
@@ -288,17 +288,23 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
 
     async function handleSave() {
         startTransition(async () => {
-            const result = await saveMeal({
-                id: editingMeal?.id,
-                date,
-                mealName,
-                items: currentItems,
-                isCompleted: editingMeal?.isCompleted || false
-            });
-            if (result.success) {
-                // Refresh local UI (Simples refetch seria ideal, mas vamos atualizar na mão para speed)
-                setIsDialogOpen(false);
-                router.refresh(); // Quick sync
+            try {
+                const result = await saveMeal({
+                    id: editingMeal?.id,
+                    date,
+                    mealName,
+                    items: currentItems,
+                    isCompleted: editingMeal?.isCompleted || false
+                });
+                if (result.success) {
+                    setIsDialogOpen(false);
+                    router.refresh();
+                } else {
+                    alert(result.error || "Erro ao salvar refeição");
+                }
+            } catch (err) {
+                console.error("Save failed:", err);
+                alert("Erro crítico ao salvar. Tente novamente.");
             }
         });
     }

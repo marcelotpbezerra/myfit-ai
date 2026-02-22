@@ -73,16 +73,23 @@ export function DietConfig({ currentPlan }: { currentPlan: DietPlanItem[] }) {
 
     async function handleSubmit() {
         startTransition(async () => {
-            let result;
-            if (editingMeal) {
-                result = await updateDietMeal(editingMeal.id, formData);
-            } else {
-                result = await addDietMeal(formData);
-            }
+            try {
+                let result;
+                if (editingMeal) {
+                    result = await updateDietMeal(editingMeal.id, formData);
+                } else {
+                    result = await addDietMeal(formData);
+                }
 
-            if (result.success) {
-                resetForm();
-                router.refresh();
+                if (result.success) {
+                    resetForm();
+                    router.refresh();
+                } else {
+                    alert(result.error || "Erro ao salvar refeição do protocolo");
+                }
+            } catch (err) {
+                console.error("Protocol save failed:", err);
+                alert("Erro crítico ao salvar o protocolo. Tente novamente.");
             }
         });
     }
