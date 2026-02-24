@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { EXERCISES_DB } from "@/lib/exercises-db";
 import {
     addExerciseToWorkout,
@@ -36,6 +36,9 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const [search, setSearch] = useState("");
     const [selectedSplit, setSelectedSplit] = useState("A");
     const [localExercises, setLocalExercises] = useState<any[]>(currentExercises);
+    const dragControls = useDragControls();
+    const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const startPosRef = useRef<{ x: number, y: number } | null>(null);
 
     // Sincronizar estado local quando os props mudam
     useEffect(() => {
@@ -479,6 +482,8 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                         axis="y"
                                         values={exercisesInSplit}
                                         onReorder={(newOrder) => handleReorder(newOrder, letter)}
+                                        dragControls={dragControls}
+                                        dragListener={false}
                                         className="grid gap-4 ml-4 pl-6 border-l-2 border-primary/5"
                                     >
                                         {exercisesInSplit.map((ex) => (
@@ -489,7 +494,36 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                             >
                                                 <div className="flex items-start justify-between mb-4">
                                                     <div className="flex items-center gap-4">
-                                                        <GripVertical className="h-5 w-5 text-white/10 group-hover:text-white/40 cursor-grab active:cursor-grabbing transition-colors" />
+                                                        <div
+                                                            className="p-2 touch-none cursor-grab active:cursor-grabbing"
+                                                            onPointerDown={(e) => {
+                                                                startPosRef.current = { x: e.clientX, y: e.clientY };
+                                                                dragTimeoutRef.current = setTimeout(() => {
+                                                                    dragControls.start(e);
+                                                                }, 2000);
+                                                            }}
+                                                            onPointerUp={() => {
+                                                                if (dragTimeoutRef.current) {
+                                                                    clearTimeout(dragTimeoutRef.current);
+                                                                    dragTimeoutRef.current = null;
+                                                                }
+                                                                startPosRef.current = null;
+                                                            }}
+                                                            onPointerMove={(e) => {
+                                                                if (startPosRef.current) {
+                                                                    const dx = e.clientX - startPosRef.current.x;
+                                                                    const dy = e.clientY - startPosRef.current.y;
+                                                                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                                                                        if (dragTimeoutRef.current) {
+                                                                            clearTimeout(dragTimeoutRef.current);
+                                                                            dragTimeoutRef.current = null;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            <GripVertical className="h-5 w-5 text-white/10 group-hover:text-white/40 transition-colors" />
+                                                        </div>
                                                         <div className="flex items-center gap-3">
                                                             {ex.gifUrl ? (
                                                                 <div className="relative group/gif cursor-pointer" onClick={() => setPreviewGifId(previewGifId === ex.id ? null : ex.id)}>

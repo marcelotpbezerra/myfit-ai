@@ -98,6 +98,9 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const [showTimer, setShowTimer] = useState(false);
     const [timerDuration, setTimerDuration] = useState(60);
     const exerciseRefs = useRef<Record<number, HTMLDivElement | null>>({});
+    const dragControls = useDragControls();
+    const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const startPosRef = useRef<{ x: number, y: number } | null>(null);
 
     // Track completed sets per exercise
     const [completedSets, setCompletedSets] = useState<Record<number, number>>({});
@@ -269,6 +272,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                     <Reorder.Item
                         key={ex.id}
                         value={ex}
+                        dragControls={dragControls}
+                        dragListener={false}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
@@ -283,7 +288,35 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                         >
                             <CardContent className="p-0">
                                 <div className="flex items-center p-4 px-6 relative">
-                                    <div className="absolute left-1 opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing p-2 overflow-hidden">
+                                    <div 
+                                        className="absolute left-1 opacity-40 transition-opacity cursor-grab active:cursor-grabbing p-2 overflow-hidden touch-none"
+                                        onPointerDown={(e) => {
+                                            startPosRef.current = { x: e.clientX, y: e.clientY };
+                                            dragTimeoutRef.current = setTimeout(() => {
+                                                dragControls.start(e);
+                                                // Optional: provide haptic feedback or visual cue here
+                                            }, 2000);
+                                        }}
+                                        onPointerUp={() => {
+                                            if (dragTimeoutRef.current) {
+                                                clearTimeout(dragTimeoutRef.current);
+                                                dragTimeoutRef.current = null;
+                                            }
+                                            startPosRef.current = null;
+                                        }}
+                                        onPointerMove={(e) => {
+                                            if (startPosRef.current) {
+                                                const dx = e.clientX - startPosRef.current.x;
+                                                const dy = e.clientY - startPosRef.current.y;
+                                                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                                                    if (dragTimeoutRef.current) {
+                                                        clearTimeout(dragTimeoutRef.current);
+                                                        dragTimeoutRef.current = null;
+                                                    }
+                                                }
+                                            }
+                                        }}
+                                    >
                                         <GripVertical className="h-4 w-4 text-white" />
                                     </div>
 
