@@ -101,6 +101,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const dragControls = useDragControls();
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const startPosRef = useRef<{ x: number, y: number } | null>(null);
+    const [draggingId, setDraggingId] = useState<number | null>(null);
 
     // Track completed sets per exercise
     const [completedSets, setCompletedSets] = useState<Record<number, number>>({});
@@ -275,33 +276,55 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                         dragControls={dragControls}
                         dragListener={false}
                         initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="relative group"
+                        animate={{
+                            opacity: 1,
+                            x: 0,
+                            scale: draggingId === ex.id ? 1.05 : 1,
+                            zIndex: draggingId === ex.id ? 50 : 0
+                        }}
+                        transition={{
+                            scale: { type: "spring", stiffness: 300, damping: 20 },
+                            default: { delay: index * 0.05 }
+                        }}
+                        className={cn(
+                            "relative group select-none touch-none",
+                            draggingId === ex.id && "z-50"
+                        )}
                     >
                         <Card
                             ref={(el) => { exerciseRefs.current[ex.id] = el; }}
                             className={cn(
-                                "overflow-hidden transition-all duration-500 rounded-[2rem] border-none ring-1 ring-white/5 bg-[#0F1115]/60 backdrop-blur-md",
-                                activeExercise === ex.id ? "ring-2 ring-primary bg-[#0F1115] shadow-2xl scale-[1.02]" : "hover:ring-white/10"
+                                "overflow-hidden transition-all duration-300 rounded-[2rem] border-none ring-1 ring-white/5 bg-[#0F1115]/60 backdrop-blur-md",
+                                activeExercise === ex.id ? "ring-2 ring-primary bg-[#0F1115] shadow-2xl" : "hover:ring-white/10",
+                                draggingId === ex.id && "ring-primary/50 shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)] bg-[#0F1115]"
                             )}
                         >
                             <CardContent className="p-0">
                                 <div className="flex items-center p-4 px-6 relative">
-                                    <div 
-                                        className="absolute left-1 opacity-40 transition-opacity cursor-grab active:cursor-grabbing p-2 overflow-hidden touch-none"
+                                    <div
+                                        className="absolute left-1 opacity-40 transition-opacity cursor-grab active:cursor-grabbing p-2 overflow-hidden touch-none select-none"
                                         onPointerDown={(e) => {
                                             startPosRef.current = { x: e.clientX, y: e.clientY };
                                             dragTimeoutRef.current = setTimeout(() => {
+                                                if (navigator.vibrate) navigator.vibrate(50);
+                                                setDraggingId(ex.id);
                                                 dragControls.start(e);
-                                                // Optional: provide haptic feedback or visual cue here
-                                            }, 2000);
+                                            }, 600);
                                         }}
                                         onPointerUp={() => {
                                             if (dragTimeoutRef.current) {
                                                 clearTimeout(dragTimeoutRef.current);
                                                 dragTimeoutRef.current = null;
                                             }
+                                            setDraggingId(null);
+                                            startPosRef.current = null;
+                                        }}
+                                        onPointerCancel={() => {
+                                            if (dragTimeoutRef.current) {
+                                                clearTimeout(dragTimeoutRef.current);
+                                                dragTimeoutRef.current = null;
+                                            }
+                                            setDraggingId(null);
                                             startPosRef.current = null;
                                         }}
                                         onPointerMove={(e) => {
@@ -313,6 +336,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                         clearTimeout(dragTimeoutRef.current);
                                                         dragTimeoutRef.current = null;
                                                     }
+                                                    setDraggingId(null);
                                                 }
                                             }
                                         }}

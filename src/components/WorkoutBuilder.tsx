@@ -39,6 +39,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
     const dragControls = useDragControls();
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const startPosRef = useRef<{ x: number, y: number } | null>(null);
+    const [draggingId, setDraggingId] = useState<string | null>(null);
 
     // Sincronizar estado local quando os props mudam
     useEffect(() => {
@@ -490,23 +491,42 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                             <Reorder.Item
                                                 key={ex.id}
                                                 value={ex}
-                                                className="flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04]"
+                                                dragControls={dragControls}
+                                                dragListener={false}
+                                                className={cn(
+                                                    "flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04] select-none touch-none",
+                                                    draggingId === ex.id && "z-50 ring-1 ring-primary/30"
+                                                )}
+                                                animate={{
+                                                    scale: draggingId === ex.id ? 1.02 : 1,
+                                                }}
                                             >
                                                 <div className="flex items-start justify-between mb-4">
                                                     <div className="flex items-center gap-4">
                                                         <div
-                                                            className="p-2 touch-none cursor-grab active:cursor-grabbing"
+                                                            className="p-2 touch-none cursor-grab active:cursor-grabbing select-none"
                                                             onPointerDown={(e) => {
                                                                 startPosRef.current = { x: e.clientX, y: e.clientY };
                                                                 dragTimeoutRef.current = setTimeout(() => {
+                                                                    if (navigator.vibrate) navigator.vibrate(50);
+                                                                    setDraggingId(ex.id);
                                                                     dragControls.start(e);
-                                                                }, 2000);
+                                                                }, 600);
                                                             }}
                                                             onPointerUp={() => {
                                                                 if (dragTimeoutRef.current) {
                                                                     clearTimeout(dragTimeoutRef.current);
                                                                     dragTimeoutRef.current = null;
                                                                 }
+                                                                setDraggingId(null);
+                                                                startPosRef.current = null;
+                                                            }}
+                                                            onPointerCancel={() => {
+                                                                if (dragTimeoutRef.current) {
+                                                                    clearTimeout(dragTimeoutRef.current);
+                                                                    dragTimeoutRef.current = null;
+                                                                }
+                                                                setDraggingId(null);
                                                                 startPosRef.current = null;
                                                             }}
                                                             onPointerMove={(e) => {
@@ -518,6 +538,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                                             clearTimeout(dragTimeoutRef.current);
                                                                             dragTimeoutRef.current = null;
                                                                         }
+                                                                        setDraggingId(null);
                                                                     }
                                                                 }
                                                             }}
