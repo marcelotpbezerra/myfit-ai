@@ -287,7 +287,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                             default: { delay: index * 0.05 }
                         }}
                         className={cn(
-                            "relative group select-none touch-none",
+                            "relative group select-none",
                             draggingId === ex.id && "z-50"
                         )}
                     >
@@ -331,7 +331,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                             if (startPosRef.current) {
                                                 const dx = e.clientX - startPosRef.current.x;
                                                 const dy = e.clientY - startPosRef.current.y;
-                                                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                                                if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
                                                     if (dragTimeoutRef.current) {
                                                         clearTimeout(dragTimeoutRef.current);
                                                         dragTimeoutRef.current = null;

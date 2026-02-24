@@ -114,9 +114,9 @@ export const NotificationService = {
         if (!Capacitor.isNativePlatform() || !dietPlan.length) return;
 
         try {
-            // Limpa agendamentos anteriores (IDs 200+)
+            // Limpa agendamentos anteriores (IDs 200 até 299)
             await LocalNotifications.cancel({
-                notifications: Array.from({ length: 10 }, (_, i) => ({ id: 200 + i }))
+                notifications: Array.from({ length: 100 }, (_, i) => ({ id: 200 + i }))
             });
 
             const notifications = dietPlan

@@ -494,7 +494,7 @@ export function WorkoutBuilder({ currentExercises, currentSplit }: WorkoutBuilde
                                                 dragControls={dragControls}
                                                 dragListener={false}
                                                 className={cn(
-                                                    "flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04] select-none touch-none",
+                                                    "flex flex-col p-5 rounded-3xl bg-white/[0.02] border border-white/5 group relative overflow-hidden transition-all hover:bg-white/[0.04] select-none",
                                                     draggingId === ex.id && "z-50 ring-1 ring-primary/30"
                                                 )}
                                                 animate={{
