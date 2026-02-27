@@ -64,7 +64,36 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
     useEffect(() => {
         // Disparar notificação acionável ao iniciar descanso (para WearOS/Mobile)
         NotificationService.scheduleRestNotification(duration);
-    }, [duration]);
+
+        // Listeners para ações do WearOS / Notificação
+        const handleStartNextSet = () => {
+            console.log("WearOS: Iniciando próxima série");
+            onComplete?.();
+            onClose(); // Garante que fecha o modal visualmente
+        };
+
+        const handleSubtract10s = () => {
+            console.log("WearOS: Subtraindo 10s");
+            // Reduz 10s mas não deixa ficar negativo (embora o próximo efeito vá disparar o onComplete)
+            setTimeLeft(prev => {
+                const newTime = Math.max(0, prev - 10);
+                // Atualiza a notificação com novo tempo
+                NotificationService.scheduleRestNotification(newTime);
+                return newTime;
+            });
+        };
+
+        window.addEventListener('notification:start_next_set', handleStartNextSet);
+        window.addEventListener('notification:subtract_10s', handleSubtract10s);
+        // Mantemos o listener antigo por compatibilidade se houver cache
+        window.addEventListener('notification:skip_rest', handleStartNextSet);
+
+        return () => {
+            window.removeEventListener('notification:start_next_set', handleStartNextSet);
+            window.removeEventListener('notification:subtract_10s', handleSubtract10s);
+            window.removeEventListener('notification:skip_rest', handleStartNextSet);
+        };
+    }, []); // Executa apenas na montagem (listeners globais)
 
     useEffect(() => {
         if (timeLeft <= 0) {

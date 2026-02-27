@@ -13,6 +13,8 @@ export const NOTIFICATION_ACTIONS = {
     SKIP_REST: "SKIP_REST",
     CONFIRM_MEAL: "CONFIRM_MEAL",
     OPEN_APP: "OPEN_APP",
+    START_NEXT_SET: "START_NEXT_SET",
+    SUBTRACT_10S: "SUBTRACT_10S",
 };
 
 export const NotificationService = {
@@ -47,14 +49,14 @@ export const NotificationService = {
                         id: NOTIFICATION_CATEGORIES.WORKOUT_REST,
                         actions: [
                             {
-                                id: NOTIFICATION_ACTIONS.SKIP_REST,
-                                title: "Pular Descanso",
-                                foreground: true,
+                                id: NOTIFICATION_ACTIONS.START_NEXT_SET,
+                                title: "▶️ Iniciar Série",
+                                foreground: true, // Traz o app pro primeiro plano ao clicar
                             },
                             {
-                                id: NOTIFICATION_ACTIONS.OPEN_APP,
-                                title: "Abrir no App",
-                                foreground: true,
+                                id: NOTIFICATION_ACTIONS.SUBTRACT_10S,
+                                title: "⏩ -10s",
+                                foreground: false, // Executa em background
                             }
                         ]
                     }
@@ -64,8 +66,12 @@ export const NotificationService = {
             // 3. Listener Global de Ações
             LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
                 const { actionId } = notificationAction;
-                if (actionId === NOTIFICATION_ACTIONS.SKIP_REST) {
-                    window.dispatchEvent(new CustomEvent('notification:skip_rest'));
+                
+                console.log(`[NotificationService] Ação Recebida: ${actionId}`);
+                
+                // Dispara evento global para componentes ouvirem
+                if (Object.values(NOTIFICATION_ACTIONS).includes(actionId)) {
+                    window.dispatchEvent(new CustomEvent(`notification:${actionId.toLowerCase()}`));
                 }
             });
 
