@@ -9,6 +9,16 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface RestTimerProps {
     duration: number; // segundos
+    /** Nome do próximo exercício/exercício atual — exibido na notificação do relógio */
+    exerciseName?: string;
+    /** Número da próxima série a ser executada */
+    nextSetNumber?: number;
+    /** Total de séries do exercício */
+    totalSets?: number;
+    /** Peso-alvo (para exibir no relógio) */
+    targetWeight?: string | null;
+    /** Repetições-alvo (para exibir no relógio) */
+    targetReps?: number | null;
     onComplete?: () => void;
     onClose: () => void;
 }
@@ -47,7 +57,7 @@ const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
                     id: 999,
                     schedule: { at: new Date(Date.now() + 10) },
                     sound: 'beep.wav',
-                    channelId: "workout" // Canal de alta prioridade para garantir o ducking
+                    channelId: "workout"
                 }]
             }).catch(err => console.error("Notification ducking failed", err));
         }
@@ -58,27 +68,48 @@ const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
     }
 };
 
-export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
+export function RestTimer({
+    duration,
+    exerciseName,
+    nextSetNumber,
+    totalSets,
+    targetWeight,
+    targetReps,
+    onComplete,
+    onClose
+}: RestTimerProps) {
     const [timeLeft, setTimeLeft] = useState(duration);
 
     useEffect(() => {
         // Disparar notificação acionável ao iniciar descanso (para WearOS/Mobile)
-        NotificationService.scheduleRestNotification(duration);
+        // Agora inclui contexto do próximo exercício para exibição no relógio
+        NotificationService.scheduleRestNotification(duration, {
+            exerciseName,
+            nextSetNumber,
+            totalSets,
+            targetWeight,
+            targetReps,
+        });
 
         // Listeners para ações do WearOS / Notificação
         const handleStartNextSet = () => {
             console.log("WearOS: Iniciando próxima série");
             onComplete?.();
-            onClose(); // Garante que fecha o modal visualmente
+            onClose();
         };
 
         const handleSubtract10s = () => {
             console.log("WearOS: Subtraindo 10s");
-            // Reduz 10s mas não deixa ficar negativo (embora o próximo efeito vá disparar o onComplete)
             setTimeLeft(prev => {
                 const newTime = Math.max(0, prev - 10);
-                // Atualiza a notificação com novo tempo
-                NotificationService.scheduleRestNotification(newTime);
+                // Reagenda notificação com tempo atualizado
+                NotificationService.scheduleRestNotification(newTime, {
+                    exerciseName,
+                    nextSetNumber,
+                    totalSets,
+                    targetWeight,
+                    targetReps,
+                });
                 return newTime;
             });
         };
@@ -93,20 +124,17 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
             window.removeEventListener('notification:subtract_10s', handleSubtract10s);
             window.removeEventListener('notification:skip_rest', handleStartNextSet);
         };
-    }, []); // Executa apenas na montagem (listeners globais)
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (timeLeft <= 0) {
-            // Final beep to signal the end of rest - very high pitch and triggers ducking
             playBeep(2500, 0.6, true);
             onComplete?.();
             return;
         }
 
-        // Logic for countdown beeps
         const alertSeconds = [10, 5, 4, 3, 2, 1];
         if (alertSeconds.includes(timeLeft)) {
-            // High frequency for countdown (piercing 2000Hz)
             const freq = timeLeft <= 3 ? 3000 : 2000;
             playBeep(freq, 0.15);
         }
@@ -124,6 +152,11 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
 
     const percentage = (timeLeft / duration) * 100;
 
+    // Linha de contexto exibida no modal (teléfone)
+    const contextLine = exerciseName
+        ? `${exerciseName} — Série ${nextSetNumber ?? "?"}/${totalSets ?? "?"}`
+        : null;
+
     return (
         <>
             <motion.div
@@ -136,7 +169,7 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
             <div className="fixed top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 z-[60] w-[90%] max-w-[340px] animate-in fade-in zoom-in duration-300">
                 <Card className="overflow-hidden border-none bg-[#0F1115]/80 backdrop-blur-xl shadow-2xl ring-1 ring-white/10 rounded-[2.5rem]">
                     <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center">
                                     <Timer className="h-5 w-5 text-primary animate-pulse" />
@@ -153,6 +186,19 @@ export function RestTimer({ duration, onComplete, onClose }: RestTimerProps) {
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
+
+                        {/* Contexto do próximo exercício */}
+                        {contextLine && (
+                            <div className="mb-4 px-3 py-2 rounded-2xl bg-primary/10 border border-primary/20 text-center">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-0.5">Próxima</p>
+                                <p className="text-xs font-black text-primary truncate">{contextLine}</p>
+                                {(targetWeight || targetReps) && (
+                                    <p className="text-[10px] text-primary/60 font-bold mt-0.5">
+                                        {targetWeight && `${targetWeight}kg`}{targetWeight && targetReps && " × "}{targetReps && `${targetReps} reps`}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="flex flex-col items-center">
                             <div className="relative mb-8">
