@@ -6,6 +6,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 // Identificadores consistentes para o sistema
 export const NOTIFICATION_CATEGORIES = {
     WORKOUT_REST: "WORKOUT_REST",
+    WORKOUT_SET: "WORKOUT_SET",   // Nova: exibe série atual no relógio
     MEAL_REMINDER: "MEAL_REMINDER",
 };
 
@@ -15,7 +16,13 @@ export const NOTIFICATION_ACTIONS = {
     OPEN_APP: "OPEN_APP",
     START_NEXT_SET: "START_NEXT_SET",
     SUBTRACT_10S: "SUBTRACT_10S",
+    MARK_SET_DONE: "MARK_SET_DONE", // Nova: marca série como feita direto do relógio
 };
+
+// IDs fixos para notificações gerenciadas
+const NOTIF_ID_REST = 1001;
+const NOTIF_ID_WORKOUT_SET = 1002;
+const NOTIF_ID_DUCKING = 999;
 
 export const NotificationService = {
     async requestPermissions() {
@@ -37,7 +44,7 @@ export const NotificationService = {
                 id: "workout",
                 name: "Treino e Descanso",
                 description: "Notificações de timer e descanso de treino",
-                importance: 5, // High
+                importance: 5, // IMPORTANCE_HIGH — garante aparição no WearOS
                 visibility: 1,
                 vibration: true,
             });
@@ -45,13 +52,14 @@ export const NotificationService = {
             // 2. Registrar Categorias e Ações (WearOS / Apple Watch)
             await LocalNotifications.registerActionTypes({
                 types: [
+                    // --- Descanso entre séries ---
                     {
                         id: NOTIFICATION_CATEGORIES.WORKOUT_REST,
                         actions: [
                             {
                                 id: NOTIFICATION_ACTIONS.START_NEXT_SET,
                                 title: "▶️ Iniciar Série",
-                                foreground: true, // Traz o app pro primeiro plano ao clicar
+                                foreground: true, // Traz o app pro primeiro plano
                             },
                             {
                                 id: NOTIFICATION_ACTIONS.SUBTRACT_10S,
@@ -59,16 +67,27 @@ export const NotificationService = {
                                 foreground: false, // Executa em background
                             }
                         ]
+                    },
+                    // --- Série em execução (novo para WearOS) ---
+                    {
+                        id: NOTIFICATION_CATEGORIES.WORKOUT_SET,
+                        actions: [
+                            {
+                                id: NOTIFICATION_ACTIONS.MARK_SET_DONE,
+                                title: "✅ Marcar Feita",
+                                foreground: true, // Traz o app para registrar e exibir timer
+                            }
+                        ]
                     }
                 ]
             });
 
-            // 3. Listener Global de Ações
+            // 3. Listener Global de Ações (dispatch de eventos para os componentes)
             LocalNotifications.addListener('localNotificationActionPerformed', (notificationAction) => {
                 const { actionId } = notificationAction;
-                
+
                 console.log(`[NotificationService] Ação Recebida: ${actionId}`);
-                
+
                 // Dispara evento global para componentes ouvirem
                 if (Object.values(NOTIFICATION_ACTIONS).includes(actionId)) {
                     window.dispatchEvent(new CustomEvent(`notification:${actionId.toLowerCase()}`));
@@ -81,16 +100,34 @@ export const NotificationService = {
         }
     },
 
-    async scheduleRestNotification(seconds: number) {
-        const title = "🔥 Descanso Finalizado!";
-        const body = "Hora da próxima série. Vamos pra cima!";
+    // ─── Notificação de fim de descanso ───────────────────────────────────────
+
+    async scheduleRestNotification(
+        seconds: number,
+        context?: {
+            exerciseName?: string;
+            nextSetNumber?: number;
+            totalSets?: number;
+            targetWeight?: string | null;
+            targetReps?: number | null;
+        }
+    ) {
+        const nextInfo = context?.exerciseName
+            ? ` — ${context.exerciseName} (Série ${context.nextSetNumber ?? "?"}/${context.totalSets ?? "?"})`
+            : "";
+
+        const title = `⏱️ Descanso: ${seconds}s${nextInfo ? "" : " restantes"}`;
+        const body = seconds > 0
+            ? `${nextInfo ? `Próximo: ${context!.exerciseName} — Série ${context!.nextSetNumber}/${context!.totalSets}` : "Prepare-se para a próxima série!"}`
+            : "🔥 Descanso finalizado! Hora de avançar.";
 
         if (!Capacitor.isNativePlatform()) {
             if ("Notification" in window && Notification.permission === "granted") {
-                // Fallback para Web (não agendado nativamente pelo browser, usamos timer local)
                 setTimeout(() => {
-                    new Notification(title, {
-                        body,
+                    new Notification("🔥 Descanso Finalizado!", {
+                        body: nextInfo
+                            ? `Próximo: ${context!.exerciseName} — Série ${context!.nextSetNumber}/${context!.totalSets}`
+                            : "Hora da próxima série. Vamos pra cima!",
                         icon: "/icons/icon-192x192.png",
                         tag: "rest-timer"
                     });
@@ -103,18 +140,90 @@ export const NotificationService = {
         await LocalNotifications.schedule({
             notifications: [
                 {
-                    title,
-                    body,
-                    id: 1001,
+                    title: "🔥 Descanso Finalizado!",
+                    body: nextInfo
+                        ? `Próximo: ${context!.exerciseName} — Série ${context!.nextSetNumber}/${context!.totalSets}`
+                        : "Hora da próxima série. Vamos pra cima!",
+                    id: NOTIF_ID_REST,
                     schedule: { at: scheduleDate },
                     sound: "beep.wav",
                     channelId: "workout",
                     actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_REST,
-                    extra: { type: "rest_finish" }
+                    extra: { type: "rest_finish", ...context }
                 }
             ]
         });
     },
+
+    // ─── Notificação de série em execução (exibida no WearOS) ─────────────────
+
+    /**
+     * Exibe no relógio os dados da série atual com botão "✅ Marcar Feita".
+     * Substitui qualquer notificação de série anterior.
+     */
+    async scheduleWorkoutSetNotification(params: {
+        exerciseName: string;
+        muscleGroup?: string | null;
+        setNumber: number;
+        totalSets: number;
+        targetWeight?: string | null;
+        targetReps?: number | null;
+    }) {
+        const { exerciseName, muscleGroup, setNumber, totalSets, targetWeight, targetReps } = params;
+
+        const setInfo = targetWeight && targetReps
+            ? `${targetWeight}kg × ${targetReps} reps`
+            : targetReps
+            ? `${targetReps} reps`
+            : "Execute a série";
+
+        const title = `💪 ${exerciseName}`;
+        const body = `Série ${setNumber}/${totalSets} • ${setInfo}${muscleGroup ? ` • ${muscleGroup}` : ""}`;
+
+        if (!Capacitor.isNativePlatform()) {
+            // Web: apenas exibe uma notificação informativa sem ações interativas
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, {
+                    body,
+                    icon: "/icons/icon-192x192.png",
+                    tag: "workout-set",
+                    // Web não suporta action buttons, mas o badge ajuda na UX
+                    badge: "/icons/icon-192x192.png",
+                } as NotificationOptions);
+            }
+            return;
+        }
+
+        // Cancela notificação de série anterior antes de enviar nova
+        await LocalNotifications.cancel({
+            notifications: [{ id: NOTIF_ID_WORKOUT_SET }]
+        }).catch(() => {});
+
+        // Agenda notificação imediata (100ms de delay para garantir o cancelamento anterior)
+        await LocalNotifications.schedule({
+            notifications: [
+                {
+                    title,
+                    body,
+                    id: NOTIF_ID_WORKOUT_SET,
+                    schedule: { at: new Date(Date.now() + 150) },
+                    channelId: "workout",
+                    actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_SET,
+                    extra: { type: "workout_set", ...params }
+                }
+            ]
+        });
+    },
+
+    /** Remove a notificação de série atual (ao terminar o exercício ou o treino) */
+    async cancelWorkoutSetNotification() {
+        if (!Capacitor.isNativePlatform()) return;
+        await LocalNotifications.cancel({
+            notifications: [{ id: NOTIF_ID_WORKOUT_SET }]
+        }).catch(() => {});
+    },
+
+    // ─── Refeições ─────────────────────────────────────────────────────────────
 
     async scheduleMealReminders(dietPlan: any[]) {
         if (!Capacitor.isNativePlatform() || !dietPlan.length) return;
@@ -158,4 +267,5 @@ export const NotificationService = {
 
 // Funções para manter compatibilidade com componentes que importam diretamente
 export const initNotifications = () => NotificationService.init();
-export const scheduleRestNotification = (s: number) => NotificationService.scheduleRestNotification(s);
+export const scheduleRestNotification = (s: number, ctx?: Parameters<typeof NotificationService.scheduleRestNotification>[1]) =>
+    NotificationService.scheduleRestNotification(s, ctx);

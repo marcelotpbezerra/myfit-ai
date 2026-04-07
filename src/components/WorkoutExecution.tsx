@@ -10,6 +10,8 @@ import {
     syncExerciseTutorial,
     removeExerciseTutorial
 } from "@/actions/workout";
+import { enqueueSync } from "@/lib/sync-manager";
+import { NotificationService } from "@/lib/notifications";
 import {
     ChevronRight,
     ChevronDown,
@@ -115,6 +117,69 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
     const [isMounted, setIsMounted] = useState(false);
 
+    /**
+     * Ref mantida em sync com o estado atual da série focada.
+     * Usada pelo handler de "MARK_SET_DONE" do WearOS para saber
+     * qual série registrar sem depender de closure desatualizado.
+     */
+    const currentSetContextRef = useRef<{
+        exercise: Exercise;
+        weight: string;
+        reps: string;
+    } | null>(null);
+
+    // Sincroniza o ref de contexto quando exercício ativo ou inputs mudam
+    useEffect(() => {
+        if (activeExercise === null) {
+            currentSetContextRef.current = null;
+            return;
+        }
+        const ex = orderedExercises.find(e => e.id === activeExercise);
+        if (!ex) return;
+        const input = inputs[activeExercise] || {
+            weight: ex.targetWeight || "",
+            reps: ex.targetReps?.toString() || "",
+        };
+        currentSetContextRef.current = { exercise: ex, weight: input.weight, reps: input.reps };
+    }, [activeExercise, inputs, orderedExercises]);
+
+    // Listener de "✅ Marcar Feita" disparado pelo botão no WearOS
+    useEffect(() => {
+        const handleMarkSetDone = () => {
+            const ctx = currentSetContextRef.current;
+            if (!ctx || !ctx.weight || !ctx.reps) {
+                console.warn("[WearOS] MARK_SET_DONE recebido mas sem contexto de série ativo");
+                return;
+            }
+            console.log("[WearOS] MARK_SET_DONE → registrando série:", ctx.exercise.name);
+            handleLogSet(ctx.exercise);
+        };
+
+        window.addEventListener("notification:mark_set_done", handleMarkSetDone);
+        return () => window.removeEventListener("notification:mark_set_done", handleMarkSetDone);
+    }, []); // usa ref — sem dependência de closure
+
+    // Quando o timer de descanso fecha, envia notificação de "próxima série" para o relógio
+    useEffect(() => {
+        if (showTimer || !isMounted) return;
+        if (activeExercise === null) return;
+
+        const ex = orderedExercises.find(e => e.id === activeExercise);
+        if (!ex || exerciseFinished[activeExercise]) return;
+
+        const nextSet = (completedSets[activeExercise] || 0) + 1;
+        if (nextSet <= (ex.targetSets || 3)) {
+            NotificationService.scheduleWorkoutSetNotification({
+                exerciseName: ex.name,
+                muscleGroup: ex.muscleGroup,
+                setNumber: nextSet,
+                totalSets: ex.targetSets || 3,
+                targetWeight: inputs[activeExercise]?.weight || ex.targetWeight,
+                targetReps: ex.targetReps,
+            });
+        }
+    }, [showTimer]); // eslint-disable-line react-hooks/exhaustive-deps
+
     // Load state from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -168,7 +233,9 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
     const handleFocusExercise = (exerciseId: number) => {
         if (activeExercise === exerciseId) {
+            // Fechar exercício: remove notificação do relógio
             setActiveExercise(null);
+            NotificationService.cancelWorkoutSetNotification();
             return;
         }
 
@@ -177,6 +244,20 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             setExerciseStartedAt(prev => ({ ...prev, [exerciseId]: new Date() }));
         }
         setActiveExercise(exerciseId);
+
+        // Envia notificação para o WearOS com dados da série atual
+        const ex = orderedExercises.find(e => e.id === exerciseId);
+        if (ex && !exerciseFinished[exerciseId]) {
+            const currentSet = (completedSets[exerciseId] || 0) + 1;
+            NotificationService.scheduleWorkoutSetNotification({
+                exerciseName: ex.name,
+                muscleGroup: ex.muscleGroup,
+                setNumber: currentSet,
+                totalSets: ex.targetSets || 3,
+                targetWeight: inputs[exerciseId]?.weight || ex.targetWeight,
+                targetReps: ex.targetReps,
+            });
+        }
     };
 
     const handleInputChange = (exerciseId: number, field: 'weight' | 'reps', value: string) => {
@@ -212,19 +293,36 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
         startTransition(async () => {
             const now = new Date();
-            await logSet({
+            const setPayload = {
                 exerciseId: exercise.id,
                 weight: input.weight,
                 reps: parseInt(input.reps),
                 restTime: exercise.targetRestTime || 60,
                 notes: notes[exercise.id],
-                startedAt: exerciseStartedAt[exercise.id] || now,
-                completedAt: now
-            });
+                startedAt: (exerciseStartedAt[exercise.id] || now).toISOString(),
+                completedAt: now.toISOString(),
+            };
 
-            // Update target weight if changed
-            if (input.weight !== exercise.targetWeight) {
-                await updateTargetWeight(exercise.id, input.weight);
+            if (navigator.onLine) {
+                try {
+                    await logSet({
+                        ...setPayload,
+                        startedAt: exerciseStartedAt[exercise.id] || now,
+                        completedAt: now,
+                    });
+                    if (input.weight !== exercise.targetWeight) {
+                        try { await updateTargetWeight(exercise.id, input.weight); } catch { /* não crítico */ }
+                    }
+                } catch (err) {
+                    // Falhou mesmo online: enfileira para tentar depois
+                    const localId = `set-${exercise.id}-${now.getTime()}`;
+                    await enqueueSync("workout_sessions", "create", localId, { sets: [setPayload] });
+                    console.warn("[WorkoutExecution] logSet falhou, enfileirado:", err);
+                }
+            } else {
+                // Offline: enfileira para sync ao reconectar
+                const localId = `set-${exercise.id}-${now.getTime()}`;
+                await enqueueSync("workout_sessions", "create", localId, { sets: [setPayload] });
             }
 
             // Update series counter
@@ -258,7 +356,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const handleFinishWorkout = () => {
         if (confirm("Deseja encerrar o treino atual? O progresso não salvo em séries individuais será perdido.")) {
             localStorage.removeItem(STORAGE_KEY);
-            window.location.reload(); // Simplest way to reset all states to initial
+            NotificationService.cancelWorkoutSetNotification(); // Remove notificação do relógio
+            window.location.reload();
         }
     };
 
@@ -597,6 +696,32 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                         duration={timerDuration}
                         onClose={() => setShowTimer(false)}
                         onComplete={() => setShowTimer(false)}
+                        exerciseName={
+                            activeExercise !== null
+                                ? orderedExercises.find(e => e.id === activeExercise)?.name
+                                : undefined
+                        }
+                        nextSetNumber={
+                            activeExercise !== null
+                                ? (completedSets[activeExercise] || 0) + 1
+                                : undefined
+                        }
+                        totalSets={
+                            activeExercise !== null
+                                ? orderedExercises.find(e => e.id === activeExercise)?.targetSets ?? undefined
+                                : undefined
+                        }
+                        targetWeight={
+                            activeExercise !== null
+                                ? inputs[activeExercise]?.weight ||
+                                  orderedExercises.find(e => e.id === activeExercise)?.targetWeight
+                                : undefined
+                        }
+                        targetReps={
+                            activeExercise !== null
+                                ? orderedExercises.find(e => e.id === activeExercise)?.targetReps ?? undefined
+                                : undefined
+                        }
                     />
                 )}
             </AnimatePresence>

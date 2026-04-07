@@ -4,8 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, LogOut, Menu, X, History as HistoryIcon, BrainCircuit } from "lucide-react";
+import { LayoutDashboard, Dumbbell, Utensils, Activity, Settings, History as HistoryIcon, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { attachConnectivityListener } from "@/lib/sync-manager";
 
 const NAV_ITEMS = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -28,15 +30,40 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         setIsSidebarOpen(false);
     }, [pathname]);
 
+    // Registra listener de conectividade e processa fila de sync ao montar
+    React.useEffect(() => {
+        const cleanup = attachConnectivityListener();
+
+        // Listener para mensagens do Service Worker (Background Sync)
+        const handleSwMessage = (event: MessageEvent) => {
+            if (event.data?.type === "PROCESS_SYNC_QUEUE") {
+                import("@/lib/sync-manager")
+                    .then(({ processSyncQueue }) => processSyncQueue())
+                    .catch(console.error);
+            }
+        };
+
+        navigator.serviceWorker?.addEventListener("message", handleSwMessage);
+
+        return () => {
+            cleanup();
+            navigator.serviceWorker?.removeEventListener("message", handleSwMessage);
+        };
+    }, []);
+
     // Se for a landing page, não mostra o shell
     if (pathname === "/") return <>{children}</>;
 
     return (
         <div className="flex h-screen flex-col bg-background md:flex-row dark:bg-[#080808]">
+            {/* Banner offline — aparece no topo, acima de tudo */}
+            <div className="fixed top-0 left-0 right-0 z-[60]">
+                <OfflineBanner />
+            </div>
+
             {/* Sidebar - Desktop */}
             <aside className={cn(
                 "hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex",
-                // Mobile state logic (future proofing if we switch to sidebar on mobile)
                 isSidebarOpen && "flex absolute inset-y-0 left-0 z-50 w-64 bg-background/95 backdrop-blur-xl md:relative md:bg-card/30"
             )}>
                 <div className="flex h-20 items-center border-b px-6 justify-between">
@@ -96,10 +123,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Header - Mobile */}
                 <header className="flex min-h-[calc(4rem+env(safe-area-inset-top))] h-auto items-center justify-between border-b bg-card/50 backdrop-blur-lg px-6 pt-[env(safe-area-inset-top)] md:hidden sticky top-0 z-40">
                     <div className="flex items-center gap-4">
-                        {/* Hamburger Menu (optional) */}
-                        {/* <button onClick={() => setIsSidebarOpen(true)} className="p-1 -ml-2 text-muted-foreground">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                        </button> */}
                         <Link href="/dashboard" className="flex items-center gap-2 font-black text-primary tracking-tighter">
                             <Dumbbell className="h-5 w-5 stroke-[2.5px]" />
                             <span>MyFit.ai</span>

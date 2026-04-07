@@ -2,10 +2,21 @@ import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
     dest: "public",
-    disable: process.env.NODE_ENV === "development",
+    // Mantém SW ativo em dev para facilitar testes offline
+    disable: false,
     register: true,
     skipWaiting: true,
+    // Worker customizado com estratégias de cache + background sync
     customWorkerSrc: "worker",
+    // Garante que o SW seja atualizado ao abrir o app
+    reloadOnOnline: true,
+    // Cache de páginas da app para acesso offline
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
+    // Fallback offline para navegação sem cache
+    fallbacks: {
+        document: "/offline",
+    },
 });
 
 /** @type {import('next').NextConfig} */
