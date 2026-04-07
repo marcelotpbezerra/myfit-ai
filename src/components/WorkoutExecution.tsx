@@ -10,6 +10,7 @@ import {
     syncExerciseTutorial,
     removeExerciseTutorial
 } from "@/actions/workout";
+import { enqueueSync } from "@/lib/sync-manager";
 import {
     ChevronRight,
     ChevronDown,
@@ -212,19 +213,36 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
         startTransition(async () => {
             const now = new Date();
-            await logSet({
+            const setPayload = {
                 exerciseId: exercise.id,
                 weight: input.weight,
                 reps: parseInt(input.reps),
                 restTime: exercise.targetRestTime || 60,
                 notes: notes[exercise.id],
-                startedAt: exerciseStartedAt[exercise.id] || now,
-                completedAt: now
-            });
+                startedAt: (exerciseStartedAt[exercise.id] || now).toISOString(),
+                completedAt: now.toISOString(),
+            };
 
-            // Update target weight if changed
-            if (input.weight !== exercise.targetWeight) {
-                await updateTargetWeight(exercise.id, input.weight);
+            if (navigator.onLine) {
+                try {
+                    await logSet({
+                        ...setPayload,
+                        startedAt: exerciseStartedAt[exercise.id] || now,
+                        completedAt: now,
+                    });
+                    if (input.weight !== exercise.targetWeight) {
+                        try { await updateTargetWeight(exercise.id, input.weight); } catch { /* não crítico */ }
+                    }
+                } catch (err) {
+                    // Falhou mesmo online: enfileira para tentar depois
+                    const localId = `set-${exercise.id}-${now.getTime()}`;
+                    await enqueueSync("workout_sessions", "create", localId, { sets: [setPayload] });
+                    console.warn("[WorkoutExecution] logSet falhou, enfileirado:", err);
+                }
+            } else {
+                // Offline: enfileira para sync ao reconectar
+                const localId = `set-${exercise.id}-${now.getTime()}`;
+                await enqueueSync("workout_sessions", "create", localId, { sets: [setPayload] });
             }
 
             // Update series counter
