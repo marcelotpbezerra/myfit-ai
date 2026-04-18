@@ -143,6 +143,12 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         currentSetContextRef.current = { exercise: ex, weight: input.weight, reps: input.reps };
     }, [activeExercise, inputs, orderedExercises]);
 
+    // Ref para manter a versão mais recente do handleLogSet acessível a eventos DOM
+    const handleLogSetRef = useRef(handleLogSet);
+    useEffect(() => {
+        handleLogSetRef.current = handleLogSet;
+    });
+
     // Listener de "✅ Marcar Feita" disparado pelo botão no WearOS
     useEffect(() => {
         const handleMarkSetDone = () => {
@@ -152,12 +158,13 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                 return;
             }
             console.log("[WearOS] MARK_SET_DONE → registrando série:", ctx.exercise.name);
-            handleLogSet(ctx.exercise);
+            // Chama a versão mais recente da função para evitar stale closure
+            handleLogSetRef.current(ctx.exercise);
         };
 
         window.addEventListener("notification:mark_set_done", handleMarkSetDone);
         return () => window.removeEventListener("notification:mark_set_done", handleMarkSetDone);
-    }, []); // usa ref — sem dependência de closure
+    }, []); // usa refs — sem dependência de closure
 
     // Quando o timer de descanso fecha, envia notificação de "próxima série" para o relógio
     useEffect(() => {
@@ -279,8 +286,12 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             setShowTimer(false);
             // Opcional: tocar um som ou vibrar para confirmar
         };
-        window.addEventListener('notification:skip_rest', handleNotificationSkip);
-        return () => window.removeEventListener('notification:skip_rest', handleNotificationSkip);
+        window.addEventListener('notification:start_next_set', handleNotificationSkip);
+        window.addEventListener('notification:skip_rest', handleNotificationSkip); // Backup para compatibilidade
+        return () => {
+            window.removeEventListener('notification:start_next_set', handleNotificationSkip);
+            window.removeEventListener('notification:skip_rest', handleNotificationSkip);
+        };
     }, []);
 
     const handleLogSet = async (exercise: Exercise) => {

@@ -22,6 +22,7 @@ export const NOTIFICATION_ACTIONS = {
 // IDs fixos para notificações gerenciadas
 const NOTIF_ID_REST = 1001;
 const NOTIF_ID_WORKOUT_SET = 1002;
+const NOTIF_ID_REST_LIVE = 1003;
 const NOTIF_ID_DUCKING = 999;
 
 export const NotificationService = {
@@ -116,11 +117,6 @@ export const NotificationService = {
             ? ` — ${context.exerciseName} (Série ${context.nextSetNumber ?? "?"}/${context.totalSets ?? "?"})`
             : "";
 
-        const title = `⏱️ Descanso: ${seconds}s${nextInfo ? "" : " restantes"}`;
-        const body = seconds > 0
-            ? `${nextInfo ? `Próximo: ${context!.exerciseName} — Série ${context!.nextSetNumber}/${context!.totalSets}` : "Prepare-se para a próxima série!"}`
-            : "🔥 Descanso finalizado! Hora de avançar.";
-
         if (!Capacitor.isNativePlatform()) {
             if ("Notification" in window && Notification.permission === "granted") {
                 setTimeout(() => {
@@ -135,6 +131,9 @@ export const NotificationService = {
             }
             return;
         }
+
+        // Remove contador "vivo" se existir ao agendar o alerta final
+        await LocalNotifications.cancel({ notifications: [{ id: NOTIF_ID_REST_LIVE }] }).catch(() => {});
 
         const scheduleDate = new Date(Date.now() + seconds * 1000);
         await LocalNotifications.schedule({
@@ -153,6 +152,52 @@ export const NotificationService = {
                 }
             ]
         });
+    },
+
+    /**
+     * Atualiza uma notificação "viva" no relógio com o tempo restante.
+     * Chamada periodicamente pelo componente RestTimer.
+     */
+    async updateLiveRestTimer(
+        seconds: number,
+        context?: {
+            exerciseName?: string;
+            nextSetNumber?: number;
+            totalSets?: number;
+        }
+    ) {
+        if (!Capacitor.isNativePlatform()) return;
+
+        const title = `⏱️ Descanso: ${seconds}s`;
+        const body = context?.exerciseName 
+            ? `Próximo: ${context.exerciseName} (${context.nextSetNumber}/${context.totalSets})`
+            : "Prepare-se para a próxima série!";
+
+        // Usamos um ID diferente do alerta final para não sobrescrever o agendamento do som
+        await LocalNotifications.schedule({
+            notifications: [
+                {
+                    title,
+                    body,
+                    id: NOTIF_ID_REST_LIVE,
+                    schedule: { at: new Date(Date.now() + 10) }, // "Agora" (com pequeno buffer)
+                    channelId: "workout",
+                    actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_REST,
+                    extra: { type: "rest_live", ...context }
+                }
+            ]
+        });
+    },
+
+    /** Remove todas as notificações de descanso (viva e final) */
+    async cancelRestNotifications() {
+        if (!Capacitor.isNativePlatform()) return;
+        await LocalNotifications.cancel({
+            notifications: [
+                { id: NOTIF_ID_REST },
+                { id: NOTIF_ID_REST_LIVE }
+            ]
+        }).catch(() => {});
     },
 
     // ─── Notificação de série em execução (exibida no WearOS) ─────────────────

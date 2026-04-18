@@ -123,6 +123,7 @@ export function RestTimer({
             window.removeEventListener('notification:start_next_set', handleStartNextSet);
             window.removeEventListener('notification:subtract_10s', handleSubtract10s);
             window.removeEventListener('notification:skip_rest', handleStartNextSet);
+            NotificationService.cancelRestNotifications();
         };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -140,7 +141,20 @@ export function RestTimer({
         }
 
         const timer = setInterval(() => {
-            setTimeLeft((prev) => prev - 1);
+            setTimeLeft((prev) => {
+                const newTime = prev - 1;
+                
+                // Atualiza o relógio (a cada 5s quando longe, a cada 1s no final para economizar bateria)
+                if (newTime >= 0 && (newTime <= 10 || newTime % 5 === 0)) {
+                    NotificationService.updateLiveRestTimer(newTime, {
+                        exerciseName,
+                        nextSetNumber,
+                        totalSets
+                    });
+                }
+                
+                return newTime;
+            });
         }, 1000);
 
         return () => clearInterval(timer);
