@@ -144,7 +144,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     }, [activeExercise, inputs, orderedExercises]);
 
     // Ref para manter a versão mais recente do handleLogSet acessível a eventos DOM
-    const handleLogSetRef = useRef(handleLogSet);
+    // Inicializado com null pois handleLogSet é const declarado abaixo (evita TDZ ReferenceError)
+    const handleLogSetRef = useRef<((exercise: Exercise) => Promise<void>) | null>(null);
     useEffect(() => {
         handleLogSetRef.current = handleLogSet;
     });
@@ -159,7 +160,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             }
             console.log("[WearOS] MARK_SET_DONE → registrando série:", ctx.exercise.name);
             // Chama a versão mais recente da função para evitar stale closure
-            handleLogSetRef.current(ctx.exercise);
+            handleLogSetRef.current?.(ctx.exercise);
         };
 
         window.addEventListener("notification:mark_set_done", handleMarkSetDone);
