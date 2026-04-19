@@ -127,6 +127,20 @@ export function RestTimer({
         };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Wake Lock: mantém a tela acesa durante o descanso
+    useEffect(() => {
+        if (!('wakeLock' in navigator)) return;
+        let wakeLock: WakeLockSentinel | null = null;
+        (async () => {
+            try {
+                wakeLock = await (navigator as any).wakeLock.request('screen');
+            } catch (e) {
+                console.warn('[RestTimer] Wake Lock não concedido:', e);
+            }
+        })();
+        return () => { wakeLock?.release(); };
+    }, []);
+
     useEffect(() => {
         if (timeLeft <= 0) {
             playBeep(2500, 0.6, true);
@@ -140,21 +154,18 @@ export function RestTimer({
             playBeep(freq, 0.15);
         }
 
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                const newTime = prev - 1;
-                
-                // Atualiza o relógio (a cada 5s quando longe, a cada 1s no final para economizar bateria)
-                if (newTime >= 0 && (newTime <= 10 || newTime % 5 === 0)) {
-                    NotificationService.updateLiveRestTimer(newTime, {
-                        exerciseName,
-                        nextSetNumber,
-                        totalSets
-                    });
-                }
-                
-                return newTime;
+        // Atualiza o relógio a cada 5s (ou último trecho a cada 1s)
+        // Chamado aqui — fora do setState — para evitar side-effect em state updater
+        if (timeLeft <= 10 || timeLeft % 5 === 0) {
+            NotificationService.updateLiveRestTimer(timeLeft, {
+                exerciseName,
+                nextSetNumber,
+                totalSets,
             });
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
         }, 1000);
 
         return () => clearInterval(timer);
