@@ -168,19 +168,25 @@ export const NotificationService = {
     ) {
         if (!Capacitor.isNativePlatform()) return;
 
-        const title = `⏱️ Descanso: ${seconds}s`;
-        const body = context?.exerciseName 
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const title = `⏱️ Descanso: ${timeStr}`;
+        const body = context?.exerciseName
             ? `Próximo: ${context.exerciseName} (${context.nextSetNumber}/${context.totalSets})`
             : "Prepare-se para a próxima série!";
 
-        // Usamos um ID diferente do alerta final para não sobrescrever o agendamento do som
+        // Cancela a anterior antes de reagendar — mesmo padrão do scheduleWorkoutSetNotification
+        // Sem isso, o Android ignora o re-schedule do mesmo ID já entregue
+        await LocalNotifications.cancel({ notifications: [{ id: NOTIF_ID_REST_LIVE }] }).catch(() => {});
+
         await LocalNotifications.schedule({
             notifications: [
                 {
                     title,
                     body,
                     id: NOTIF_ID_REST_LIVE,
-                    schedule: { at: new Date(Date.now() + 10) }, // "Agora" (com pequeno buffer)
+                    schedule: { at: new Date(Date.now() + 150) }, // 150ms — mesmo buffer do set notification
                     channelId: "workout",
                     actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_REST,
                     extra: { type: "rest_live", ...context }

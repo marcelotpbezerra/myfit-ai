@@ -116,6 +116,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const [showNotes, setShowNotes] = useState<Record<string, boolean>>({});
 
     const [isMounted, setIsMounted] = useState(false);
+    const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
     /**
      * Ref mantida em sync com o estado atual da série focada.
@@ -187,6 +188,33 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             });
         }
     }, [showTimer]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Wake Lock: mantém tela acesa durante todo o treino
+    useEffect(() => {
+        if (!('wakeLock' in navigator)) return;
+
+        const acquire = async () => {
+            try {
+                wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+            } catch (e) {
+                console.warn('[WorkoutExecution] Wake Lock não concedido:', e);
+            }
+        };
+
+        acquire();
+
+        // Reacquire quando a aba volta ao foco (visibilitychange libera o lock automaticamente)
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') acquire();
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibility);
+            wakeLockRef.current?.release();
+            wakeLockRef.current = null;
+        };
+    }, []);
 
     // Load state from localStorage on mount
     useEffect(() => {
