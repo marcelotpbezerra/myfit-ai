@@ -14,10 +14,10 @@ import {
     Loader2,
     RotateCcw,
     AlertCircle,
+    AlertCircle,
     Check
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
-
 import { Button } from "@/components/ui/button";
 import { CustomFoodDialog } from "@/components/CustomFoodDialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -83,7 +83,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
     const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
-
 
     const [isPersistentCustomFoodOpen, setIsPersistentCustomFoodOpen] = useState(false);
     const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({});
@@ -437,8 +436,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         });
     }
 
-
-
     const safeCurrentItems = Array.isArray(currentItems) ? currentItems : [];
     const totals = safeCurrentItems.reduce((acc, item) => {
         const p = Number(item.protein || 0);
@@ -466,7 +463,6 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-
                     <Button onClick={openCreateDialog} className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
                         <Plus className="mr-2 h-5 w-5" /> Adicionar
                     </Button>
