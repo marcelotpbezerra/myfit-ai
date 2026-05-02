@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { NativeBiometric } from "@capgo/capacitor-native-biometric";
-import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
 import { LockKeyhole, Fingerprint } from "lucide-react";
 import { getUserSettings } from "@/actions/health";
@@ -68,45 +67,7 @@ export function BiometricGuard({ children }: { children: React.ReactNode }) {
             }
         };
 
-        const scheduleAllMealNotifications = async () => {
-            if (!Capacitor.isNativePlatform()) return;
-
-            const MEAL_NOTIFICATIONS = [
-                { id: 1, hour: 8, minute: 0, title: "Café da Manhã! ☀️", body: "Marcelo, hora de abastecer o motor! Cuscuz + ovos + frango 💪" },
-                { id: 2, hour: 10, minute: 0, title: "Lanche da Manhã! 🥤", body: "Whey isolado + pasta de amendoim. Anabolismo ativado! 🚀" },
-                { id: 3, hour: 12, minute: 0, title: "Almoço! 🍽️", body: "Arroz integral + frango grelhado. Energia para a tarde! ⚡" },
-                { id: 4, hour: 17, minute: 0, title: "Pré-Treino! 💪", body: "Iogurte + whey + granola. Prepare-se para destruir! 🔥" },
-                { id: 5, hour: 20, minute: 0, title: "Pós-Treino/Jantar! 🏋️", body: "Frango + vegetais + batata. Recuperação anabólica! 💯" },
-                { id: 6, hour: 22, minute: 30, title: "Ceia Proteica! 🌙", body: "Whey + pasta de amendoim. Crescimento noturno! 😴💪" }
-            ];
-
-            try {
-                // Cancelar notificações antigas
-                await LocalNotifications.cancel({ notifications: [{ id: 1 }] });
-
-                // Agendar todas as 6 notificações recorrentes
-                await LocalNotifications.schedule({
-                    notifications: MEAL_NOTIFICATIONS.map(meal => ({
-                        title: meal.title,
-                        body: meal.body,
-                        id: meal.id,
-                        schedule: {
-                            on: { hour: meal.hour, minute: meal.minute },
-                            repeats: true
-                        },
-                        sound: "beep.wav",
-                        attachments: [],
-                        actionTypeId: "",
-                        extra: null
-                    }))
-                });
-            } catch (error) {
-                console.error("Notification scheduling failed", error);
-            }
-        };
-
         checkBiometric();
-        scheduleAllMealNotifications();
     }, []);
 
     if (isChecking) {

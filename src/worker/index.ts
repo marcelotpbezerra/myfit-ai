@@ -152,16 +152,9 @@ async function notifyClientsToSync(): Promise<void> {
 
 swSelf.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    const action = event.action;
-    const notificationData = event.notification.data || {};
-    const mealId = notificationData.mealId;
 
-    console.log(`[SW] Notification click action: ${action}, mealId: ${mealId}`);
-
-    let url = "/dashboard/meals";
-    if (action === "edit" && mealId) {
-        url = `/dashboard/meals?mealId=${mealId}&action=edit`;
-    }
+    // Redireciona para o dashboard principal como padrão
+    const url = "/dashboard";
 
     event.waitUntil(
         swSelf.clients

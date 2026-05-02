@@ -14,13 +14,10 @@ import {
     Loader2,
     RotateCcw,
     AlertCircle,
-    BellRing,
     Check
 } from "lucide-react";
 import { searchFoodNutrition } from "@/lib/nutrition-api";
-import { Capacitor } from "@capacitor/core";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { NotificationService } from "@/lib/notifications";
+
 import { Button } from "@/components/ui/button";
 import { CustomFoodDialog } from "@/components/CustomFoodDialog";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -87,7 +84,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
     const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
     const [isDietPlanLoaded, setIsDietPlanLoaded] = useState(false);
 
-    const [isSimulating, setIsSimulating] = useState(false);
+
     const [isPersistentCustomFoodOpen, setIsPersistentCustomFoodOpen] = useState(false);
     const [expandedMeals, setExpandedMeals] = useState<Record<string, boolean>>({});
 
@@ -440,52 +437,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
         });
     }
 
-    async function simulateNotification() {
-        setIsSimulating(true);
-        try {
-            const granted = await NotificationService.requestPermissions();
-            if (!granted) {
-                alert("Permissão de notificação negada.");
-                return;
-            }
 
-            if (Capacitor.isNativePlatform()) {
-                await LocalNotifications.schedule({
-                    notifications: [{
-                        title: "🍽️ Simulação: Hora do Almoço!",
-                        body: "Sua dieta está pronta. O que vai comer?",
-                        id: 998,
-                        schedule: { at: new Date(Date.now() + 2000) },
-                        sound: 'beep.wav',
-                        channelId: "workout",
-                        extra: {
-                            mealId: dietPlan[0]?.id || 1,
-                            url: "/dashboard/meals"
-                        }
-                    }]
-                });
-            } else {
-                // Web Simulation
-                const registration = await navigator.serviceWorker.ready;
-                registration.showNotification("🍽️ Simulação: Hora do Almoço!", {
-                    body: "Sua dieta está pronta. O que vai comer?",
-                    icon: "/icons/icon-192x192.png",
-                    data: {
-                        mealId: dietPlan[0]?.id || 1,
-                        url: "/dashboard/meals"
-                    },
-                    actions: [
-                        { action: "log", title: "Registrar Plano" },
-                        { action: "edit", title: "Substituir" }
-                    ]
-                } as any);
-            }
-        } catch (error) {
-            console.error("Erro ao simular:", error);
-        } finally {
-            setIsSimulating(false);
-        }
-    }
 
     const safeCurrentItems = Array.isArray(currentItems) ? currentItems : [];
     const totals = safeCurrentItems.reduce((acc, item) => {
@@ -514,16 +466,7 @@ export function MealManager({ initialMeals, date, dietPlan = [] }: { initialMeal
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={simulateNotification}
-                        disabled={isSimulating}
-                        className="rounded-xl border-dashed h-12 px-4 text-xs font-bold gap-2 animate-pulse hover:animate-none"
-                    >
-                        <BellRing className="h-4 w-4" />
-                        Simular Notify
-                    </Button>
+
                     <Button onClick={openCreateDialog} className="rounded-xl h-12 px-6 shadow-lg shadow-primary/20">
                         <Plus className="mr-2 h-5 w-5" /> Adicionar
                     </Button>
