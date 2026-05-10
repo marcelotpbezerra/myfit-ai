@@ -12,6 +12,7 @@ import {
 } from "@/actions/workout";
 import { enqueueSync } from "@/lib/sync-manager";
 import { NotificationService } from "@/lib/notifications";
+import { createRestSession, RestSession, serializeRestForLog } from "@/lib/rest-engine";
 import {
     ChevronRight,
     ChevronDown,
@@ -99,6 +100,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     const [isPending, startTransition] = useTransition();
     const [showTimer, setShowTimer] = useState(false);
     const [timerDuration, setTimerDuration] = useState(60);
+    const [activeRestSession, setActiveRestSession] = useState<RestSession | null>(null);
+    const [lastRestByExercise, setLastRestByExercise] = useState<Record<number, RestSession>>({});
     const exerciseRefs = useRef<Record<number, HTMLDivElement | null>>({});
     const dragControls = useDragControls();
     const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,28 +147,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     }, [activeExercise, inputs, orderedExercises]);
 
     // Ref para manter a versão mais recente do handleLogSet acessível a eventos DOM
-    // Inicializado com null pois handleLogSet é const declarado abaixo (evita TDZ ReferenceError)
     const handleLogSetRef = useRef<((exercise: Exercise) => Promise<void>) | null>(null);
-    useEffect(() => {
-        handleLogSetRef.current = handleLogSet;
-    });
-
-    // Listener de "✅ Marcar Feita" disparado pelo botão no WearOS
-    useEffect(() => {
-        const handleMarkSetDone = () => {
-            const ctx = currentSetContextRef.current;
-            if (!ctx || !ctx.weight || !ctx.reps) {
-                console.warn("[WearOS] MARK_SET_DONE recebido mas sem contexto de série ativo");
-                return;
-            }
-            console.log("[WearOS] MARK_SET_DONE → registrando série:", ctx.exercise.name);
-            // Chama a versão mais recente da função para evitar stale closure
-            handleLogSetRef.current?.(ctx.exercise);
-        };
-
-        window.addEventListener("notification:mark_set_done", handleMarkSetDone);
-        return () => window.removeEventListener("notification:mark_set_done", handleMarkSetDone);
-    }, []); // usa refs — sem dependência de closure
 
     // Quando o timer de descanso fecha, envia notificação de "próxima série" para o relógio
     useEffect(() => {
@@ -203,6 +185,8 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                 if (data.inputs) setInputs(data.inputs);
                 if (data.notes) setNotes(data.notes);
                 if (data.activeExercise !== undefined) setActiveExercise(data.activeExercise);
+                if (data.activeRestSession) setActiveRestSession(data.activeRestSession);
+                if (data.lastRestByExercise) setLastRestByExercise(data.lastRestByExercise);
             } catch (e) {
                 console.error("Failed to load workout state", e);
             }
@@ -222,10 +206,12 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             exerciseFinished,
             inputs,
             notes,
-            activeExercise
+            activeExercise,
+            activeRestSession,
+            lastRestByExercise
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, isMounted]);
+    }, [orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, activeRestSession, lastRestByExercise, isMounted]);
 
     // Auto-scroll logic
     useEffect(() => {
@@ -295,7 +281,7 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         };
     }, []);
 
-    const handleLogSet = async (exercise: Exercise) => {
+    async function handleLogSet(exercise: Exercise) {
         const input = inputs[exercise.id] || {
             weight: exercise.targetWeight || '',
             reps: exercise.targetReps?.toString() || ''
@@ -305,12 +291,21 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
 
         startTransition(async () => {
             const now = new Date();
+            const previousRest = lastRestByExercise[exercise.id];
+            const restTimeForLog = previousRest?.actualRestSeconds || exercise.targetRestTime || 60;
+            const restMeta = previousRest ? serializeRestForLog(previousRest) : null;
             const setPayload = {
                 exerciseId: exercise.id,
                 weight: input.weight,
                 reps: parseInt(input.reps),
-                restTime: exercise.targetRestTime || 60,
-                notes: notes[exercise.id],
+                // Sem migration: gravamos o descanso real no campo existente quando disponível.
+                // Para a primeira série, mantém o alvo configurado como fallback.
+                restTime: restTimeForLog,
+                notes: restMeta
+                    ? [notes[exercise.id], `Rest: actual=${restMeta.actualRestSeconds}s planned=${restMeta.plannedRestSeconds}s source=${restMeta.source}`]
+                        .filter(Boolean)
+                        .join("\n")
+                    : notes[exercise.id],
                 startedAt: (exerciseStartedAt[exercise.id] || now).toISOString(),
                 completedAt: now.toISOString(),
             };
@@ -359,11 +354,45 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                     }
                 }
             } else {
-                setTimerDuration(exercise.targetRestTime || 60);
+                const plannedRestSeconds = exercise.targetRestTime || 60;
+                const nextSetIndex = newSetsCount + 1;
+                const restSession = createRestSession({
+                    exerciseId: exercise.id,
+                    exerciseName: exercise.name,
+                    setIndex: nextSetIndex,
+                    totalSets: exercise.targetSets || 3,
+                    targetWeight: input.weight || exercise.targetWeight,
+                    targetReps: parseInt(input.reps) || exercise.targetReps,
+                    source: "phone",
+                }, plannedRestSeconds);
+
+                setTimerDuration(plannedRestSeconds);
+                setActiveRestSession(restSession);
                 setShowTimer(true);
             }
         });
-    };
+    }
+
+    useEffect(() => {
+        handleLogSetRef.current = handleLogSet;
+    });
+
+    // Listener de "✅ Marcar Feita" disparado pelo botão no WearOS
+    useEffect(() => {
+        const handleMarkSetDone = () => {
+            const ctx = currentSetContextRef.current;
+            if (!ctx || !ctx.weight || !ctx.reps) {
+                console.warn("[WearOS] MARK_SET_DONE recebido mas sem contexto de série ativo");
+                return;
+            }
+            console.log("[WearOS] MARK_SET_DONE → registrando série:", ctx.exercise.name);
+            // Chama a versão mais recente da função para evitar stale closure
+            handleLogSetRef.current?.(ctx.exercise);
+        };
+
+        window.addEventListener("notification:mark_set_done", handleMarkSetDone);
+        return () => window.removeEventListener("notification:mark_set_done", handleMarkSetDone);
+    }, []); // usa refs — sem dependência de closure
 
     const handleFinishWorkout = () => {
         if (confirm("Deseja encerrar o treino atual? O progresso não salvo em séries individuais será perdido.")) {
@@ -672,7 +701,20 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                                                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                                                         <span className="text-[8px] font-black uppercase tracking-widest">PR</span>
                                                     </div>
-                                                    <div className="flex flex-col items-center gap-1 cursor-pointer hover:text-primary transition-colors" onClick={() => setShowTimer(true)}>
+                                                    <div className="flex flex-col items-center gap-1 cursor-pointer hover:text-primary transition-colors" onClick={() => {
+                                                        const plannedRestSeconds = ex.targetRestTime || 60;
+                                                        setTimerDuration(plannedRestSeconds);
+                                                        setActiveRestSession(createRestSession({
+                                                            exerciseId: ex.id,
+                                                            exerciseName: ex.name,
+                                                            setIndex: (completedSets[ex.id] || 0) + 1,
+                                                            totalSets: ex.targetSets || 3,
+                                                            targetWeight: inputs[ex.id]?.weight || ex.targetWeight,
+                                                            targetReps: parseInt(inputs[ex.id]?.reps || "") || ex.targetReps,
+                                                            source: "phone",
+                                                        }, plannedRestSeconds));
+                                                        setShowTimer(true);
+                                                    }}>
                                                         <Zap className="h-4 w-4" />
                                                         <span className="text-[8px] font-black uppercase tracking-widest">Timer</span>
                                                     </div>
@@ -706,6 +748,12 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                 {showTimer && (
                     <RestTimer
                         duration={timerDuration}
+                        restSession={activeRestSession ?? undefined}
+                        onRestChange={setActiveRestSession}
+                        onRestComplete={(session) => {
+                            setLastRestByExercise(prev => ({ ...prev, [session.exerciseId]: session }));
+                            setActiveRestSession(null);
+                        }}
                         onClose={() => setShowTimer(false)}
                         onComplete={() => setShowTimer(false)}
                         exerciseName={

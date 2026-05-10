@@ -16,6 +16,7 @@ export const NOTIFICATION_ACTIONS = {
     OPEN_APP: "OPEN_APP",
     START_NEXT_SET: "START_NEXT_SET",
     SUBTRACT_10S: "SUBTRACT_10S",
+    EXTEND_30S: "EXTEND_30S",
     MARK_SET_DONE: "MARK_SET_DONE", // Nova: marca série como feita direto do relógio
 };
 
@@ -66,6 +67,11 @@ export const NotificationService = {
                                 id: NOTIFICATION_ACTIONS.SUBTRACT_10S,
                                 title: "⏩ -10s",
                                 foreground: false, // Executa em background
+                            },
+                            {
+                                id: NOTIFICATION_ACTIONS.EXTEND_30S,
+                                title: "➕ +30s",
+                                foreground: false,
                             }
                         ]
                     },
@@ -270,7 +276,14 @@ export const NotificationService = {
 
     // ─── Refeições ─────────────────────────────────────────────────────────────
 
-    async scheduleMealReminders(dietPlan: any[]) {
+    async scheduleMealReminders(dietPlan: Array<{
+        scheduledTime?: string;
+        time?: string;
+        mealName?: string;
+        name?: string;
+        suggestions?: string;
+        id?: string | number;
+    }>) {
         if (!Capacitor.isNativePlatform() || !dietPlan.length) return;
 
         try {

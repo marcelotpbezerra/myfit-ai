@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Timer, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -19,6 +18,12 @@ interface RestTimerProps {
     targetWeight?: string | null;
     /** Repetições-alvo (para exibir no relógio) */
     targetReps?: number | null;
+    /** Sessão formal de descanso criada pelo fluxo do treino */
+    restSession?: RestSession;
+    /** Dispara a cada tick/ajuste para persistência local ou sync com relógio */
+    onRestChange?: (session: RestSession) => void;
+    /** Dispara quando descanso termina, é pulado ou concluído manualmente */
+    onRestComplete?: (session: RestSession) => void;
     onComplete?: () => void;
     onClose: () => void;
 }
@@ -26,10 +31,20 @@ interface RestTimerProps {
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { NotificationService } from "@/lib/notifications";
+import {
+    adjustRestSession,
+    completeRestSession,
+    createRestSession,
+    RestSession,
+    tickRestSession,
+} from "@/lib/rest-engine";
 
 const playBeep = async (frequency = 440, duration = 0.1, isFinal = false) => {
     try {
-        const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const browserWindow = window as typeof window & {
+            webkitAudioContext?: typeof AudioContext;
+        };
+        const AudioContextClass = window.AudioContext || browserWindow.webkitAudioContext;
         if (!AudioContextClass) return;
 
         const audioCtx = new AudioContextClass();
@@ -75,10 +90,41 @@ export function RestTimer({
     totalSets,
     targetWeight,
     targetReps,
+    restSession: initialRestSession,
+    onRestChange,
+    onRestComplete,
     onComplete,
     onClose
 }: RestTimerProps) {
-    const [timeLeft, setTimeLeft] = useState(duration);
+    const [restSession, setRestSession] = useState<RestSession>(() =>
+        initialRestSession ?? createRestSession({
+            exerciseId: 0,
+            exerciseName,
+            setIndex: nextSetNumber ?? 1,
+            totalSets,
+            targetWeight,
+            targetReps,
+            source: "phone",
+        }, duration)
+    );
+    const didFinishRef = useRef(false);
+    const timeLeft = restSession.remainingSeconds;
+
+    const commitRestSession = (nextSession: RestSession) => {
+        setRestSession(nextSession);
+        onRestChange?.(nextSession);
+        return nextSession;
+    };
+
+    const finishRest = (status: "completed" | "skipped" = "completed") => {
+        if (didFinishRef.current) return;
+        didFinishRef.current = true;
+        const finished = completeRestSession(restSession, status);
+        commitRestSession(finished);
+        onRestComplete?.(finished);
+        onComplete?.();
+        onClose();
+    };
 
     useEffect(() => {
         // Disparar notificação acionável ao iniciar descanso (para WearOS/Mobile)
@@ -94,43 +140,55 @@ export function RestTimer({
         // Listeners para ações do WearOS / Notificação
         const handleStartNextSet = () => {
             console.log("WearOS: Iniciando próxima série");
-            onComplete?.();
-            onClose();
+            finishRest("skipped");
         };
 
         const handleSubtract10s = () => {
             console.log("WearOS: Subtraindo 10s");
-            setTimeLeft(prev => {
-                const newTime = Math.max(0, prev - 10);
-                // Reagenda notificação com tempo atualizado
-                NotificationService.scheduleRestNotification(newTime, {
-                    exerciseName,
-                    nextSetNumber,
-                    totalSets,
-                    targetWeight,
-                    targetReps,
-                });
-                return newTime;
+            const nextSession = adjustRestSession(restSession, -10);
+            commitRestSession(nextSession);
+            // Reagenda notificação com tempo atualizado
+            NotificationService.scheduleRestNotification(nextSession.remainingSeconds, {
+                exerciseName,
+                nextSetNumber,
+                totalSets,
+                targetWeight,
+                targetReps,
+            });
+        };
+
+        const handleExtend30s = () => {
+            console.log("WearOS: Adicionando 30s");
+            const nextSession = adjustRestSession(restSession, 30);
+            commitRestSession(nextSession);
+            NotificationService.scheduleRestNotification(nextSession.remainingSeconds, {
+                exerciseName,
+                nextSetNumber,
+                totalSets,
+                targetWeight,
+                targetReps,
             });
         };
 
         window.addEventListener('notification:start_next_set', handleStartNextSet);
         window.addEventListener('notification:subtract_10s', handleSubtract10s);
+        window.addEventListener('notification:extend_30s', handleExtend30s);
         // Mantemos o listener antigo por compatibilidade se houver cache
         window.addEventListener('notification:skip_rest', handleStartNextSet);
 
         return () => {
             window.removeEventListener('notification:start_next_set', handleStartNextSet);
             window.removeEventListener('notification:subtract_10s', handleSubtract10s);
+            window.removeEventListener('notification:extend_30s', handleExtend30s);
             window.removeEventListener('notification:skip_rest', handleStartNextSet);
             NotificationService.cancelRestNotifications();
         };
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [restSession]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (timeLeft <= 0) {
             playBeep(2500, 0.6, true);
-            onComplete?.();
+            window.setTimeout(() => finishRest("completed"), 0);
             return;
         }
 
@@ -141,30 +199,28 @@ export function RestTimer({
         }
 
         const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                const newTime = prev - 1;
-                
-                // Atualiza o relógio (a cada 5s quando longe, a cada 1s no final para economizar bateria)
-                if (newTime >= 0 && (newTime <= 10 || newTime % 5 === 0)) {
-                    NotificationService.updateLiveRestTimer(newTime, {
-                        exerciseName,
-                        nextSetNumber,
-                        totalSets
-                    });
-                }
-                
-                return newTime;
-            });
+            const nextSession = tickRestSession(restSession);
+            commitRestSession(nextSession);
+
+            // Atualiza o relógio (a cada 5s quando longe, a cada 1s no final para economizar bateria)
+            if (nextSession.remainingSeconds >= 0 && (nextSession.remainingSeconds <= 10 || nextSession.remainingSeconds % 5 === 0)) {
+                NotificationService.updateLiveRestTimer(nextSession.remainingSeconds, {
+                    exerciseName,
+                    nextSetNumber,
+                    totalSets
+                });
+            }
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [timeLeft, onComplete]);
+    }, [timeLeft, restSession]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const adjustTime = (seconds: number) => {
-        setTimeLeft(prev => Math.max(0, prev + seconds));
+        const nextSession = adjustRestSession(restSession, seconds);
+        commitRestSession(nextSession);
     };
 
-    const percentage = (timeLeft / duration) * 100;
+    const percentage = Math.min(100, (timeLeft / restSession.plannedRestSeconds) * 100);
 
     // Linha de contexto exibida no modal (teléfone)
     const contextLine = exerciseName
@@ -178,7 +234,7 @@ export function RestTimer({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-                onClick={onClose}
+                onClick={() => finishRest("skipped")}
             />
             <div className="fixed top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 z-[60] w-[90%] max-w-[340px] animate-in fade-in zoom-in duration-300">
                 <Card className="overflow-hidden border-none bg-[#0F1115]/80 backdrop-blur-xl shadow-2xl ring-1 ring-white/10 rounded-[2.5rem]">
@@ -194,7 +250,7 @@ export function RestTimer({
                                 </div>
                             </div>
                             <button
-                                onClick={onClose}
+                                onClick={() => finishRest("skipped")}
                                 className="h-10 w-10 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-destructive/20 hover:text-destructive transition-all active:scale-95"
                             >
                                 <X className="h-5 w-5" />
@@ -233,10 +289,10 @@ export function RestTimer({
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    onClick={() => adjustTime(10)}
+                                    onClick={() => adjustTime(30)}
                                     className="h-14 w-20 rounded-2xl border-white/5 bg-white/5 text-lg font-black hover:bg-white/10 text-white transition-all active:scale-95"
                                 >
-                                    +10s
+                                    +30s
                                 </Button>
                             </div>
 
@@ -252,7 +308,7 @@ export function RestTimer({
                                     </motion.div>
                                 </div>
                                 <Button
-                                    onClick={onClose}
+                                    onClick={() => finishRest("completed")}
                                     className="w-full h-14 rounded-2xl bg-white text-black font-black text-sm tracking-widest hover:bg-white/90 active:scale-95 transition-all"
                                 >
                                     CONCLUIR DESCANSO
