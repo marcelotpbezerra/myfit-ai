@@ -12,7 +12,6 @@ import { getWaterGoal, getUserSettings } from "@/actions/health";
 import { getDietPlan } from "@/actions/diet";
 import { getNextSuggestedWorkout, getTodayWorkoutStatus } from "@/actions/workout";
 import { BiometricInvite } from "@/components/BiometricInvite";
-import { MealNotificationManager } from "@/components/MealNotificationManager";
 
 export default async function DashboardPage() {
     const user = await currentUser();
@@ -75,7 +74,6 @@ export default async function DashboardPage() {
             </div>
 
             <BiometricInvite biometricEnabled={biometricEnabled} />
-            <MealNotificationManager dietPlan={safesDietPlan} />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
                 {/* Main Stats Column */}

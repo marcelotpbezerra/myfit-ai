@@ -6,18 +6,16 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 // Identificadores consistentes para o sistema
 export const NOTIFICATION_CATEGORIES = {
     WORKOUT_REST: "WORKOUT_REST",
-    WORKOUT_SET: "WORKOUT_SET",   // Nova: exibe série atual no relógio
-    MEAL_REMINDER: "MEAL_REMINDER",
+    WORKOUT_SET: "WORKOUT_SET",
 };
 
 export const NOTIFICATION_ACTIONS = {
     SKIP_REST: "SKIP_REST",
-    CONFIRM_MEAL: "CONFIRM_MEAL",
     OPEN_APP: "OPEN_APP",
     START_NEXT_SET: "START_NEXT_SET",
     SUBTRACT_10S: "SUBTRACT_10S",
     EXTEND_30S: "EXTEND_30S",
-    MARK_SET_DONE: "MARK_SET_DONE", // Nova: marca série como feita direto do relógio
+    MARK_SET_DONE: "MARK_SET_DONE",
 };
 
 // IDs fixos para notificações gerenciadas
@@ -274,53 +272,6 @@ export const NotificationService = {
         }).catch(() => {});
     },
 
-    // ─── Refeições ─────────────────────────────────────────────────────────────
-
-    async scheduleMealReminders(dietPlan: Array<{
-        scheduledTime?: string;
-        time?: string;
-        mealName?: string;
-        name?: string;
-        suggestions?: string;
-        id?: string | number;
-    }>) {
-        if (!Capacitor.isNativePlatform() || !dietPlan.length) return;
-
-        try {
-            // Limpa agendamentos anteriores (IDs 200 até 299)
-            await LocalNotifications.cancel({
-                notifications: Array.from({ length: 100 }, (_, i) => ({ id: 200 + i }))
-            });
-
-            const notifications = dietPlan
-                .filter(p => p.scheduledTime || p.time)
-                .map((plan, idx) => {
-                    const timeStr = plan.scheduledTime || plan.time || "08:00";
-                    const [hours, minutes] = timeStr.split(":").map(Number);
-                    const scheduleDate = new Date();
-                    scheduleDate.setHours(hours, minutes, 0, 0);
-
-                    if (scheduleDate < new Date()) {
-                        scheduleDate.setDate(scheduleDate.getDate() + 1);
-                    }
-
-                    return {
-                        title: `🍽️ Hora da Refeição: ${plan.mealName || plan.name}`,
-                        body: plan.suggestions || "Consulte seu plano e registre o que comer.",
-                        id: 200 + idx,
-                        schedule: { at: scheduleDate, repeats: true, every: "day" as const, allowWhileIdle: true },
-                        channelId: "workout",
-                        extra: { mealId: plan.id, type: "meal_reminder" }
-                    };
-                });
-
-            if (notifications.length > 0) {
-                await LocalNotifications.schedule({ notifications });
-            }
-        } catch (e) {
-            console.error("Erro ao agendar refeições:", e);
-        }
-    }
 };
 
 // Funções para manter compatibilidade com componentes que importam diretamente
