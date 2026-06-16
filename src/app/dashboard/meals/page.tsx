@@ -1,7 +1,7 @@
 import { getMealsByDate, getDietPlan } from "@/actions/diet";
-import { seedMarceloProtocol } from "@/actions/seedMarcelo2026";
 import { MealManager } from "@/components/MealManager";
 import { DietConfig } from "@/components/DietConfig";
+import { SeedProtocolDialog } from "@/components/SeedProtocolDialog";
 import { MealsDatePicker } from "@/components/MealsDatePicker";
 import { Utensils, Calendar, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +16,6 @@ export default async function MealsPage({ searchParams }: { searchParams: Promis
     let dietPlanData: any[] = [];
 
     try {
-        await seedMarceloProtocol();
         initialMeals = await getMealsByDate(dateStr);
         dietPlanData = await getDietPlan();
     } catch (error) {
@@ -44,6 +43,8 @@ export default async function MealsPage({ searchParams }: { searchParams: Promis
                     </div>
                     <MealsDatePicker defaultValue={dateStr} />
                 </div>
+
+                <SeedProtocolDialog hasPlan={dietPlanData.length > 0} />
 
                 <Tabs defaultValue="daily" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 h-16 bg-card/30 backdrop-blur-xl rounded-3xl p-1.5 shadow-2xl ring-1 ring-white/5 mb-8">
