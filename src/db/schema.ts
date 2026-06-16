@@ -8,6 +8,9 @@ export const userSettings = pgTable("user_settings", {
   waterGoal: integer("water_goal").default(3000),
   aiContext: text("ai_context"), // Objetivo do usuário para IA
   biometricEnabled: boolean("biometric_enabled").default(false),
+  notifyWorkoutRest: boolean("notify_workout_rest").default(true),
+  notifyWorkoutSet: boolean("notify_workout_set").default(true),
+  notifyMealReminders: boolean("notify_meal_reminders").default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

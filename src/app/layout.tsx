@@ -38,6 +38,8 @@ export const viewport: Viewport = {
 };
 
 import { NotificationInit } from "@/components/NotificationInit";
+import ServiceWorkerRegistry from "@/components/ServiceWorkerRegistry";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export default function RootLayout({
   children,
@@ -53,7 +55,9 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
         >
+          <ServiceWorkerRegistry />
           <NotificationInit />
+          <PWAInstallPrompt />
           {children}
           <Toaster position="top-right" richColors closeButton />
         </body>
@@ -61,3 +65,4 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
+

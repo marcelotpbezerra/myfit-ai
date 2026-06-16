@@ -24,7 +24,24 @@ const NOTIF_ID_WORKOUT_SET = 1002;
 const NOTIF_ID_REST_LIVE = 1003;
 const NOTIF_ID_DUCKING = 999;
 
+type NotificationPrefs = {
+    notifyWorkoutRest: boolean;
+    notifyWorkoutSet: boolean;
+    notifyMealReminders: boolean;
+};
+
+const DEFAULT_PREFS: NotificationPrefs = {
+    notifyWorkoutRest: true,
+    notifyWorkoutSet: true,
+    notifyMealReminders: false,
+};
+
 export const NotificationService = {
+    _prefs: DEFAULT_PREFS,
+
+    setPreferences(prefs: Partial<NotificationPrefs>) {
+        this._prefs = { ...this._prefs, ...prefs };
+    },
     async requestPermissions() {
         if (!Capacitor.isNativePlatform()) {
             if (!("Notification" in window)) return false;
@@ -39,6 +56,15 @@ export const NotificationService = {
         if (!Capacitor.isNativePlatform()) return;
 
         try {
+            // Limpa notificações antigas (ex: refeições de versões passadas) presas no AlarmManager
+            const pending = await LocalNotifications.getPending();
+            if (pending.notifications.length > 0) {
+                await LocalNotifications.cancel({
+                    notifications: pending.notifications.map(n => ({ id: n.id }))
+                });
+                console.log(`[NotificationService] Limpas ${pending.notifications.length} notificações pendentes antigas.`);
+            }
+
             // 1. Criar Canal para Android (Alta Importância para Timers)
             await LocalNotifications.createChannel({
                 id: "workout",
@@ -117,6 +143,7 @@ export const NotificationService = {
             targetReps?: number | null;
         }
     ) {
+        if (!this._prefs.notifyWorkoutRest) return;
         const nextInfo = context?.exerciseName
             ? ` — ${context.exerciseName} (Série ${context.nextSetNumber ?? "?"}/${context.totalSets ?? "?"})`
             : "";
@@ -184,7 +211,6 @@ export const NotificationService = {
                     title,
                     body,
                     id: NOTIF_ID_REST_LIVE,
-                    schedule: { at: new Date(Date.now() + 10) }, // "Agora" (com pequeno buffer)
                     channelId: "workout",
                     actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_REST,
                     extra: { type: "rest_live", ...context }
@@ -218,6 +244,7 @@ export const NotificationService = {
         targetWeight?: string | null;
         targetReps?: number | null;
     }) {
+        if (!this._prefs.notifyWorkoutSet) return;
         const { exerciseName, muscleGroup, setNumber, totalSets, targetWeight, targetReps } = params;
 
         const setInfo = targetWeight && targetReps
@@ -248,14 +275,13 @@ export const NotificationService = {
             notifications: [{ id: NOTIF_ID_WORKOUT_SET }]
         }).catch(() => {});
 
-        // Agenda notificação imediata (100ms de delay para garantir o cancelamento anterior)
+        // Agenda notificação imediata (sem "schedule.at" para disparar via NotificationManager direto)
         await LocalNotifications.schedule({
             notifications: [
                 {
                     title,
                     body,
                     id: NOTIF_ID_WORKOUT_SET,
-                    schedule: { at: new Date(Date.now() + 150) },
                     channelId: "workout",
                     actionTypeId: NOTIFICATION_CATEGORIES.WORKOUT_SET,
                     extra: { type: "workout_set", ...params }

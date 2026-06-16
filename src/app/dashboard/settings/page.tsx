@@ -2,7 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { getUserSettings } from "@/actions/health";
 import { BiometricToggle } from "@/components/BiometricToggle";
 import { AISettings } from "@/components/AISettings";
-import { Settings, ShieldCheck } from "lucide-react";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { Settings, ShieldCheck, Bell } from "lucide-react";
 
 export default async function SettingsPage() {
     const settings = await getUserSettings();
@@ -44,6 +45,23 @@ export default async function SettingsPage() {
                         <h2 className="text-xl font-bold italic">Inteligência Artificial</h2>
                     </div>
                     <AISettings initialContext={aiContext} />
+                </div>
+            </div>
+
+            {/* Notificações */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                    <Bell className="h-5 w-5 text-primary" />
+                    <h2 className="text-xl font-bold italic">Preferências de Notificação</h2>
+                </div>
+                <div className="max-w-md">
+                    <NotificationSettings
+                        initial={{
+                            notifyWorkoutRest: settings?.notifyWorkoutRest ?? true,
+                            notifyWorkoutSet: settings?.notifyWorkoutSet ?? true,
+                            notifyMealReminders: settings?.notifyMealReminders ?? false,
+                        }}
+                    />
                 </div>
             </div>
         </div>

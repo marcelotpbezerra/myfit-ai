@@ -229,6 +229,24 @@ export async function saveHealthSyncData(data: { type: 'sleep_hours' | 'steps'; 
     return { success: true };
 }
 
+export async function updateNotificationPreference(
+    key: "notifyWorkoutRest" | "notifyWorkoutSet" | "notifyMealReminders",
+    value: boolean
+) {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Não autorizado");
+
+    await db.insert(userSettings)
+        .values({ userId, [key]: value })
+        .onConflictDoUpdate({
+            target: userSettings.userId,
+            set: { [key]: value, updatedAt: new Date() },
+        });
+
+    revalidatePath("/dashboard/settings");
+    return { success: true };
+}
+
 export async function getSyncHistory(days = 7) {
     const { userId } = await auth();
     if (!userId) return [];

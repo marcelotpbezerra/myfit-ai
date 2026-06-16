@@ -398,9 +398,10 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
         if (confirm("Deseja encerrar o treino atual? O progresso não salvo em séries individuais será perdido.")) {
             localStorage.removeItem(STORAGE_KEY);
             NotificationService.cancelWorkoutSetNotification(); // Remove notificação do relógio
-            window.location.reload();
+            router.refresh(); // Atualiza dados sem remontar o layout (evita re-auth biométrica)
         }
     };
+
 
     // 2. Prevenção de flicker com Skeleton em vez de null
     if (!isMounted) return <WorkoutSkeleton />;
