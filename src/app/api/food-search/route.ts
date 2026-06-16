@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db";
 import { foods } from "@/db/schema";
-import { ilike } from "drizzle-orm";
+import { and, ilike, eq } from "drizzle-orm";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
 
@@ -22,11 +23,17 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const { userId } = await auth();
+        if (!userId) return NextResponse.json([], { status: 401 });
+
         // --- 1. BUSCA LOCAL (FAST PATH - TACO/SISTEMA) ---
         console.log(`[Nutrition API Route] Buscando localmente: "${query}"...`);
         const localResults = await db.select()
             .from(foods)
-            .where(ilike(foods.nome, `%${query}%`))
+            .where(and(
+                ilike(foods.nome, `%${query}%`),
+                eq(foods.userId, userId)
+            ))
             .limit(15);
 
         if (localResults.length > 0) {
