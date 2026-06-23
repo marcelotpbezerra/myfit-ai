@@ -49,6 +49,24 @@ export const workoutLogs = pgTable("workout_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// 3b. Tabela de Sessões de Treino (resumo por sessão encerrada)
+export const workoutSessions = pgTable("workout_sessions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  localId: text("local_id").notNull().unique(), // ID gerado no cliente para idempotência
+  split: text("split").notNull(),               // "A" | "B" | "C" | "D"
+  totalExercises: integer("total_exercises").default(0),
+  completedExercises: integer("completed_exercises").default(0),
+  totalSets: integer("total_sets").default(0),
+  totalVolume: text("total_volume").default("0"),
+  exercises: jsonb("exercises").default([]),    // resumo agregado por exercício
+  notes: text("notes"),
+  source: text("source").default("phone"),      // "phone" | "watch" | "manual"
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // 4. Tabela de Dieta (Refeições e Consumo)
 export const meals = pgTable("meals", {
   id: serial("id").primaryKey(),

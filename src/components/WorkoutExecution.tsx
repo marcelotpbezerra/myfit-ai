@@ -43,6 +43,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { RestTimer } from "./RestTimer";
 import { cn } from "@/lib/utils";
 
@@ -93,7 +103,7 @@ function WorkoutSkeleton() {
     );
 }
 
-export function WorkoutExecution({ exercises: initialExercises }: { exercises: Exercise[] }) {
+export function WorkoutExecution({ exercises: initialExercises, split = "A" }: { exercises: Exercise[]; split?: string }) {
     const router = useRouter();
     const [orderedExercises, setOrderedExercises] = useState<Exercise[]>(initialExercises);
     const [activeExercise, setActiveExercise] = useState<number | null>(null);
@@ -111,6 +121,9 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     // Track completed sets per exercise
     const [completedSets, setCompletedSets] = useState<Record<number, number>>({});
     const [exerciseFinished, setExerciseFinished] = useState<Record<number, boolean>>({});
+    const [showFinishDialog, setShowFinishDialog] = useState(false);
+    const [isFinishing, setIsFinishing] = useState(false);
+    const [sessionStartedAt, setSessionStartedAt] = useState<Date | null>(null);
 
     // Weights and Reps state for each exercise
     const [inputs, setInputs] = useState<Record<number, { weight: string, reps: string }>>({});
@@ -187,11 +200,14 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                 if (data.activeExercise !== undefined) setActiveExercise(data.activeExercise);
                 if (data.activeRestSession) setActiveRestSession(data.activeRestSession);
                 if (data.lastRestByExercise) setLastRestByExercise(data.lastRestByExercise);
+                setSessionStartedAt(data.sessionStartedAt ? new Date(data.sessionStartedAt) : new Date());
             } catch (e) {
                 console.error("Failed to load workout state", e);
+                setSessionStartedAt(new Date());
             }
         } else {
             setOrderedExercises(initialExercises);
+            setSessionStartedAt(new Date());
         }
         setIsMounted(true);
     }, [initialExercises]);
@@ -208,10 +224,11 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
             notes,
             activeExercise,
             activeRestSession,
-            lastRestByExercise
+            lastRestByExercise,
+            sessionStartedAt: sessionStartedAt?.toISOString(),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, activeRestSession, lastRestByExercise, isMounted]);
+    }, [orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, activeRestSession, lastRestByExercise, sessionStartedAt, isMounted]);
 
     // Auto-scroll logic
     useEffect(() => {
@@ -395,11 +412,54 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
     }, []); // usa refs — sem dependência de closure
 
     const handleFinishWorkout = () => {
-        if (confirm("Deseja encerrar o treino atual? O progresso não salvo em séries individuais será perdido.")) {
-            localStorage.removeItem(STORAGE_KEY);
-            NotificationService.cancelWorkoutSetNotification(); // Remove notificação do relógio
-            router.refresh(); // Atualiza dados sem remontar o layout (evita re-auth biométrica)
+        setShowFinishDialog(true);
+    };
+
+    const confirmFinishWorkout = async () => {
+        setIsFinishing(true);
+        const now = new Date();
+        const startedAt = sessionStartedAt || now;
+        const totalSets = Object.values(completedSets).reduce((a, b) => a + b, 0);
+        const completedExercisesCount = Object.values(exerciseFinished).filter(Boolean).length;
+
+        const payload = {
+            localId: `session-${startedAt.getTime()}`,
+            split,
+            startedAt: startedAt.toISOString(),
+            completedAt: now.toISOString(),
+            totalExercises: orderedExercises.length,
+            completedExercises: completedExercisesCount,
+            totalSets,
+            exercises: orderedExercises.map((ex) => ({
+                exerciseId: ex.id,
+                exerciseName: ex.name,
+                muscleGroup: ex.muscleGroup ?? null,
+                split,
+                completedSets: completedSets[ex.id] || 0,
+                targetSets: ex.targetSets || 0,
+                targetReps: ex.targetReps ?? null,
+                targetWeight: ex.targetWeight ?? null,
+                weight: inputs[ex.id]?.weight || ex.targetWeight || null,
+                reps: parseInt(inputs[ex.id]?.reps || "0") || ex.targetReps || null,
+                notes: notes[ex.id] || null,
+            })),
+            source: "phone" as const,
+        };
+
+        try {
+            await fetch("/api/workout/session-completion", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+        } catch (err) {
+            console.warn("[WorkoutExecution] session-completion falhou, sessão não registrada:", err);
         }
+
+        localStorage.removeItem(STORAGE_KEY);
+        NotificationService.cancelWorkoutSetNotification();
+        setIsFinishing(false);
+        router.refresh();
     };
 
 
@@ -744,6 +804,36 @@ export function WorkoutExecution({ exercises: initialExercises }: { exercises: E
                     ENCERRAR TREINO ATUAL
                 </Button>
             </motion.div>
+
+            <AlertDialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+                <AlertDialogContent size="sm" className="rounded-3xl border-none bg-[#0F1115] ring-1 ring-white/10">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white font-black uppercase tracking-widest text-base text-center">
+                            Encerrar treino?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-center text-muted-foreground text-sm">
+                            {Object.values(completedSets).reduce((a, b) => a + b, 0) > 0
+                                ? `${Object.values(completedSets).reduce((a, b) => a + b, 0)} série(s) registradas serão salvas. O treino será encerrado.`
+                                : "Nenhuma série foi registrada ainda. O treino será encerrado."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2 sm:gap-2">
+                        <AlertDialogCancel
+                            className="rounded-2xl font-black uppercase tracking-widest text-xs h-12"
+                            onClick={() => setShowFinishDialog(false)}
+                        >
+                            Continuar
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="rounded-2xl font-black uppercase tracking-widest text-xs h-12 bg-primary hover:bg-primary/90"
+                            onClick={() => { void confirmFinishWorkout(); }}
+                            disabled={isFinishing}
+                        >
+                            {isFinishing ? "Salvando..." : "Encerrar Treino"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <AnimatePresence>
                 {showTimer && (

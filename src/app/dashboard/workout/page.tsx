@@ -119,10 +119,10 @@ export default async function WorkoutPage({ searchParams }: { searchParams: Prom
                                     {currentSplit.includes("D") && <TabsTrigger value="D" className="px-6 rounded-xl font-black">TREINO D</TabsTrigger>}
                                 </TabsList>
                             </div>
-                            <TabsContent value="A"><WorkoutExecution exercises={exercisesA} /></TabsContent>
-                            <TabsContent value="B"><WorkoutExecution exercises={exercisesB} /></TabsContent>
-                            <TabsContent value="C"><WorkoutExecution exercises={exercisesC} /></TabsContent>
-                            <TabsContent value="D"><WorkoutExecution exercises={exercisesD} /></TabsContent>
+                            <TabsContent value="A"><WorkoutExecution exercises={exercisesA} split="A" /></TabsContent>
+                            <TabsContent value="B"><WorkoutExecution exercises={exercisesB} split="B" /></TabsContent>
+                            <TabsContent value="C"><WorkoutExecution exercises={exercisesC} split="C" /></TabsContent>
+                            <TabsContent value="D"><WorkoutExecution exercises={exercisesD} split="D" /></TabsContent>
                         </Tabs>
                     </TabsContent>
 
