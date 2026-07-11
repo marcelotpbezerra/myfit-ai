@@ -3,6 +3,7 @@
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
     logSet,
     updateTargetWeight,
@@ -447,18 +448,37 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
         };
 
         try {
-            await fetch("/api/workout/session-completion", {
+            const response = await fetch("/api/workout/session-completion", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
+
+            if (response.ok) {
+                toast.success(`Treino ${split} concluído! ${totalSets} série${totalSets !== 1 ? "s" : ""} registrada${totalSets !== 1 ? "s" : ""}.`, {
+                    description: "Parabéns pela dedicação! 💪",
+                    duration: 5000,
+                });
+            } else {
+                const err = await response.json().catch(() => ({}));
+                console.warn("[WorkoutExecution] session-completion retornou erro:", response.status, err);
+                toast.error("Erro ao registrar a sessão de treino.", {
+                    description: "As séries individuais foram salvas. Tente encerrar novamente.",
+                    duration: 6000,
+                });
+            }
         } catch (err) {
-            console.warn("[WorkoutExecution] session-completion falhou, sessão não registrada:", err);
+            console.warn("[WorkoutExecution] session-completion falhou (rede):", err);
+            toast.warning("Sem conexão. As séries foram salvas localmente.", {
+                description: "A sessão será sincronizada ao reconectar.",
+                duration: 6000,
+            });
         }
 
         localStorage.removeItem(STORAGE_KEY);
         NotificationService.cancelWorkoutSetNotification();
         setIsFinishing(false);
+        setShowFinishDialog(false);
         router.refresh();
     };
 

@@ -110,6 +110,15 @@ export function RestTimer({
     const didFinishRef = useRef(false);
     const timeLeft = restSession.remainingSeconds;
 
+    // Mantém a versão mais recente de restSession acessível sem forçar o efeito
+    // de notificação/listeners abaixo a re-executar a cada tick (era a causa raiz
+    // do bug: cancelar+reagendar a notificação de descanso a cada 1s, o que fazia
+    // o alerta final "perseguir" sempre `duration` segundos à frente e nunca disparar).
+    const restSessionRef = useRef(restSession);
+    useEffect(() => {
+        restSessionRef.current = restSession;
+    }, [restSession]);
+
     const commitRestSession = (nextSession: RestSession) => {
         setRestSession(nextSession);
         onRestChange?.(nextSession);
@@ -119,7 +128,7 @@ export function RestTimer({
     const finishRest = (status: "completed" | "skipped" = "completed") => {
         if (didFinishRef.current) return;
         didFinishRef.current = true;
-        const finished = completeRestSession(restSession, status);
+        const finished = completeRestSession(restSessionRef.current, status);
         commitRestSession(finished);
         onRestComplete?.(finished);
         onComplete?.();
@@ -145,7 +154,7 @@ export function RestTimer({
 
         const handleSubtract10s = () => {
             console.log("WearOS: Subtraindo 10s");
-            const nextSession = adjustRestSession(restSession, -10);
+            const nextSession = adjustRestSession(restSessionRef.current, -10);
             commitRestSession(nextSession);
             // Reagenda notificação com tempo atualizado
             NotificationService.scheduleRestNotification(nextSession.remainingSeconds, {
@@ -159,7 +168,7 @@ export function RestTimer({
 
         const handleExtend30s = () => {
             console.log("WearOS: Adicionando 30s");
-            const nextSession = adjustRestSession(restSession, 30);
+            const nextSession = adjustRestSession(restSessionRef.current, 30);
             commitRestSession(nextSession);
             NotificationService.scheduleRestNotification(nextSession.remainingSeconds, {
                 exerciseName,
@@ -183,7 +192,14 @@ export function RestTimer({
             window.removeEventListener('notification:skip_rest', handleStartNextSet);
             NotificationService.cancelRestNotifications();
         };
-    }, [restSession]); // eslint-disable-line react-hooks/exhaustive-deps
+        // Roda uma única vez por sessão de descanso — o RestTimer é remontado a
+        // cada novo período de descanso (`{showTimer && <RestTimer ... />}` em
+        // WorkoutExecution). NÃO adicionar `restSession` aqui: ele muda a cada
+        // tick (1x/seg) e recriava este efeito ~60x/min, cancelando e reagendando
+        // a notificação de "descanso finalizado" com o `duration` total a cada
+        // vez — o alerta nunca chegava a disparar de fato.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (timeLeft <= 0) {

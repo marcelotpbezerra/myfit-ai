@@ -107,6 +107,10 @@ export async function logSet(data: {
     });
 
     revalidatePath("/dashboard/workout");
+    // getTodayWorkoutStatus() (usado pelo card "Treino Concluído" do dashboard
+    // inicial) lê workoutLogs diretamente — sem isto o /dashboard só refletia
+    // o treino do dia após um refresh manual do navegador.
+    revalidatePath("/dashboard");
 }
 
 export async function addExerciseToWorkout(data: {

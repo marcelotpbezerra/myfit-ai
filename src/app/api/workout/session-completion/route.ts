@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { and, desc, eq, sql } from "drizzle-orm";
 
@@ -107,6 +108,12 @@ export async function POST(req: NextRequest) {
     };
 
     await db.insert(workoutSessions).values(storedSession).onConflictDoNothing();
+
+    // Sem isto, o dashboard inicial (/dashboard) continuava servindo o RSC
+    // cacheado de antes do treino — router.refresh() no client só revalida a
+    // rota atualmente montada (/dashboard/workout), não outras rotas.
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/workout");
 
     let forwardedToStack = false;
     const webhookUrl = process.env.STACK_PERFORMANCE_WEBHOOK_URL?.trim();
