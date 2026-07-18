@@ -1,13 +1,13 @@
 "use client";
 
 import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useCallback, useState, useTransition, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
     logSet,
     updateTargetWeight,
-    getUserSettings,
     syncExerciseTutorial,
     removeExerciseTutorial
 } from "@/actions/workout";
@@ -17,32 +17,19 @@ import { createRestSession, RestSession, serializeRestForLog } from "@/lib/rest-
 import {
     ChevronRight,
     ChevronDown,
-    ChevronUp,
     Dumbbell,
     History,
-    Play,
-    Pause,
-    RotateCcw,
-    Save,
     Trash2,
     GripVertical,
-    Plus,
-    Search,
-    Info,
-    Clock,
-    ExternalLink,
     CheckCircle2,
-    Circle,
     TrendingUp,
-    Settings2,
-    AlertTriangle,
     NotebookPen,
     Zap,
     Flag,
     RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
     AlertDialog,
@@ -68,7 +55,8 @@ interface Exercise {
     gifUrl?: string | null;
 }
 
-const STORAGE_KEY = "myfit_workout_session_v1";
+const LEGACY_STORAGE_KEY = "myfit_workout_session_v1";
+const getStorageKey = (split: string) => `myfit_workout_session_v2_${split}`;
 
 // 1. Skeleton Loader para evitar o flicker de hidratação (Next.js 15)
 function WorkoutSkeleton() {
@@ -106,6 +94,7 @@ function WorkoutSkeleton() {
 
 export function WorkoutExecution({ exercises: initialExercises, split = "A" }: { exercises: Exercise[]; split?: string }) {
     const router = useRouter();
+    const storageKey = getStorageKey(split);
     const [orderedExercises, setOrderedExercises] = useState<Exercise[]>(initialExercises);
     const [activeExercise, setActiveExercise] = useState<number | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -133,6 +122,21 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
     const [showNotes, setShowNotes] = useState<Record<string, boolean>>({});
 
     const [isMounted, setIsMounted] = useState(false);
+
+    const resetWorkoutSession = useCallback(() => {
+        setOrderedExercises(initialExercises);
+        setCompletedSets({});
+        setExerciseFinished({});
+        setInputs({});
+        setNotes({});
+        setActiveExercise(null);
+        setShowTimer(false);
+        setActiveRestSession(null);
+        setLastRestByExercise({});
+        setExerciseStartedAt({});
+        setShowNotes({});
+        setSessionStartedAt(new Date());
+    }, [initialExercises]);
 
     /**
      * Ref mantida em sync com o estado atual da série focada.
@@ -185,23 +189,30 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
     }, [showTimer]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Load state from localStorage on mount
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+
+        const saved = localStorage.getItem(storageKey);
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                if (data.orderedExercises) {
-                    // Ignora a ordem do localStorage para respeitar o que o usuário definiu no WorkoutBuilder (server-side)
-                    // No WorkoutExecution, o drag-n-drop é apenas para a sessão atual
+                if (data.split && data.split !== split) {
+                    localStorage.removeItem(storageKey);
+                } else {
+                    if (data.orderedExercises) {
+                        // Ignora a ordem do localStorage para respeitar o que o usuário definiu no WorkoutBuilder (server-side)
+                        // No WorkoutExecution, o drag-n-drop é apenas para a sessão atual
+                    }
+                    if (data.completedSets) setCompletedSets(data.completedSets);
+                    if (data.exerciseFinished) setExerciseFinished(data.exerciseFinished);
+                    if (data.inputs) setInputs(data.inputs);
+                    if (data.notes) setNotes(data.notes);
+                    if (data.activeExercise !== undefined) setActiveExercise(data.activeExercise);
+                    if (data.activeRestSession) setActiveRestSession(data.activeRestSession);
+                    if (data.lastRestByExercise) setLastRestByExercise(data.lastRestByExercise);
+                    setSessionStartedAt(data.sessionStartedAt ? new Date(data.sessionStartedAt) : new Date());
                 }
-                if (data.completedSets) setCompletedSets(data.completedSets);
-                if (data.exerciseFinished) setExerciseFinished(data.exerciseFinished);
-                if (data.inputs) setInputs(data.inputs);
-                if (data.notes) setNotes(data.notes);
-                if (data.activeExercise !== undefined) setActiveExercise(data.activeExercise);
-                if (data.activeRestSession) setActiveRestSession(data.activeRestSession);
-                if (data.lastRestByExercise) setLastRestByExercise(data.lastRestByExercise);
-                setSessionStartedAt(data.sessionStartedAt ? new Date(data.sessionStartedAt) : new Date());
             } catch (e) {
                 console.error("Failed to load workout state", e);
                 setSessionStartedAt(new Date());
@@ -211,13 +222,15 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
             setSessionStartedAt(new Date());
         }
         setIsMounted(true);
-    }, [initialExercises]);
+    }, [initialExercises, split, storageKey]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     // Save state to localStorage on every change
     useEffect(() => {
         if (!isMounted) return;
 
         const stateToSave = {
+            split,
             orderedExercises,
             completedSets,
             exerciseFinished,
@@ -228,8 +241,8 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
             lastRestByExercise,
             sessionStartedAt: sessionStartedAt?.toISOString(),
         };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, activeRestSession, lastRestByExercise, sessionStartedAt, isMounted]);
+        localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+    }, [split, storageKey, orderedExercises, completedSets, exerciseFinished, inputs, notes, activeExercise, activeRestSession, lastRestByExercise, sessionStartedAt, isMounted]);
 
     // Auto-scroll logic
     useEffect(() => {
@@ -475,7 +488,8 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
             });
         }
 
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storageKey);
+        resetWorkoutSession();
         NotificationService.cancelWorkoutSetNotification();
         setIsFinishing(false);
         setShowFinishDialog(false);
@@ -732,7 +746,14 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
                                                                 exit={{ opacity: 0, scale: 0.95 }}
                                                                 className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black/40"
                                                             >
-                                                                <img src={ex.gifUrl} alt={ex.name} className="w-full aspect-video object-contain" />
+                                                                <Image
+                                                                    src={ex.gifUrl}
+                                                                    alt={ex.name}
+                                                                    width={640}
+                                                                    height={360}
+                                                                    unoptimized
+                                                                    className="w-full aspect-video object-contain"
+                                                                />
                                                             </motion.div>
                                                         )}
                                                     </AnimatePresence>
