@@ -13,6 +13,7 @@ import {
 } from "@/actions/workout";
 import { enqueueSync } from "@/lib/sync-manager";
 import { NotificationService } from "@/lib/notifications";
+import { publishWearWorkoutState } from "@/lib/wear-bridge";
 import { createRestSession, RestSession, serializeRestForLog } from "@/lib/rest-engine";
 import {
     ChevronRight,
@@ -185,6 +186,13 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
                 targetWeight: inputs[activeExercise]?.weight || ex.targetWeight,
                 targetReps: ex.targetReps,
             });
+            void publishWearWorkoutState({
+                workoutSessionId: sessionStartedAt?.toISOString() ?? `split-${split}`,
+                exerciseName: ex.name,
+                setNumber: nextSet,
+                totalSets: ex.targetSets || 3,
+                restEndsAtEpochMs: 0,
+            });
         }
     }, [showTimer]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -281,6 +289,13 @@ export function WorkoutExecution({ exercises: initialExercises, split = "A" }: {
                 totalSets: ex.targetSets || 3,
                 targetWeight: inputs[exerciseId]?.weight || ex.targetWeight,
                 targetReps: ex.targetReps,
+            });
+            void publishWearWorkoutState({
+                workoutSessionId: sessionStartedAt?.toISOString() ?? `split-${split}`,
+                exerciseName: ex.name,
+                setNumber: currentSet,
+                totalSets: ex.targetSets || 3,
+                restEndsAtEpochMs: 0,
             });
         }
     };

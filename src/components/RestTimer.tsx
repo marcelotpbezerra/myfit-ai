@@ -31,6 +31,7 @@ interface RestTimerProps {
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { NotificationService } from "@/lib/notifications";
+import { publishWearWorkoutState } from "@/lib/wear-bridge";
 import {
     adjustRestSession,
     completeRestSession,
@@ -145,6 +146,13 @@ export function RestTimer({
             targetWeight,
             targetReps,
         });
+        void publishWearWorkoutState({
+            workoutSessionId: restSessionRef.current.workoutId ?? restSessionRef.current.id,
+            exerciseName,
+            setNumber: nextSetNumber ?? 0,
+            totalSets: totalSets ?? 0,
+            restEndsAtEpochMs: Date.now() + restSessionRef.current.remainingSeconds * 1000,
+        });
 
         // Listeners para ações do WearOS / Notificação
         const handleStartNextSet = () => {
@@ -224,6 +232,13 @@ export function RestTimer({
                     exerciseName,
                     nextSetNumber,
                     totalSets
+                });
+                void publishWearWorkoutState({
+                    workoutSessionId: nextSession.workoutId ?? nextSession.id,
+                    exerciseName,
+                    setNumber: nextSetNumber ?? 0,
+                    totalSets: totalSets ?? 0,
+                    restEndsAtEpochMs: Date.now() + nextSession.remainingSeconds * 1000,
                 });
             }
         }, 1000);
