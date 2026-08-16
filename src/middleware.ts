@@ -4,7 +4,10 @@ const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)", "
 
 export default clerkMiddleware(async (auth, request) => {
     if (!isPublicRoute(request)) {
-        await auth.protect();
+        // Sem unauthenticatedUrl, auth.protect() renderiza um 404 (not-found)
+        // pra quem não tem sessão, em vez de mandar pro /sign-in — era a causa
+        // real do /dashboard 404 (x-clerk-auth-reason: protect-rewrite).
+        await auth.protect({ unauthenticatedUrl: new URL("/sign-in", request.url).toString() });
     }
 });
 
